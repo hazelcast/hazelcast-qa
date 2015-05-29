@@ -17,6 +17,8 @@
 package com.hazelcast.qasonar;
 
 import com.hazelcast.qa.PropertyReader;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 
@@ -33,12 +35,18 @@ public final class QaSonar {
             return;
         }
 
-        CodeCoverageReader reader = new CodeCoverageReader(propertyReader);
+        GitHub github = GitHub.connect();
+        GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
+
+        CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
         for (Integer pullRequest : commandLineOptions.getPullRequests()) {
             reader.addPullRequest(pullRequest);
         }
 
-        CodeCoveragePrinter printer = new CodeCoveragePrinter(reader.getTableEntries(), propertyReader);
+        CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo);
+        analyzer.run();
+
+        CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader);
         printer.run();
     }
 }

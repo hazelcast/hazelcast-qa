@@ -22,13 +22,30 @@ public class TableEntry {
 
     String pullRequest;
     String fileName;
+    String simpleName;
 
     String coverage;
     String lineCoverage;
     String branchCoverage;
 
     String comment;
-    String qaCheck;
+    boolean qaCheck;
 
     double numericCoverage;
+    double numericLineCoverage;
+    double numericBranchCoverage;
+
+    void pass() {
+        this.qaCheck = true;
+    }
+
+    void pass(String comment) {
+        this.qaCheck = true;
+        this.comment = comment;
+    }
+
+    void fail(String comment) {
+        this.qaCheck = false;
+        this.comment = comment;
+    }
 }

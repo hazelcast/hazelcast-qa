@@ -50,9 +50,9 @@ public class CodeCoveragePrinter {
             sb.append("|").append(formatCoverage(tableEntry.lineCoverage));
             sb.append("|").append(formatCoverage(tableEntry.branchCoverage));
             sb.append("|").append(formatNullable(tableEntry.comment, " "));
-            sb.append("|").append(formatNullable(tableEntry.qaCheck, "FAIL"));
+            sb.append("|").append(tableEntry.qaCheck ? "OK" : "FAIL");
             sb.append("|\n");
-            if ("OK".equals(tableEntry.qaCheck)) {
+            if (tableEntry.qaCheck) {
                 qaCheckPassCount++;
             }
         }

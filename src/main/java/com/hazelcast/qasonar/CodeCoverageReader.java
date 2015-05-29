@@ -23,7 +23,6 @@ import com.hazelcast.qa.PropertyReader;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
 import org.kohsuke.github.PagedIterable;
 
 import java.io.IOException;
@@ -31,10 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.hazelcast.qa.Utils.getFileContentsFromGitHub;
 import static com.hazelcast.qa.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
-import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 public class CodeCoverageReader {
 
@@ -46,11 +43,9 @@ public class CodeCoverageReader {
     private final PropertyReader props;
     private final GHRepository repo;
 
-    public CodeCoverageReader(PropertyReader propertyReader) throws IOException {
+    public CodeCoverageReader(PropertyReader propertyReader, GHRepository repo) throws IOException {
         this.props = propertyReader;
-
-        GitHub github = GitHub.connect();
-        this.repo = github.getRepository(propertyReader.getGitHubRepository());
+        this.repo = repo;
 
         populateResourcesMap();
     }
@@ -60,25 +55,6 @@ public class CodeCoverageReader {
     }
 
     public void addPullRequest(int gitPullRequest) throws IOException {
-        populateTableEntries(gitPullRequest);
-    }
-
-    private void populateResourcesMap() throws IOException {
-        String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1",
-                props.getHost(), props.getProjectResourceId());
-        JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
-        for (JsonElement jsonElement : array) {
-            JsonObject resource = jsonElement.getAsJsonObject();
-            if (!"FIL".equals(resource.get("scope").getAsString())) {
-                continue;
-            }
-            int resourceId = resource.get("id").getAsInt();
-            String fileName = resource.get("lname").getAsString();
-            resources.put(fileName, resourceId);
-        }
-    }
-
-    private void populateTableEntries(int gitPullRequest) throws IOException {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
             String gitFileName = pullRequestFile.getFilename();
             Integer resourceId = getResourceIdOrNull(gitFileName);
@@ -94,16 +70,8 @@ public class CodeCoverageReader {
             tableEntry.fileName = gitFileName;
             tableEntry.pullRequest = String.valueOf(gitPullRequest);
 
-            if (resourceId == null) {
-                tableEntry.qaCheck = "OK";
-                if (gitFileName.endsWith(".java")) {
-                    addWithComment(gitFileName, tableEntry, "deleted");
-                } else {
-                    addWithComment(gitFileName, tableEntry, "no Java file");
-                }
-                continue;
-            } else if (gitFileName.startsWith("hazelcast-client-new")) {
-                addWithComment(gitFileName, tableEntry, "new client is not in SonarQube");
+            if (resourceId == null || gitFileName.startsWith("hazelcast-client-new")) {
+                tableEntries.put(gitFileName, tableEntry);
                 continue;
             }
 
@@ -111,52 +79,29 @@ public class CodeCoverageReader {
             JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
-                String simpleName = resource.get("name").getAsString();
-                if (!simpleName.endsWith(".java") || simpleName.equals("package-info.java")) {
-                    tableEntry.qaCheck = "OK";
-                    addWithComment(gitFileName, tableEntry, "no Java class");
-                    continue;
-                }
+                tableEntry.simpleName = resource.get("name").getAsString();
 
-                if (!resource.has("msr")) {
-                    String fileContents = getFileContentsFromGitHub(repo, gitFileName);
-                    String baseName = removeExtension(simpleName);
-                    if (fileContents.contains(" interface " + baseName)) {
-                        tableEntry.qaCheck = "OK";
-                        addWithComment(gitFileName, tableEntry, "Interface");
-                    } else if (fileContents.contains("@RunWith")) {
-                        tableEntry.qaCheck = "OK";
-                        addWithComment(gitFileName, tableEntry, "Test");
-                    } else {
-                        addWithComment(gitFileName, tableEntry, "code coverage not found");
-                    }
-                    continue;
-                }
-
-                for (JsonElement metricElement : resource.get("msr").getAsJsonArray()) {
-                    JsonObject metric = metricElement.getAsJsonObject();
-                    String key = metric.get("key").getAsString();
-                    String value = metric.get("frmt_val").getAsString();
-                    if ("coverage".equals(key)) {
-                        tableEntry.coverage = value;
-                        tableEntry.numericCoverage = metric.get("val").getAsDouble();
-                    } else if ("line_coverage".equals(key)) {
-                        tableEntry.lineCoverage = value;
-                    } else if ("branch_coverage".equals(key)) {
-                        tableEntry.branchCoverage = value;
-                    } else {
-                        tableEntry.comment = "unknown metric key: " + key;
-                    }
-                }
-
-                if (tableEntry.numericCoverage > props.getMinCodeCoverage()) {
-                    tableEntry.qaCheck = "OK";
-                } else if (tableEntry.comment == null) {
-                    tableEntry.comment = "code coverage below " + props.getMinCodeCoverage() + "%";
+                if (resource.has("msr")) {
+                    setMetrics(tableEntry, resource);
                 }
 
                 tableEntries.put(gitFileName, tableEntry);
             }
+        }
+    }
+
+    private void populateResourcesMap() throws IOException {
+        String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1",
+                props.getHost(), props.getProjectResourceId());
+        JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
+        for (JsonElement jsonElement : array) {
+            JsonObject resource = jsonElement.getAsJsonObject();
+            if (!"FIL".equals(resource.get("scope").getAsString())) {
+                continue;
+            }
+            int resourceId = resource.get("id").getAsInt();
+            String fileName = resource.get("lname").getAsString();
+            resources.put(fileName, resourceId);
         }
     }
 
@@ -176,8 +121,23 @@ public class CodeCoverageReader {
         return null;
     }
 
-    private void addWithComment(String gitFileName, TableEntry tableEntry, String comment) {
-        tableEntry.comment = comment;
-        tableEntries.put(gitFileName, tableEntry);
+    private void setMetrics(TableEntry tableEntry, JsonObject resource) {
+        for (JsonElement metricElement : resource.get("msr").getAsJsonArray()) {
+            JsonObject metric = metricElement.getAsJsonObject();
+            String key = metric.get("key").getAsString();
+            String value = metric.get("frmt_val").getAsString();
+            if ("coverage".equals(key)) {
+                tableEntry.coverage = value;
+                tableEntry.numericCoverage = metric.get("val").getAsDouble();
+            } else if ("line_coverage".equals(key)) {
+                tableEntry.lineCoverage = value;
+                tableEntry.numericLineCoverage = metric.get("val").getAsDouble();
+            } else if ("branch_coverage".equals(key)) {
+                tableEntry.branchCoverage = value;
+                tableEntry.numericBranchCoverage = metric.get("val").getAsDouble();
+            } else {
+                throw new IllegalStateException("unknown metric key: " + key);
+            }
+        }
     }
 }
