@@ -48,4 +48,4 @@ Use the bash scripts with the created JAR file.
 
 A tool to generate a code coverage table from a list of pull requests
 
-Usage: `qa-sonar --pullRequest 1,2,3 --minCodeCoverage 87.5`
+Usage: `qa-sonar --pullRequests 1,2,3 --minCodeCoverage 87.5`
