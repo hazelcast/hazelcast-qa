@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cd target
+
+JAVA_OPTS="-server -Xms64m -Xmx1g ${JAVA_EXTRA_OPTS}"
+
+java ${JAVA_OPTS} -jar hazelcast-qa.jar "$@"
