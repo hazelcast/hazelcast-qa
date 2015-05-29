@@ -108,7 +108,6 @@ public class CodeCoverageReader {
             }
 
             String query = format("https://%s/api/resources?resource=%d&metrics=%s", props.getHost(), resourceId, METRICS_LIST);
-            System.out.println(query);
             JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
