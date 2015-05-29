@@ -79,7 +79,6 @@ public class CodeCoverageReader {
             JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
-                tableEntry.simpleName = resource.get("name").getAsString();
 
                 if (resource.has("msr")) {
                     setMetrics(tableEntry, resource);

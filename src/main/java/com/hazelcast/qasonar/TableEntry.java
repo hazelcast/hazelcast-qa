@@ -22,7 +22,6 @@ public class TableEntry {
 
     String pullRequest;
     String fileName;
-    String simpleName;
 
     String coverage;
     String lineCoverage;

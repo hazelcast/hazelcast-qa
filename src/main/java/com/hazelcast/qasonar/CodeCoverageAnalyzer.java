@@ -19,12 +19,13 @@ package com.hazelcast.qasonar;
 import com.hazelcast.qa.PropertyReader;
 import org.kohsuke.github.GHRepository;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
 import static com.hazelcast.qa.Utils.getFileContentsFromGitHub;
-import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class CodeCoverageAnalyzer {
 
@@ -46,29 +47,23 @@ public class CodeCoverageAnalyzer {
         for (TableEntry tableEntry : tableEntries.values()) {
             String resourceId = tableEntry.resourceId;
             String gitFileName = tableEntry.fileName;
-            String simpleName = tableEntry.simpleName;
 
             if (resourceId == null) {
                 checkFileNotFoundInSonar(tableEntry, gitFileName);
                 continue;
             }
 
-            if (gitFileName.startsWith("hazelcast-client-new")) {
-                tableEntry.fail("new client is not in SonarQube");
-                continue;
-            }
-
-            if (!simpleName.endsWith(".java") || simpleName.equals("package-info.java")) {
+            if (!gitFileName.endsWith(".java")) {
                 tableEntry.pass("no Java class");
                 continue;
             }
 
             if (tableEntry.coverage == null) {
-                checkFileWithoutCoverage(tableEntry, gitFileName, simpleName);
+                checkFileWithoutCoverage(tableEntry, gitFileName);
                 continue;
             }
 
-            checkCodeCoverage(tableEntry);
+            checkCodeCoverage(tableEntry, gitFileName);
         }
     }
 
@@ -80,20 +75,32 @@ public class CodeCoverageAnalyzer {
         }
     }
 
-    private void checkFileWithoutCoverage(TableEntry tableEntry, String gitFileName, String simpleName) throws IOException {
-        String fileContents = getFileContentsFromGitHub(repo, gitFileName);
-        String baseName = removeExtension(simpleName);
-        if (fileContents.contains(" interface " + baseName)) {
+    private void checkFileWithoutCoverage(TableEntry tableEntry, String gitFileName) throws IOException {
+        String baseName = getBaseName(gitFileName);
+        String fileContents;
+        try {
+            fileContents = getFileContentsFromGitHub(repo, gitFileName);
+        } catch (FileNotFoundException ignored) {
+            tableEntry.pass("deleted in newer PR");
+            return;
+        }
+        if (baseName.equals("package-info")) {
+            tableEntry.pass("Package info");
+        } else if (fileContents.contains(" interface " + baseName)) {
             tableEntry.pass("Interface");
-        } else if (fileContents.contains("@RunWith")) {
+        } else if (fileContents.contains("@RunWith") || gitFileName.contains("/src/test/java/")) {
             tableEntry.pass("Test");
+        } else if (gitFileName.startsWith("hazelcast-client-new")) {
+            tableEntry.fail("new client is not in SonarQube");
         } else {
             tableEntry.fail("code coverage not found");
         }
     }
 
-    private void checkCodeCoverage(TableEntry tableEntry) {
-        if (tableEntry.numericCoverage > props.getMinCodeCoverage()) {
+    private void checkCodeCoverage(TableEntry tableEntry, String gitFileName) {
+        if (gitFileName.matches(".*/client/[^/]+Request\\.java")) {
+            tableEntry.pass("whitelisted cross module");
+        } else if (tableEntry.numericCoverage > props.getMinCodeCoverage()) {
             tableEntry.pass();
         } else if (tableEntry.comment == null) {
             tableEntry.fail("code coverage below " + props.getMinCodeCoverage() + "%");
