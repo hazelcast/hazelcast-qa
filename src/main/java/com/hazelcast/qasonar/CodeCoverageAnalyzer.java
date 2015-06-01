@@ -45,33 +45,23 @@ public class CodeCoverageAnalyzer {
 
     public void run() throws IOException {
         for (TableEntry tableEntry : tableEntries.values()) {
-            String resourceId = tableEntry.resourceId;
             String gitFileName = tableEntry.fileName;
 
-            if (resourceId == null) {
-                checkFileNotFoundInSonar(tableEntry, gitFileName);
+            if (!gitFileName.endsWith(".java")) {
+                tableEntry.pass("no Java file");
                 continue;
             }
 
-            if (!gitFileName.endsWith(".java")) {
-                tableEntry.pass("no Java class");
+            if (tableEntry.status == GitHubStatus.REMOVED) {
+                tableEntry.pass(GitHubStatus.REMOVED.toString());
                 continue;
             }
 
             if (tableEntry.coverage == null) {
                 checkFileWithoutCoverage(tableEntry, gitFileName);
-                continue;
+            } else {
+                checkCodeCoverage(tableEntry);
             }
-
-            checkCodeCoverage(tableEntry, gitFileName);
-        }
-    }
-
-    private void checkFileNotFoundInSonar(TableEntry tableEntry, String gitFileName) {
-        if (gitFileName.endsWith(".java")) {
-            tableEntry.pass("deleted");
-        } else {
-            tableEntry.pass("no Java file");
         }
     }
 
@@ -92,15 +82,15 @@ public class CodeCoverageAnalyzer {
             tableEntry.pass("Test");
         } else if (gitFileName.startsWith("hazelcast-client-new")) {
             tableEntry.fail("new client is not in SonarQube");
+        } else if (gitFileName.matches(".*/client/[^/]+Request\\.java")) {
+            tableEntry.pass("whitelisted cross module");
         } else {
             tableEntry.fail("code coverage not found");
         }
     }
 
-    private void checkCodeCoverage(TableEntry tableEntry, String gitFileName) {
-        if (gitFileName.matches(".*/client/[^/]+Request\\.java")) {
-            tableEntry.pass("whitelisted cross module");
-        } else if (tableEntry.numericCoverage > props.getMinCodeCoverage()) {
+    private void checkCodeCoverage(TableEntry tableEntry) {
+        if (tableEntry.numericCoverage > props.getMinCodeCoverage()) {
             tableEntry.pass();
         } else if (tableEntry.comment == null) {
             tableEntry.fail("code coverage below " + props.getMinCodeCoverage() + "%");
