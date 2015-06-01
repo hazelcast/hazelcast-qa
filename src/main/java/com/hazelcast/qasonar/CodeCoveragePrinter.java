@@ -22,49 +22,97 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static com.hazelcast.qa.Utils.fillString;
 import static com.hazelcast.qa.Utils.formatCoverage;
-import static com.hazelcast.qa.Utils.formatSonarQubeLink;
 import static com.hazelcast.qa.Utils.formatFileName;
+import static com.hazelcast.qa.Utils.formatGitHubChanges;
+import static com.hazelcast.qa.Utils.formatGitHubStatus;
+import static com.hazelcast.qa.Utils.formatMinWidth;
 import static com.hazelcast.qa.Utils.formatNullable;
+import static com.hazelcast.qa.Utils.formatSonarQubeLink;
 
 public class CodeCoveragePrinter {
 
+    private static final int FILE_NAME_WIDTH = 100;
+    private static final int COMMENT_WIDTH = 25;
+
     private final Map<String, TableEntry> tableEntries;
     private final PropertyReader props;
+
+    private String spacer;
+    private String separator;
 
     public CodeCoveragePrinter(Map<String, TableEntry> tableEntries, PropertyReader props) {
         this.tableEntries = tableEntries;
         this.props = props;
     }
 
-    public void run() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("||Sonar||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA||\n");
+    public void plain() {
+        spacer = " ";
+        separator = " | ";
 
-        int qaCheckPassCount = appendTableEntries(sb);
+        StringBuilder sb = new StringBuilder();
+        sb.append("|-").append(fillString(5, '-'))
+                .append("-|-").append(fillString(4, '-'))
+                .append("-|-").append(fillString(FILE_NAME_WIDTH, '-'))
+                .append("-|-").append(fillString(8, '-'))
+                .append("-|-").append(fillString(4, '-'))
+                .append("-|-").append(fillString(4, '-'))
+                .append("-|-").append(fillString(6, '-'))
+                .append("-|-").append(fillString(6, '-'))
+                .append("-|-").append(fillString(6, '-'))
+                .append("-|-").append(fillString(COMMENT_WIDTH, '-'))
+                .append("-|-").append(fillString(4, '-'))
+                .append("-|\n");
+
+        String tableSeparator = sb.toString();
+
+        sb.append("| Sonar | PRs  | ")
+                .append(formatMinWidth("File", FILE_NAME_WIDTH))
+                .append(" | Status   | Add  | Del  | Cover  | Line   | Branch | ")
+                .append(formatMinWidth("Comment", COMMENT_WIDTH))
+                .append(" | QA   |\n")
+                .append(tableSeparator);
+
+        int qaCheckPassCount = appendTableEntries(sb, true);
+        sb.append(tableSeparator);
         appendSummary(sb, qaCheckPassCount);
 
         System.out.println(sb.toString());
     }
 
-    private int appendTableEntries(StringBuilder sb) {
+    public void markUp() {
+        spacer = "";
+        separator = "|";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("||Sonar||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA||\n");
+
+        int qaCheckPassCount = appendTableEntries(sb, false);
+        appendSummary(sb, qaCheckPassCount);
+
+        System.out.println(sb.toString());
+    }
+
+    private int appendTableEntries(StringBuilder sb, boolean plainOutput) {
         int qaCheckPassCount = 0;
         SortedSet<String> keys = new TreeSet<String>(tableEntries.keySet());
         for (String key : keys) {
             TableEntry tableEntry = tableEntries.get(key);
             String resourceId = tableEntry.resourceId;
-            sb.append("|").append(resourceId == null ? "?????" : formatSonarQubeLink(props, resourceId));
-            sb.append("|").append(tableEntry.pullRequest);
-            sb.append("|").append(formatFileName(tableEntry.fileName));
-            sb.append("|").append(tableEntry.status.toString());
-            sb.append("|").append(tableEntry.gitHubAdditions > 0 ? "+" + tableEntry.gitHubAdditions : "0");
-            sb.append("|").append(tableEntry.gitHubDeletions > 0 ? "-" + tableEntry.gitHubDeletions : "0");
-            sb.append("|").append(formatCoverage(tableEntry.coverage));
-            sb.append("|").append(formatCoverage(tableEntry.lineCoverage));
-            sb.append("|").append(formatCoverage(tableEntry.branchCoverage));
-            sb.append("|").append(formatNullable(tableEntry.comment, " "));
-            sb.append("|").append(tableEntry.qaCheck ? "OK" : "FAIL");
-            sb.append("|\n");
+            sb.append("|").append(spacer);
+            sb.append(resourceId == null ? "?????" : formatSonarQubeLink(props, resourceId, plainOutput));
+            sb.append(separator).append(tableEntry.pullRequest);
+            sb.append(separator).append(formatFileName(tableEntry.fileName, plainOutput, FILE_NAME_WIDTH));
+            sb.append(separator).append(formatGitHubStatus(tableEntry.status, plainOutput));
+            sb.append(separator).append(formatGitHubChanges(tableEntry.gitHubAdditions, "+", plainOutput));
+            sb.append(separator).append(formatGitHubChanges(tableEntry.gitHubDeletions, "-", plainOutput));
+            sb.append(separator).append(formatCoverage(tableEntry.coverage, plainOutput));
+            sb.append(separator).append(formatCoverage(tableEntry.lineCoverage, plainOutput));
+            sb.append(separator).append(formatCoverage(tableEntry.branchCoverage, plainOutput));
+            sb.append(separator).append(formatNullable(tableEntry.comment, " ", plainOutput, COMMENT_WIDTH));
+            sb.append(separator).append(tableEntry.qaCheck ? " OK " : "FAIL");
+            sb.append(spacer).append("|\n");
             if (tableEntry.qaCheck) {
                 qaCheckPassCount++;
             }

@@ -55,7 +55,11 @@ public final class QaSonar {
                 analyzer.run();
 
                 CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader);
-                printer.run();
+                if (commandLineOptions.isPlainOutput()) {
+                    printer.plain();
+                } else {
+                    printer.markUp();
+                }
                 break;
 
             default:

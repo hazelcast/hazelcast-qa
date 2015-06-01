@@ -18,6 +18,7 @@ package com.hazelcast.qa;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.hazelcast.qasonar.GitHubStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.kohsuke.github.GHContent;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 
 import static java.lang.String.format;
 
@@ -36,12 +38,33 @@ public final class Utils {
     private Utils() {
     }
 
-    public static String formatSonarQubeLink(PropertyReader props, String resourceId) {
+    public static String fillString(int length, char charToFill) {
+        if (length == 0) {
+            return "";
+        }
+        char[] array = new char[length];
+        Arrays.fill(array, charToFill);
+        return new String(array);
+    }
+
+    public static String formatSonarQubeLink(PropertyReader props, String resourceId, boolean plainOutput) {
+        if (plainOutput) {
+            return resourceId;
+        }
         return format("[%s|https://%s/resource/index/%s?display_title=true&metric=coverage]",
                 resourceId, props.getHost(), resourceId);
     }
 
-    public static String formatFileName(String fileName) {
+    public static String formatMinWidth(String value, int minWidth) {
+        return format("%-" + minWidth + "s", value);
+    }
+
+    public static String formatFileName(String fileName, boolean plainOutput, int width) {
+        if (plainOutput) {
+            return formatMinWidth(fileName
+                    .replace("src/main/java/com/hazelcast", "main")
+                    .replace("src/test/java/com/hazelcast", "test"), width);
+        }
         int pos = fileName.lastIndexOf('/');
         if (fileName.length() < 80 || pos == -1) {
             return fileName;
@@ -49,14 +72,32 @@ public final class Utils {
         return fileName.substring(0, pos) + "/\n" + fileName.substring(pos + 1, fileName.length());
     }
 
-    public static String formatCoverage(String coverage) {
-        if (coverage == null) {
-            return "{align:right}-{align}";
-        }
-        return "{align:right}" + coverage + "{align}";
+    public static String formatGitHubStatus(GitHubStatus status, boolean plainOutput) {
+        return plainOutput ? format("%-8s", status.toString()) : status.toString();
     }
 
-    public static String formatNullable(String value, String defaultValue) {
+    public static String formatGitHubChanges(int gitHubChanges, String sign, boolean plainOutput) {
+        if (gitHubChanges <= 0) {
+            sign = "";
+        }
+        return plainOutput ? format("%4s", sign + gitHubChanges) : sign + gitHubChanges;
+    }
+
+    public static String formatCoverage(String coverage, boolean plainOutput) {
+        if (plainOutput) {
+            return format("%6s", formatNullable(coverage, "-"));
+        }
+        return "{align:right}" + formatNullable(coverage, "-") + "{align}";
+    }
+
+    public static String formatNullable(String value, String defaultValue, boolean plainOutput, int minWidth) {
+        if (plainOutput) {
+            return format("%-" + minWidth + "s", formatNullable(value, defaultValue));
+        }
+        return formatNullable(value, defaultValue);
+    }
+
+    private static String formatNullable(String value, String defaultValue) {
         return (value == null ? defaultValue : value);
     }
 

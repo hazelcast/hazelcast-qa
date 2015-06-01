@@ -53,6 +53,9 @@ public class CommandLineOptions {
             "Specifies the minimum code coverage for modified files in percent.")
             .withRequiredArg().ofType(Double.class);
 
+    private final OptionSpec plainOutputSpec = parser.accepts("plainOutput",
+            "Generates plain output without Confluence markup.");
+
     private final PropertyReader propertyReader;
     private final OptionSet options;
     private final CommandLineAction action;
@@ -72,6 +75,10 @@ public class CommandLineOptions {
     public void printHelp() throws IOException {
         parser.formatHelpWith(new BuiltinHelpFormatter(HELP_WIDTH, HELP_INDENTATION));
         parser.printHelpOn(System.out);
+    }
+
+    public boolean isPlainOutput() {
+        return options.has(plainOutputSpec);
     }
 
     public List<Integer> getPullRequests() {
