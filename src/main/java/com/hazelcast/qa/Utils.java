@@ -101,6 +101,19 @@ public final class Utils {
         return (value == null ? defaultValue : value);
     }
 
+    public static String findModuleName(String fileName, String delimiter) {
+        String[] keyParts = fileName.split(delimiter);
+        if (keyParts.length < 2) {
+            throw new IllegalArgumentException("File name has not enough elements: " + fileName);
+        }
+        for (int index = 0; index < keyParts.length; index++) {
+            if (keyParts[index].equals("src") || keyParts[index].startsWith("src/")) {
+                return keyParts[index - 1];
+            }
+        }
+        throw new IllegalArgumentException("Could not find module in file name: " + fileName);
+    }
+
     public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
         GHContent fileContent = repo.getFileContent(fileName);
 

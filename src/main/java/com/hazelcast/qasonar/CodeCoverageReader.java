@@ -20,18 +20,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.hazelcast.qa.PropertyReader;
+import com.hazelcast.qa.Utils;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.PagedIterable;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import static com.hazelcast.qa.Utils.findModuleName;
 import static com.hazelcast.qa.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
@@ -39,7 +39,7 @@ public class CodeCoverageReader {
 
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
 
-    private final Map<String, List<SonarQubeEntry>> resources = new HashMap<String, List<SonarQubeEntry>>();
+    private final Map<String, Map<String, String>> resources = new HashMap<String, Map<String, String>>();
     private final Map<String, TableEntry> tableEntries = new HashMap<String, TableEntry>();
 
     private final PropertyReader props;
@@ -60,8 +60,7 @@ public class CodeCoverageReader {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
             GitHubStatus status = GitHubStatus.fromString(pullRequestFile.getStatus());
             String gitFileName = pullRequestFile.getFilename();
-            SonarQubeEntry sonarQubeEntry = getSonarQubeEntryOrNull(gitFileName);
-            String resourceId = sonarQubeEntry == null ? null : sonarQubeEntry.resourceId;
+            String resourceId = getResourceIdOrNull(gitFileName);
 
             TableEntry candidate = tableEntries.get(gitFileName);
             if (candidate != null) {
@@ -82,7 +81,7 @@ public class CodeCoverageReader {
             tableEntry.gitHubAdditions = pullRequestFile.getAdditions();
             tableEntry.gitHubDeletions = pullRequestFile.getDeletions();
 
-            if (resourceId == null || gitFileName.startsWith("hazelcast-client-new")) {
+            if (resourceId == null) {
                 tableEntries.put(gitFileName, tableEntry);
                 continue;
             }
@@ -111,23 +110,15 @@ public class CodeCoverageReader {
                 continue;
             }
 
-            String key = resource.get("key").getAsString();
-            String[] keyParts = key.split(":");
-            if (keyParts.length < 2) {
-                throw new IllegalStateException("Element \"key\" of resource has not enough elements: " + resource);
-            }
+            String module = Utils.findModuleName(resource.get("key").getAsString(), ":");
             String mapKey = resource.get("lname").getAsString();
+            mapKey = mapKey.substring(mapKey.indexOf("src/"));
 
-            SonarQubeEntry sonarQubeEntry = new SonarQubeEntry();
-            sonarQubeEntry.resourceId = resource.get("id").getAsString();
-            sonarQubeEntry.name = mapKey;
-            sonarQubeEntry.module = keyParts[keyParts.length - 2];
-
-            if (!resources.containsKey(mapKey)) {
-                resources.put(mapKey, new ArrayList<SonarQubeEntry>());
+            if (!resources.containsKey(module)) {
+                resources.put(module, new HashMap<String, String>());
             }
 
-            resources.get(mapKey).add(sonarQubeEntry);
+            resources.get(module).put(mapKey, resource.get("id").getAsString());
         }
     }
 
@@ -136,21 +127,15 @@ public class CodeCoverageReader {
         return pullRequest.listFiles();
     }
 
-    private SonarQubeEntry getSonarQubeEntryOrNull(String fileName) {
-        String module = fileName.substring(0, fileName.indexOf("/"));
-        while (fileName.contains("/")) {
-            fileName = fileName.substring(fileName.indexOf("/") + 1);
-            List<SonarQubeEntry> entryList = resources.get(fileName);
-            if (entryList != null && entryList.size() > 0) {
-                for (SonarQubeEntry entry : entryList) {
-                    if (module.equals(entry.module)) {
-                        return entry;
-                    }
-                }
-                return null;
-            }
+    private String getResourceIdOrNull(String fileName) {
+        String module = findModuleName(fileName, "/");
+        String mapKey = fileName.substring(fileName.indexOf("src/"));
+
+        Map<String, String> entryMap = resources.get(module);
+        if (entryMap == null) {
+            return null;
         }
-        return null;
+        return entryMap.get(mapKey);
     }
 
     private void setMetrics(TableEntry tableEntry, JsonObject resource) {
