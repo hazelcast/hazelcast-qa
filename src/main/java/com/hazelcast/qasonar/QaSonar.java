@@ -58,7 +58,7 @@ public final class QaSonar {
                 if (commandLineOptions.isPlainOutput()) {
                     printer.plain();
                 } else {
-                    printer.markUp();
+                    printer.markUp(commandLineOptions.getPullRequests());
                 }
                 break;
 

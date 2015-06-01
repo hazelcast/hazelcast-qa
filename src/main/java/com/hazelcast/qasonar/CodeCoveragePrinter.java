@@ -18,6 +18,7 @@ package com.hazelcast.qasonar;
 
 import com.hazelcast.qa.PropertyReader;
 
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -81,17 +82,28 @@ public class CodeCoveragePrinter {
         System.out.println(sb.toString());
     }
 
-    public void markUp() {
+    public void markUp(List<Integer> pullRequests) {
         spacer = "";
         separator = "|";
 
         StringBuilder sb = new StringBuilder();
+        appendCommandLine(sb, pullRequests);
         sb.append("||Sonar||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA||\n");
 
         int qaCheckPassCount = appendTableEntries(sb, false);
         appendSummary(sb, qaCheckPassCount);
 
         System.out.println(sb.toString());
+    }
+
+    private void appendCommandLine(StringBuilder sb, List<Integer> pullRequests) {
+        sb.append("Command line: {{qa-sonar --pullRequests ");
+        String separator = "";
+        for (Integer pullRequest : pullRequests) {
+            sb.append(separator).append(pullRequest);
+            separator = ",";
+        }
+        sb.append("}}\n");
     }
 
     private int appendTableEntries(StringBuilder sb, boolean plainOutput) {
