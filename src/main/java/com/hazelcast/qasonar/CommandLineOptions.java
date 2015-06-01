@@ -61,11 +61,9 @@ public class CommandLineOptions {
     private final CommandLineAction action;
 
     public CommandLineOptions(String[] args, PropertyReader propertyReader) {
-        parser.accepts("help", "Show help").forHelp();
-
         this.propertyReader = propertyReader;
-        this.options = parser.parse(args);
-        this.action = init();
+        this.options = initOptions(args);
+        this.action = initCommandLineAction();
     }
 
     public CommandLineAction getAction() {
@@ -85,15 +83,20 @@ public class CommandLineOptions {
         return Collections.unmodifiableList(pullRequests);
     }
 
-    private CommandLineAction init() {
+    private OptionSet initOptions(String[] args) {
+        parser.accepts("help", "Show help").forHelp();
+        return parser.parse(args);
+    }
+
+    private CommandLineAction initCommandLineAction() {
+        setMinCodeCoverage();
+        setMinCodeCoverageModified();
+
         if (options.has(listResourcesSpec)) {
             return CommandLineAction.LIST_RESOURCES;
         }
 
         if (options.has(pullRequestsSpec)) {
-            setMinCodeCoverage();
-            setMinCodeCoverageModified();
-
             addPullRequests();
 
             return CommandLineAction.PULL_REQUESTS;
