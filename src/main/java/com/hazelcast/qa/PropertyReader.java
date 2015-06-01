@@ -57,6 +57,10 @@ public class PropertyReader {
         return gitHubRepository;
     }
 
+    public void setGitHubRepository(String gitHubRepository) {
+        this.gitHubRepository = gitHubRepository;
+    }
+
     public double getMinCodeCoverage(GitHubStatus gitHubStatus) {
         return minCodeCoverage.get(gitHubStatus);
     }

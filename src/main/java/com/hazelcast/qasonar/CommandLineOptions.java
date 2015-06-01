@@ -45,6 +45,10 @@ public class CommandLineOptions {
                     + "Can either be a single value or a comma separated list.")
             .withRequiredArg().ofType(String.class);
 
+    private final OptionSpec<String> gitHubRepositorySpec = parser.accepts("gitHubRepository",
+            "Specifies the GitHub repository to be used.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec<Double> minCodeCoverageSpec = parser.accepts("minCodeCoverage",
             "Specifies the minimum code coverage in percent.")
             .withRequiredArg().ofType(Double.class);
@@ -89,6 +93,7 @@ public class CommandLineOptions {
     }
 
     private CommandLineAction initCommandLineAction() {
+        setGitHubRepository();
         setMinCodeCoverage();
         setMinCodeCoverageModified();
 
@@ -103,6 +108,12 @@ public class CommandLineOptions {
         }
 
         return CommandLineAction.PRINT_HELP;
+    }
+
+    private void setGitHubRepository() {
+        if (options.has(gitHubRepositorySpec)) {
+            propertyReader.setGitHubRepository(options.valueOf(gitHubRepositorySpec));
+        }
     }
 
     private void setMinCodeCoverage() {
