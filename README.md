@@ -34,6 +34,10 @@ gitHubRepository = organization/repository
 
 # Default value for minimum code coverage
 minCodeCoverage = 87.5
+
+# Default value for minimum code coverage for modified files
+minCodeCoverageModified = 60.0
+
 ```
 
 # Installation
