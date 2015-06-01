@@ -23,6 +23,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import static com.hazelcast.qa.Utils.formatCoverage;
+import static com.hazelcast.qa.Utils.formatSonarQubeLink;
+import static com.hazelcast.qa.Utils.formatFileName;
 import static com.hazelcast.qa.Utils.formatNullable;
 
 public class CodeCoveragePrinter {
@@ -37,15 +39,23 @@ public class CodeCoveragePrinter {
 
     public void run() {
         StringBuilder sb = new StringBuilder();
-        sb.append("||Resource||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA Check||\n");
+        sb.append("||Sonar||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA||\n");
 
+        int qaCheckPassCount = appendTableEntries(sb);
+        appendSummary(sb, qaCheckPassCount);
+
+        System.out.println(sb.toString());
+    }
+
+    private int appendTableEntries(StringBuilder sb) {
         int qaCheckPassCount = 0;
         SortedSet<String> keys = new TreeSet<String>(tableEntries.keySet());
         for (String key : keys) {
             TableEntry tableEntry = tableEntries.get(key);
-            sb.append("|").append(formatNullable(tableEntry.resourceId, "?????"));
+            String resourceId = tableEntry.resourceId;
+            sb.append("|").append(resourceId == null ? "?????" : formatSonarQubeLink(props, resourceId));
             sb.append("|").append(tableEntry.pullRequest);
-            sb.append("|").append(tableEntry.fileName);
+            sb.append("|").append(formatFileName(tableEntry.fileName));
             sb.append("|").append(tableEntry.status.toString());
             sb.append("|").append(tableEntry.gitHubAdditions > 0 ? "+" + tableEntry.gitHubAdditions : "0");
             sb.append("|").append(tableEntry.gitHubDeletions > 0 ? "-" + tableEntry.gitHubDeletions : "0");
@@ -59,7 +69,10 @@ public class CodeCoveragePrinter {
                 qaCheckPassCount++;
             }
         }
+        return qaCheckPassCount;
+    }
 
+    private void appendSummary(StringBuilder sb, int qaCheckPassCount) {
         int totalCount = tableEntries.size();
         double minCodeCoverage = props.getMinCodeCoverage(GitHubStatus.ADDED);
         sb.append("Summary: ")
@@ -70,7 +83,5 @@ public class CodeCoveragePrinter {
         if (Math.abs(minCodeCoverage - minCodeCoverageModified) > 0.01) {
             sb.append(" (").append(minCodeCoverageModified).append("% for modified files)");
         }
-
-        System.out.println(sb.toString());
     }
 }

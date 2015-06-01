@@ -29,22 +29,35 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 
+import static java.lang.String.format;
+
 public final class Utils {
 
     private Utils() {
     }
 
-    public static String formatNullable(String value, String defaultValue) {
-        return (value == null ? defaultValue : value);
+    public static String formatSonarQubeLink(PropertyReader props, String resourceId) {
+        return format("[%s|https://%s/resource/index/%s?display_title=true&metric=coverage]",
+                resourceId, props.getHost(), resourceId);
+    }
+
+    public static String formatFileName(String fileName) {
+        int pos = fileName.lastIndexOf('/');
+        if (fileName.length() < 80 || pos == -1) {
+            return fileName;
+        }
+        return fileName.substring(0, pos) + "/\n" + fileName.substring(pos + 1, fileName.length());
     }
 
     public static String formatCoverage(String coverage) {
         if (coverage == null) {
-            //return "{align:right}-{align}";
-            return "-";
+            return "{align:right}-{align}";
         }
-        //return "{align:right}" + coverage + "{align}";
-        return coverage;
+        return "{align:right}" + coverage + "{align}";
+    }
+
+    public static String formatNullable(String value, String defaultValue) {
+        return (value == null ? defaultValue : value);
     }
 
     public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
