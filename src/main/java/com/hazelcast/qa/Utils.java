@@ -55,6 +55,24 @@ public final class Utils {
                 resourceId, props.getHost(), resourceId);
     }
 
+    public static String formatGitHubLink(PropertyReader props, String pullRequest, boolean plainOutput) {
+        if (plainOutput) {
+            return pullRequest;
+        }
+        String separator = "";
+        StringBuilder sb = new StringBuilder();
+        for (String pullRequestPart : pullRequest.split(", ")) {
+            sb.append(separator).append(formatGitHubLink(props, pullRequestPart));
+            separator = ", ";
+        }
+        return sb.toString();
+    }
+
+    private static String formatGitHubLink(PropertyReader props, String pullRequest) {
+        return format("[%s|https://github.com/%s/pull/%s]",
+                pullRequest, props.getGitHubRepository(), pullRequest);
+    }
+
     public static String formatMinWidth(String value, int minWidth) {
         return format("%-" + minWidth + "s", value);
     }

@@ -27,6 +27,7 @@ import static com.hazelcast.qa.Utils.fillString;
 import static com.hazelcast.qa.Utils.formatCoverage;
 import static com.hazelcast.qa.Utils.formatFileName;
 import static com.hazelcast.qa.Utils.formatGitHubChanges;
+import static com.hazelcast.qa.Utils.formatGitHubLink;
 import static com.hazelcast.qa.Utils.formatGitHubStatus;
 import static com.hazelcast.qa.Utils.formatMinWidth;
 import static com.hazelcast.qa.Utils.formatNullable;
@@ -114,7 +115,7 @@ public class CodeCoveragePrinter {
             String resourceId = tableEntry.resourceId;
             sb.append("|").append(spacer);
             sb.append(resourceId == null ? "?????" : formatSonarQubeLink(props, resourceId, plainOutput));
-            sb.append(separator).append(tableEntry.pullRequest);
+            sb.append(separator).append(formatGitHubLink(props, tableEntry.pullRequest, plainOutput));
             sb.append(separator).append(formatFileName(tableEntry.fileName, plainOutput, FILE_NAME_WIDTH));
             sb.append(separator).append(formatGitHubStatus(tableEntry.status, plainOutput));
             sb.append(separator).append(formatGitHubChanges(tableEntry.gitHubAdditions, "+", plainOutput));
