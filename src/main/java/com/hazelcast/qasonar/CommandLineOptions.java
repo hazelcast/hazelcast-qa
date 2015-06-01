@@ -37,6 +37,14 @@ public class CommandLineOptions {
 
     private final OptionParser parser = new OptionParser();
 
+    private final OptionSpec listResourcesSpec = parser.accepts("listResources",
+            "Lists resources of specified SonarQube instance.");
+
+    private final OptionSpec<String> pullRequestsSpec = parser.accepts("pullRequests",
+            "Specifies the pull requests whose code coverage should be printed.\n"
+                    + "Can either be a single value or a comma separated list.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec<Double> minCodeCoverageSpec = parser.accepts("minCodeCoverage",
             "Specifies the minimum code coverage in percent.")
             .withRequiredArg().ofType(Double.class);
@@ -45,49 +53,46 @@ public class CommandLineOptions {
             "Specifies the minimum code coverage for modified files in percent.")
             .withRequiredArg().ofType(Double.class);
 
-    private final OptionSpec<String> pullRequestsSpec = parser.accepts("pullRequests",
-            "Specifies the pull requests whose code coverage should be printed.\n"
-                    + "Can either be a single value or a comma separated list.")
-            .withRequiredArg().ofType(String.class);
-
-    private final OptionSpec helpSpec = parser.accepts("help", "Show help").forHelp();
-
     private final PropertyReader propertyReader;
     private final OptionSet options;
+    private final CommandLineAction action;
 
     public CommandLineOptions(String[] args, PropertyReader propertyReader) {
+        parser.accepts("help", "Show help").forHelp();
+
         this.propertyReader = propertyReader;
         this.options = parser.parse(args);
+        this.action = init();
+    }
 
+    public CommandLineAction getAction() {
+        return action;
+    }
+
+    public void printHelp() throws IOException {
         parser.formatHelpWith(new BuiltinHelpFormatter(HELP_WIDTH, HELP_INDENTATION));
+        parser.printHelpOn(System.out);
     }
 
     public List<Integer> getPullRequests() {
         return Collections.unmodifiableList(pullRequests);
     }
 
-    public boolean init() throws IOException {
-        if (options.has(helpSpec) || !options.has(pullRequestsSpec)) {
-            parser.printHelpOn(System.out);
-            return false;
+    private CommandLineAction init() {
+        if (options.has(listResourcesSpec)) {
+            return CommandLineAction.LIST_RESOURCES;
         }
 
-        setMinCodeCoverage();
-        setMinCodeCoverageModified();
+        if (options.has(pullRequestsSpec)) {
+            setMinCodeCoverage();
+            setMinCodeCoverageModified();
 
-        String pullRequestString = options.valueOf(pullRequestsSpec).trim();
-        if (!pullRequestString.contains(",")) {
-            addPullRequest(pullRequestString);
-            return true;
+            addPullRequests();
+
+            return CommandLineAction.PULL_REQUESTS;
         }
 
-        for (String pullRequestArrayString : Arrays.asList(pullRequestString.split("\\s*,\\s*"))) {
-            addPullRequest(pullRequestArrayString);
-        }
-        if (pullRequests.size() == 0) {
-            throw new IllegalArgumentException("No pull requests specified");
-        }
-        return true;
+        return CommandLineAction.PRINT_HELP;
     }
 
     private void setMinCodeCoverage() {
@@ -102,6 +107,21 @@ public class CommandLineOptions {
             Double minCodeCoverage = options.valueOf(minCodeCoverageModifiedSpec);
             propertyReader.setMinCodeCoverage(GitHubStatus.MODIFIED, minCodeCoverage);
             propertyReader.setMinCodeCoverage(GitHubStatus.RENAMED, minCodeCoverage);
+        }
+    }
+
+    private void addPullRequests() {
+        String pullRequestString = options.valueOf(pullRequestsSpec).trim();
+        if (!pullRequestString.contains(",")) {
+            addPullRequest(pullRequestString);
+            return;
+        }
+
+        for (String pullRequestArrayString : Arrays.asList(pullRequestString.split("\\s*,\\s*"))) {
+            addPullRequest(pullRequestArrayString);
+        }
+        if (pullRequests.size() == 0) {
+            throw new IllegalArgumentException("No pull requests specified");
         }
     }
 

@@ -31,22 +31,35 @@ public final class QaSonar {
         PropertyReader propertyReader = PropertyReader.fromPropertyFile();
 
         CommandLineOptions commandLineOptions = new CommandLineOptions(args, propertyReader);
-        if (!commandLineOptions.init()) {
-            return;
+
+        switch (commandLineOptions.getAction()) {
+            case PRINT_HELP:
+                commandLineOptions.printHelp();
+                break;
+
+            case LIST_RESOURCES:
+                ListResources listResources = new ListResources(propertyReader);
+                listResources.run();
+                break;
+
+            case PULL_REQUESTS:
+                GitHub github = GitHub.connect();
+                GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
+
+                CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
+                for (Integer pullRequest : commandLineOptions.getPullRequests()) {
+                    reader.addPullRequest(pullRequest);
+                }
+
+                CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo);
+                analyzer.run();
+
+                CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader);
+                printer.run();
+                break;
+
+            default:
+                throw new IllegalStateException("Unwanted command line action: " + commandLineOptions.getAction());
         }
-
-        GitHub github = GitHub.connect();
-        GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
-
-        CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
-        for (Integer pullRequest : commandLineOptions.getPullRequests()) {
-            reader.addPullRequest(pullRequest);
-        }
-
-        CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo);
-        analyzer.run();
-
-        CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader);
-        printer.run();
     }
 }
