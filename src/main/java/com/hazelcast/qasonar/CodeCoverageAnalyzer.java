@@ -78,7 +78,7 @@ public class CodeCoverageAnalyzer {
             tableEntry.pass("Package info");
         } else if (fileContents.contains(" interface " + baseName)) {
             tableEntry.pass("Interface");
-        } else if (fileContents.contains("@RunWith") || gitFileName.contains("/src/test/java/")) {
+        } else if (gitFileName.contains("/src/test/java/")) {
             tableEntry.pass("Test");
         } else if (gitFileName.startsWith("hazelcast-client-new")) {
             tableEntry.fail("new client is not in SonarQube");
