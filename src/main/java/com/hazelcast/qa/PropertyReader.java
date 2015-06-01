@@ -16,14 +16,19 @@
 
 package com.hazelcast.qa;
 
+import com.hazelcast.qasonar.GitHubStatus;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class PropertyReader {
+
+    private final Map<GitHubStatus, Double> minCodeCoverage = new HashMap<GitHubStatus, Double>();
 
     private String host;
     private String username;
@@ -31,8 +36,6 @@ public class PropertyReader {
     private String projectResourceId;
 
     private String gitHubRepository;
-
-    private double minCodeCoverage;
 
     public String getHost() {
         return host;
@@ -54,12 +57,18 @@ public class PropertyReader {
         return gitHubRepository;
     }
 
-    public double getMinCodeCoverage() {
-        return minCodeCoverage;
+    public double getMinCodeCoverage(GitHubStatus gitHubStatus) {
+        return minCodeCoverage.get(gitHubStatus);
     }
 
-    public void setMinCodeCoverage(double minCodeCoverage) {
-        this.minCodeCoverage = minCodeCoverage;
+    public void setMinCodeCoverage(Double codeCoverage) {
+        for (GitHubStatus gitHubStatus : GitHubStatus.values()) {
+            minCodeCoverage.put(gitHubStatus, codeCoverage);
+        }
+    }
+
+    public void setMinCodeCoverage(GitHubStatus status, Double codeCoverage) {
+        minCodeCoverage.put(status, codeCoverage);
     }
 
     public static PropertyReader fromPropertyFile() throws IOException {
@@ -92,7 +101,16 @@ public class PropertyReader {
 
             self.gitHubRepository = props.getProperty("gitHubRepository").trim();
 
-            self.minCodeCoverage = Double.valueOf(props.getProperty("minCodeCoverage").trim());
+            double minCodeCoverage = Double.valueOf(props.getProperty("minCodeCoverage").trim());
+            for (GitHubStatus gitHubStatus : GitHubStatus.values()) {
+                self.minCodeCoverage.put(gitHubStatus, minCodeCoverage);
+            }
+
+            if (props.getProperty("minCodeCoverageModified") != null) {
+                minCodeCoverage = Double.valueOf(props.getProperty("minCodeCoverageModified").trim());
+                self.minCodeCoverage.put(GitHubStatus.MODIFIED, minCodeCoverage);
+                self.minCodeCoverage.put(GitHubStatus.RENAMED, minCodeCoverage);
+            }
         } catch (Exception e) {
             System.err.println("Could not read property file! " + e.getMessage());
             throw new IllegalStateException(e);

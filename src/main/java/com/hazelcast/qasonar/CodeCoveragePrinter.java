@@ -61,10 +61,15 @@ public class CodeCoveragePrinter {
         }
 
         int totalCount = tableEntries.size();
+        double minCodeCoverage = props.getMinCodeCoverage(GitHubStatus.ADDED);
         sb.append("Summary: ")
                 .append(qaCheckPassCount).append("/").append(totalCount)
-                .append(" files passed QA Check with minimum code coverage of ")
-                .append(props.getMinCodeCoverage()).append("%");
+                .append(" files passed QA Check with minimum code coverage of ").append(minCodeCoverage).append("%");
+
+        double minCodeCoverageModified = props.getMinCodeCoverage(GitHubStatus.MODIFIED);
+        if (Math.abs(minCodeCoverage - minCodeCoverageModified) > 0.01) {
+            sb.append(" (").append(minCodeCoverageModified).append("% for modified files)");
+        }
 
         System.out.println(sb.toString());
     }

@@ -37,8 +37,12 @@ public class CommandLineOptions {
 
     private final OptionParser parser = new OptionParser();
 
-    private final OptionSpec<Double> minCodeCoverageSpec = parser.accepts("minCodeCoverageSpec",
+    private final OptionSpec<Double> minCodeCoverageSpec = parser.accepts("minCodeCoverage",
             "Specifies the minimum code coverage in percent.")
+            .withRequiredArg().ofType(Double.class);
+
+    private final OptionSpec<Double> minCodeCoverageModifiedSpec = parser.accepts("minCodeCoverageModified",
+            "Specifies the minimum code coverage for modified files in percent.")
             .withRequiredArg().ofType(Double.class);
 
     private final OptionSpec<String> pullRequestsSpec = parser.accepts("pullRequests",
@@ -68,10 +72,8 @@ public class CommandLineOptions {
             return false;
         }
 
-        if (options.has(minCodeCoverageSpec)) {
-            Double minCodeCoverage = options.valueOf(minCodeCoverageSpec);
-            propertyReader.setMinCodeCoverage(minCodeCoverage);
-        }
+        setMinCodeCoverage();
+        setMinCodeCoverageModified();
 
         String pullRequestString = options.valueOf(pullRequestsSpec).trim();
         if (!pullRequestString.contains(",")) {
@@ -86,6 +88,21 @@ public class CommandLineOptions {
             throw new IllegalArgumentException("No pull requests specified");
         }
         return true;
+    }
+
+    private void setMinCodeCoverage() {
+        if (options.has(minCodeCoverageSpec)) {
+            Double minCodeCoverage = options.valueOf(minCodeCoverageSpec);
+            propertyReader.setMinCodeCoverage(minCodeCoverage);
+        }
+    }
+
+    private void setMinCodeCoverageModified() {
+        if (options.has(minCodeCoverageModifiedSpec)) {
+            Double minCodeCoverage = options.valueOf(minCodeCoverageModifiedSpec);
+            propertyReader.setMinCodeCoverage(GitHubStatus.MODIFIED, minCodeCoverage);
+            propertyReader.setMinCodeCoverage(GitHubStatus.RENAMED, minCodeCoverage);
+        }
     }
 
     private void addPullRequest(String pullRequestString) {

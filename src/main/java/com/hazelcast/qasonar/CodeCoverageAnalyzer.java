@@ -90,10 +90,11 @@ public class CodeCoverageAnalyzer {
     }
 
     private void checkCodeCoverage(TableEntry tableEntry) {
-        if (tableEntry.numericCoverage > props.getMinCodeCoverage()) {
+        double minCodeCoverage = props.getMinCodeCoverage(tableEntry.status);
+        if (tableEntry.numericCoverage > minCodeCoverage) {
             tableEntry.pass();
         } else if (tableEntry.comment == null) {
-            tableEntry.fail("code coverage below " + props.getMinCodeCoverage() + "%");
+            tableEntry.fail("code coverage below " + minCodeCoverage + "%");
         }
     }
 }
