@@ -80,8 +80,6 @@ public class CodeCoverageAnalyzer {
             tableEntry.pass("Interface");
         } else if (gitFileName.contains("/src/test/java/")) {
             tableEntry.pass("Test");
-        } else if (gitFileName.startsWith("hazelcast-client-new")) {
-            tableEntry.fail("new client is not in SonarQube");
         } else if (gitFileName.matches(".*/client/[^/]+Request\\.java")) {
             tableEntry.pass("whitelisted cross module");
         } else {

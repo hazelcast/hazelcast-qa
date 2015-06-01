@@ -26,8 +26,10 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.PagedIterable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.hazelcast.qa.Utils.getJsonElementsFromQuery;
@@ -37,7 +39,7 @@ public class CodeCoverageReader {
 
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
 
-    private final Map<String, Integer> resources = new HashMap<String, Integer>();
+    private final Map<String, List<SonarQubeEntry>> resources = new HashMap<String, List<SonarQubeEntry>>();
     private final Map<String, TableEntry> tableEntries = new HashMap<String, TableEntry>();
 
     private final PropertyReader props;
@@ -58,7 +60,8 @@ public class CodeCoverageReader {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
             GitHubStatus status = GitHubStatus.fromString(pullRequestFile.getStatus());
             String gitFileName = pullRequestFile.getFilename();
-            Integer resourceId = getResourceIdOrNull(gitFileName);
+            SonarQubeEntry sonarQubeEntry = getSonarQubeEntryOrNull(gitFileName);
+            String resourceId = sonarQubeEntry == null ? null : sonarQubeEntry.resourceId;
 
             TableEntry candidate = tableEntries.get(gitFileName);
             if (candidate != null) {
@@ -71,7 +74,7 @@ public class CodeCoverageReader {
             }
 
             TableEntry tableEntry = new TableEntry();
-            tableEntry.resourceId = resourceId == null ? null : resourceId.toString();
+            tableEntry.resourceId = resourceId;
             tableEntry.pullRequest = String.valueOf(gitPullRequest);
             tableEntry.fileName = gitFileName;
             tableEntry.status = status;
@@ -84,7 +87,7 @@ public class CodeCoverageReader {
                 continue;
             }
 
-            String query = format("https://%s/api/resources?resource=%d&metrics=%s", props.getHost(), resourceId, METRICS_LIST);
+            String query = format("https://%s/api/resources?resource=%s&metrics=%s", props.getHost(), resourceId, METRICS_LIST);
             JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
@@ -107,9 +110,24 @@ public class CodeCoverageReader {
             if (!"FIL".equals(resource.get("scope").getAsString())) {
                 continue;
             }
-            int resourceId = resource.get("id").getAsInt();
-            String fileName = resource.get("lname").getAsString();
-            resources.put(fileName, resourceId);
+
+            String key = resource.get("key").getAsString();
+            String[] keyParts = key.split(":");
+            if (keyParts.length < 2) {
+                throw new IllegalStateException("Element \"key\" of resource has not enough elements: " + resource);
+            }
+            String mapKey = resource.get("lname").getAsString();
+
+            SonarQubeEntry sonarQubeEntry = new SonarQubeEntry();
+            sonarQubeEntry.resourceId = resource.get("id").getAsString();
+            sonarQubeEntry.name = mapKey;
+            sonarQubeEntry.module = keyParts[keyParts.length - 2];
+
+            if (!resources.containsKey(mapKey)) {
+                resources.put(mapKey, new ArrayList<SonarQubeEntry>());
+            }
+
+            resources.get(mapKey).add(sonarQubeEntry);
         }
     }
 
@@ -118,12 +136,18 @@ public class CodeCoverageReader {
         return pullRequest.listFiles();
     }
 
-    private Integer getResourceIdOrNull(String fileName) {
+    private SonarQubeEntry getSonarQubeEntryOrNull(String fileName) {
+        String module = fileName.substring(0, fileName.indexOf("/"));
         while (fileName.contains("/")) {
             fileName = fileName.substring(fileName.indexOf("/") + 1);
-            Integer resourceId = resources.get(fileName);
-            if (resourceId != null) {
-                return resourceId;
+            List<SonarQubeEntry> entryList = resources.get(fileName);
+            if (entryList != null && entryList.size() > 0) {
+                for (SonarQubeEntry entry : entryList) {
+                    if (module.equals(entry.module)) {
+                        return entry;
+                    }
+                }
+                return null;
             }
         }
         return null;
