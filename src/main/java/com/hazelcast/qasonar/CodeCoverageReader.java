@@ -128,6 +128,10 @@ public class CodeCoverageReader {
     }
 
     private String getResourceIdOrNull(String fileName) {
+        if (!fileName.endsWith(".java")) {
+            return null;
+        }
+
         String module = findModuleName(fileName, "/");
         String mapKey = fileName.substring(fileName.indexOf("src/"));
 
