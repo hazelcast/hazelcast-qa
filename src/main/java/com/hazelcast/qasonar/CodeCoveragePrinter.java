@@ -37,7 +37,7 @@ public class CodeCoveragePrinter {
 
     public void run() {
         StringBuilder sb = new StringBuilder();
-        sb.append("||Resource||PRs||File||Coverage||Line||Branch||Comment||QA Check||\n");
+        sb.append("||Resource||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA Check||\n");
 
         int qaCheckPassCount = 0;
         SortedSet<String> keys = new TreeSet<String>(tableEntries.keySet());
@@ -46,6 +46,9 @@ public class CodeCoveragePrinter {
             sb.append("|").append(formatNullable(tableEntry.resourceId, "?????"));
             sb.append("|").append(tableEntry.pullRequest);
             sb.append("|").append(tableEntry.fileName);
+            sb.append("|").append(tableEntry.status.toString());
+            sb.append("|").append(tableEntry.gitHubAdditions > 0 ? "+" + tableEntry.gitHubAdditions : "0");
+            sb.append("|").append(tableEntry.gitHubDeletions > 0 ? "-" + tableEntry.gitHubDeletions : "0");
             sb.append("|").append(formatCoverage(tableEntry.coverage));
             sb.append("|").append(formatCoverage(tableEntry.lineCoverage));
             sb.append("|").append(formatCoverage(tableEntry.branchCoverage));

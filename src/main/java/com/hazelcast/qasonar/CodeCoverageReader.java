@@ -56,19 +56,28 @@ public class CodeCoverageReader {
 
     public void addPullRequest(int gitPullRequest) throws IOException {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
+            GitHubStatus status = GitHubStatus.fromString(pullRequestFile.getStatus());
             String gitFileName = pullRequestFile.getFilename();
             Integer resourceId = getResourceIdOrNull(gitFileName);
 
             TableEntry candidate = tableEntries.get(gitFileName);
             if (candidate != null) {
                 candidate.pullRequest += ", " + gitPullRequest;
+                candidate.status = status;
+                candidate.gitHubChanges += pullRequestFile.getChanges();
+                candidate.gitHubAdditions += pullRequestFile.getAdditions();
+                candidate.gitHubDeletions += pullRequestFile.getDeletions();
                 continue;
             }
 
             TableEntry tableEntry = new TableEntry();
             tableEntry.resourceId = resourceId == null ? null : resourceId.toString();
-            tableEntry.fileName = gitFileName;
             tableEntry.pullRequest = String.valueOf(gitPullRequest);
+            tableEntry.fileName = gitFileName;
+            tableEntry.status = status;
+            tableEntry.gitHubChanges = pullRequestFile.getChanges();
+            tableEntry.gitHubAdditions = pullRequestFile.getAdditions();
+            tableEntry.gitHubDeletions = pullRequestFile.getDeletions();
 
             if (resourceId == null || gitFileName.startsWith("hazelcast-client-new")) {
                 tableEntries.put(gitFileName, tableEntry);

@@ -16,40 +16,32 @@
 
 package com.hazelcast.qasonar;
 
-public class TableEntry {
+public enum GitHubStatus {
 
-    String resourceId;
+    ADDED("added"),
+    MODIFIED("modified"),
+    RENAMED("renamed"),
+    REMOVED("removed");
 
-    String pullRequest;
-    String fileName;
-    GitHubStatus status;
+    private String status;
 
-    String coverage;
-    String lineCoverage;
-    String branchCoverage;
-
-    String comment;
-    boolean qaCheck;
-
-    double numericCoverage;
-    double numericLineCoverage;
-    double numericBranchCoverage;
-
-    int gitHubChanges;
-    int gitHubAdditions;
-    int gitHubDeletions;
-
-    void pass() {
-        this.qaCheck = true;
+    GitHubStatus(String status) {
+        this.status = status;
     }
 
-    void pass(String comment) {
-        this.qaCheck = true;
-        this.comment = comment;
+    public static GitHubStatus fromString(String status) {
+        if (status != null) {
+            for (GitHubStatus gitHubStatus : GitHubStatus.values()) {
+                if (status.equalsIgnoreCase(gitHubStatus.status)) {
+                    return gitHubStatus;
+                }
+            }
+        }
+        throw new IllegalStateException("Unknown status: " + status);
     }
 
-    void fail(String comment) {
-        this.qaCheck = false;
-        this.comment = comment;
+    @Override
+    public String toString() {
+        return status;
     }
 }
