@@ -22,18 +22,22 @@ import org.apache.commons.io.IOUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static java.util.Arrays.asList;
+
 public class PropertyReader {
 
+    private final List<String> projectResourceIds = new ArrayList<String>();
     private final Map<GitHubStatus, Double> minCodeCoverage = new HashMap<GitHubStatus, Double>();
 
     private String host;
     private String username;
     private String password;
-    private String projectResourceId;
 
     private String gitHubRepository;
 
@@ -49,8 +53,8 @@ public class PropertyReader {
         return password;
     }
 
-    public String getProjectResourceId() {
-        return projectResourceId;
+    public List<String> getProjectResourceIds() {
+        return projectResourceIds;
     }
 
     public String getGitHubRepository() {
@@ -101,7 +105,7 @@ public class PropertyReader {
             self.host = props.getProperty("host").trim();
             self.username = props.getProperty("username").trim();
             self.password = props.getProperty("password").trim();
-            self.projectResourceId = props.getProperty("projectResourceId").trim();
+            addProjectResourceIds(self, props.getProperty("projectResourceIds").trim());
 
             self.gitHubRepository = props.getProperty("gitHubRepository").trim();
 
@@ -121,5 +125,16 @@ public class PropertyReader {
         }
 
         return self;
+    }
+
+    private static void addProjectResourceIds(PropertyReader props, String projectResourceIdString) {
+        if (!projectResourceIdString.contains(",")) {
+            props.projectResourceIds.add(projectResourceIdString);
+            return;
+        }
+
+        for (String projectResourceId : asList(projectResourceIdString.split("\\s*,\\s*"))) {
+            props.projectResourceIds.add(projectResourceId);
+        }
     }
 }

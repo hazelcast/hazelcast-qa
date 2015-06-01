@@ -101,24 +101,25 @@ public class CodeCoverageReader {
     }
 
     private void populateResourcesMap() throws IOException {
-        String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1",
-                props.getHost(), props.getProjectResourceId());
-        JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
-        for (JsonElement jsonElement : array) {
-            JsonObject resource = jsonElement.getAsJsonObject();
-            if (!"FIL".equals(resource.get("scope").getAsString())) {
-                continue;
+        for (String resourceId : props.getProjectResourceIds()) {
+            String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1", props.getHost(), resourceId);
+            JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
+            for (JsonElement jsonElement : array) {
+                JsonObject resource = jsonElement.getAsJsonObject();
+                if (!"FIL".equals(resource.get("scope").getAsString())) {
+                    continue;
+                }
+
+                String module = Utils.findModuleName(resource.get("key").getAsString(), ":");
+                String mapKey = resource.get("lname").getAsString();
+                mapKey = mapKey.substring(mapKey.indexOf("src/"));
+
+                if (!resources.containsKey(module)) {
+                    resources.put(module, new HashMap<String, String>());
+                }
+
+                resources.get(module).put(mapKey, resource.get("id").getAsString());
             }
-
-            String module = Utils.findModuleName(resource.get("key").getAsString(), ":");
-            String mapKey = resource.get("lname").getAsString();
-            mapKey = mapKey.substring(mapKey.indexOf("src/"));
-
-            if (!resources.containsKey(module)) {
-                resources.put(module, new HashMap<String, String>());
-            }
-
-            resources.get(module).put(mapKey, resource.get("id").getAsString());
         }
     }
 
