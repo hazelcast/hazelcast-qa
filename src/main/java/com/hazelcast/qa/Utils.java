@@ -65,12 +65,12 @@ public final class Utils {
 
     private static String getStringFromQuery(String query, String username, String password) throws IOException {
         StringWriter writer = new StringWriter();
-        IOUtils.copy(getInputStream(query, username, password), writer);
+        IOUtils.copy(getBaseAuthInputStreamFromURL(query, username, password), writer);
 
         return writer.toString();
     }
 
-    private static InputStream getInputStream(String query, String username, String password) throws IOException {
+    private static InputStream getBaseAuthInputStreamFromURL(String query, String username, String password) throws IOException {
         URL url = new URL(query);
 
         URLConnection uc = url.openConnection();
