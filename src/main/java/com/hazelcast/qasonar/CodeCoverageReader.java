@@ -57,9 +57,16 @@ public class CodeCoverageReader {
 
     public void addPullRequest(int gitPullRequest) throws IOException {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
-            GitHubStatus status = GitHubStatus.fromString(pullRequestFile.getStatus());
             String gitFileName = pullRequestFile.getFilename();
             String resourceId = getResourceIdOrNull(gitFileName);
+            GitHubStatus status;
+
+            try {
+                status = GitHubStatus.fromString(pullRequestFile.getStatus());
+            } catch (IllegalStateException e) {
+                throw new IllegalStateException(format("Could not get status for file %s in PR %d", gitFileName, gitPullRequest),
+                        e.getCause());
+            }
 
             TableEntry candidate = tableEntries.get(gitFileName);
             if (candidate != null) {
