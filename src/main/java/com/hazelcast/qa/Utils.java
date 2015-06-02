@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.hazelcast.qasonar.GitHubStatus;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
 
@@ -35,6 +34,7 @@ import java.net.URLConnection;
 import java.util.Arrays;
 
 import static java.lang.String.format;
+import static org.apache.commons.io.IOUtils.copy;
 
 public final class Utils {
 
@@ -139,7 +139,7 @@ public final class Utils {
         GHContent fileContent = repo.getFileContent(fileName);
 
         StringWriter writer = new StringWriter();
-        IOUtils.copy(fileContent.read(), writer);
+        copy(fileContent.read(), writer);
 
         return writer.toString();
     }
@@ -153,7 +153,7 @@ public final class Utils {
 
     private static String getStringFromQuery(String query, String username, String password) throws IOException {
         StringWriter writer = new StringWriter();
-        IOUtils.copy(getBaseAuthInputStreamFromURL(query, username, password), writer);
+        copy(getBaseAuthInputStreamFromURL(query, username, password), writer);
 
         return writer.toString();
     }

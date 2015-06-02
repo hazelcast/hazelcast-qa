@@ -17,7 +17,6 @@
 package com.hazelcast.qa;
 
 import com.hazelcast.qasonar.GitHubStatus;
-import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +24,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public final class PropertyReaderBuilder {
 
@@ -44,7 +44,7 @@ public final class PropertyReaderBuilder {
             in = new FileInputStream(propertyFileName);
             props.load(in);
         } finally {
-            IOUtils.closeQuietly(in);
+            closeQuietly(in);
         }
 
         return fromProperties(props);

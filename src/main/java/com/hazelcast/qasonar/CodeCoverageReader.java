@@ -20,7 +20,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.hazelcast.qa.PropertyReader;
-import com.hazelcast.qa.Utils;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -110,7 +109,7 @@ public class CodeCoverageReader {
                     continue;
                 }
 
-                String module = Utils.findModuleName(resource.get("key").getAsString(), ":");
+                String module = findModuleName(resource.get("key").getAsString(), ":");
                 String mapKey = resource.get("lname").getAsString();
                 mapKey = mapKey.substring(mapKey.indexOf("src/"));
 
