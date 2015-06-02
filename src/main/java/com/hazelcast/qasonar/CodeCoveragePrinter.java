@@ -106,6 +106,9 @@ public class CodeCoveragePrinter {
             sb.append(separator).append(pullRequest);
             separator = ",";
         }
+        if (props.isGitHubRepositoryOverwritten()) {
+            sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
+        }
         sb.append("}}\n");
     }
 

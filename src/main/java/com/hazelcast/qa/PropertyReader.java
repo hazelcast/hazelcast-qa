@@ -40,6 +40,7 @@ public class PropertyReader {
     private String password;
 
     private String gitHubRepository;
+    private boolean gitHubRepositoryOverwritten;
 
     private String outputFile;
 
@@ -65,6 +66,11 @@ public class PropertyReader {
 
     public void setGitHubRepository(String gitHubRepository) {
         this.gitHubRepository = gitHubRepository;
+        gitHubRepositoryOverwritten = true;
+    }
+
+    public boolean isGitHubRepositoryOverwritten() {
+        return gitHubRepositoryOverwritten;
     }
 
     public double getMinCodeCoverage(GitHubStatus gitHubStatus) {
