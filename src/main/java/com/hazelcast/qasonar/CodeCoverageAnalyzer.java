@@ -91,6 +91,8 @@ public class CodeCoverageAnalyzer {
         } catch (FileNotFoundException ignored) {
             tableEntry.pass("deleted in newer PR");
             return;
+        } catch (Exception e) {
+            throw new IOException("Could not get contents for file " + gitFileName, e.getCause());
         }
         if (fileContents.contains(" interface " + baseName)) {
             tableEntry.pass("Interface");
