@@ -51,6 +51,28 @@ public class CodeCoverageReader {
         populateResourcesMap();
     }
 
+    private void populateResourcesMap() throws IOException {
+        for (String resourceId : props.getProjectResourceIds()) {
+            String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1", props.getHost(), resourceId);
+            JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
+            for (JsonElement jsonElement : array) {
+                JsonObject resource = jsonElement.getAsJsonObject();
+                if (!"FIL".equals(resource.get("scope").getAsString())) {
+                    continue;
+                }
+
+                String module = findModuleName(resource.get("key").getAsString(), ":");
+                String mapKey = resource.get("lname").getAsString();
+                mapKey = mapKey.substring(mapKey.indexOf("src/"));
+
+                if (!resources.containsKey(module)) {
+                    resources.put(module, new HashMap<String, String>());
+                }
+                resources.get(module).put(mapKey, resource.get("id").getAsString());
+            }
+        }
+    }
+
     public Map<String, TableEntry> getTableEntries() {
         return Collections.unmodifiableMap(tableEntries);
     }
@@ -71,7 +93,7 @@ public class CodeCoverageReader {
             TableEntry candidate = tableEntries.get(gitFileName);
             if (candidate != null) {
                 candidate.pullRequest += ", " + gitPullRequest;
-                candidate.status = status;
+                candidate.status = updateStatus(candidate.status, status);
                 candidate.gitHubChanges += pullRequestFile.getChanges();
                 candidate.gitHubAdditions += pullRequestFile.getAdditions();
                 candidate.gitHubDeletions += pullRequestFile.getDeletions();
@@ -106,29 +128,6 @@ public class CodeCoverageReader {
         }
     }
 
-    private void populateResourcesMap() throws IOException {
-        for (String resourceId : props.getProjectResourceIds()) {
-            String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1", props.getHost(), resourceId);
-            JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
-            for (JsonElement jsonElement : array) {
-                JsonObject resource = jsonElement.getAsJsonObject();
-                if (!"FIL".equals(resource.get("scope").getAsString())) {
-                    continue;
-                }
-
-                String module = findModuleName(resource.get("key").getAsString(), ":");
-                String mapKey = resource.get("lname").getAsString();
-                mapKey = mapKey.substring(mapKey.indexOf("src/"));
-
-                if (!resources.containsKey(module)) {
-                    resources.put(module, new HashMap<String, String>());
-                }
-
-                resources.get(module).put(mapKey, resource.get("id").getAsString());
-            }
-        }
-    }
-
     private PagedIterable<GHPullRequestFileDetail> getPullRequestFiles(int gitPullRequest) throws IOException {
         GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
         return pullRequest.listFiles();
@@ -147,6 +146,16 @@ public class CodeCoverageReader {
             return null;
         }
         return entryMap.get(mapKey);
+    }
+
+    private GitHubStatus updateStatus(GitHubStatus oldStatus, GitHubStatus newStatus) {
+        if (oldStatus == GitHubStatus.REMOVED || newStatus == GitHubStatus.REMOVED) {
+            return GitHubStatus.REMOVED;
+        }
+        if (oldStatus == GitHubStatus.ADDED || newStatus == GitHubStatus.ADDED) {
+            return GitHubStatus.ADDED;
+        }
+        return newStatus;
     }
 
     private void setMetrics(TableEntry tableEntry, JsonObject resource) {
