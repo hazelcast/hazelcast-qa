@@ -30,6 +30,7 @@ public class TableEntry {
 
     String comment;
     boolean qaCheck;
+    boolean qaCheckSet;
 
     double numericCoverage;
     double numericLineCoverage;
@@ -39,17 +40,33 @@ public class TableEntry {
     int gitHubAdditions;
     int gitHubDeletions;
 
+    boolean isQaCheckSet() {
+        return qaCheckSet;
+    }
+
     void pass() {
+        if (qaCheckSet) {
+            throw new IllegalStateException("QA Check already set to " + qaCheck + " with comment " + comment);
+        }
         this.qaCheck = true;
+        this.qaCheckSet = true;
     }
 
     void pass(String comment) {
-        this.qaCheck = true;
+        if (qaCheckSet) {
+            throw new IllegalStateException("QA Check already set to " + qaCheck + " with comment " + comment);
+        }
         this.comment = comment;
+        this.qaCheck = true;
+        this.qaCheckSet = true;
     }
 
     void fail(String comment) {
-        this.qaCheck = false;
+        if (qaCheckSet) {
+            throw new IllegalStateException("QA Check already set to " + qaCheck + " with comment " + comment);
+        }
         this.comment = comment;
+        this.qaCheck = false;
+        this.qaCheckSet = true;
     }
 }

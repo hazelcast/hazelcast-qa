@@ -46,27 +46,45 @@ public class CodeCoverageAnalyzer {
     public void run() throws IOException {
         for (TableEntry tableEntry : tableEntries.values()) {
             String gitFileName = tableEntry.fileName;
+            String baseName = getBaseName(gitFileName);
 
-            if (!gitFileName.endsWith(".java")) {
-                tableEntry.pass("no Java file");
+            checkEntryStatus(tableEntry);
+            if (tableEntry.isQaCheckSet()) {
                 continue;
             }
 
-            if (tableEntry.status == GitHubStatus.REMOVED) {
-                tableEntry.pass(GitHubStatus.REMOVED.toString());
+            checkFileName(tableEntry, gitFileName, baseName);
+            if (tableEntry.isQaCheckSet()) {
                 continue;
             }
 
             if (tableEntry.coverage == null) {
-                checkFileWithoutCoverage(tableEntry, gitFileName);
+                checkFileWithoutCoverage(tableEntry, gitFileName, baseName);
             } else {
                 checkCodeCoverage(tableEntry);
             }
         }
     }
 
-    private void checkFileWithoutCoverage(TableEntry tableEntry, String gitFileName) throws IOException {
-        String baseName = getBaseName(gitFileName);
+    private void checkEntryStatus(TableEntry tableEntry) {
+        if (tableEntry.status == GitHubStatus.REMOVED) {
+            tableEntry.pass(GitHubStatus.REMOVED.toString());
+        }
+    }
+
+    private void checkFileName(TableEntry tableEntry, String gitFileName, String baseName) {
+        if (baseName.equals("package-info")) {
+            tableEntry.pass("Package info");
+        } else if (gitFileName.contains("/src/test/java/")) {
+            tableEntry.pass("Test");
+        } else if (!gitFileName.endsWith(".java")) {
+            tableEntry.pass("no Java file");
+        } else if (gitFileName.matches(".*/client/[^/]+Request\\.java")) {
+            tableEntry.pass("whitelisted cross module");
+        }
+    }
+
+    private void checkFileWithoutCoverage(TableEntry tableEntry, String gitFileName, String baseName) throws IOException {
         String fileContents;
         try {
             fileContents = getFileContentsFromGitHub(repo, gitFileName);
@@ -74,16 +92,10 @@ public class CodeCoverageAnalyzer {
             tableEntry.pass("deleted in newer PR");
             return;
         }
-        if (baseName.equals("package-info")) {
-            tableEntry.pass("Package info");
-        } else if (fileContents.contains(" interface " + baseName)) {
+        if (fileContents.contains(" interface " + baseName)) {
             tableEntry.pass("Interface");
         } else if (fileContents.contains(" @interface " + baseName)) {
             tableEntry.pass("Annotation");
-        } else if (gitFileName.contains("/src/test/java/")) {
-            tableEntry.pass("Test");
-        } else if (gitFileName.matches(".*/client/[^/]+Request\\.java")) {
-            tableEntry.pass("whitelisted cross module");
         } else {
             tableEntry.fail("code coverage not found");
         }
