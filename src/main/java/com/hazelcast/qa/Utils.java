@@ -24,6 +24,9 @@ import org.apache.commons.io.IOUtils;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -164,5 +167,14 @@ public final class Utils {
         uc.setRequestProperty("Authorization", basicAuth);
 
         return uc.getInputStream();
+    }
+
+    public static void writeToFile(String fileName, StringBuilder content) throws IOException {
+        File file = new File(fileName);
+        FileWriter fileWriter = new FileWriter(file);
+        BufferedWriter writer = new BufferedWriter(fileWriter);
+        writer.write(content.toString());
+        writer.flush();
+        writer.close();
     }
 }

@@ -18,6 +18,7 @@ package com.hazelcast.qasonar;
 
 import com.hazelcast.qa.PropertyReader;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -32,6 +33,7 @@ import static com.hazelcast.qa.Utils.formatGitHubStatus;
 import static com.hazelcast.qa.Utils.formatMinWidth;
 import static com.hazelcast.qa.Utils.formatNullable;
 import static com.hazelcast.qa.Utils.formatSonarQubeLink;
+import static com.hazelcast.qa.Utils.writeToFile;
 
 public class CodeCoveragePrinter {
 
@@ -49,7 +51,7 @@ public class CodeCoveragePrinter {
         this.props = props;
     }
 
-    public void plain() {
+    public void plain() throws IOException {
         spacer = " ";
         separator = " | ";
 
@@ -80,10 +82,10 @@ public class CodeCoveragePrinter {
         sb.append(tableSeparator);
         appendSummary(sb, qaCheckPassCount);
 
-        System.out.println(sb.toString());
+        print(sb);
     }
 
-    public void markUp(List<Integer> pullRequests) {
+    public void markUp(List<Integer> pullRequests) throws IOException {
         spacer = "";
         separator = "|";
 
@@ -94,7 +96,7 @@ public class CodeCoveragePrinter {
         int qaCheckPassCount = appendTableEntries(sb, false);
         appendSummary(sb, qaCheckPassCount);
 
-        System.out.println(sb.toString());
+        print(sb);
     }
 
     private void appendCommandLine(StringBuilder sb, List<Integer> pullRequests) {
@@ -143,6 +145,14 @@ public class CodeCoveragePrinter {
         double minCodeCoverageModified = props.getMinCodeCoverage(GitHubStatus.MODIFIED);
         if (Math.abs(minCodeCoverage - minCodeCoverageModified) > 0.01) {
             sb.append(" (").append(minCodeCoverageModified).append("% for modified files)");
+        }
+    }
+
+    private void print(StringBuilder sb) throws IOException {
+        if (props.getOutputFile() != null) {
+            writeToFile(props.getOutputFile(), sb);
+        } else {
+            System.out.println(sb.toString());
         }
     }
 }

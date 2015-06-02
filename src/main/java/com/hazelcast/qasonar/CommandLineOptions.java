@@ -57,6 +57,10 @@ public class CommandLineOptions {
             "Specifies the minimum code coverage for modified files in percent.")
             .withRequiredArg().ofType(Double.class);
 
+    private final OptionSpec<String> outputFileSpec = parser.accepts("outputFile",
+            "Specifies a file for the output.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec plainOutputSpec = parser.accepts("plainOutput",
             "Generates plain output without Confluence markup.");
 
@@ -96,6 +100,7 @@ public class CommandLineOptions {
         setGitHubRepository();
         setMinCodeCoverage();
         setMinCodeCoverageModified();
+        setOutputFile();
 
         if (options.has(listResourcesSpec)) {
             return CommandLineAction.LIST_RESOURCES;
@@ -128,6 +133,12 @@ public class CommandLineOptions {
             Double minCodeCoverage = options.valueOf(minCodeCoverageModifiedSpec);
             propertyReader.setMinCodeCoverage(GitHubStatus.MODIFIED, minCodeCoverage);
             propertyReader.setMinCodeCoverage(GitHubStatus.RENAMED, minCodeCoverage);
+        }
+    }
+
+    private void setOutputFile() {
+        if (options.has(outputFileSpec)) {
+            propertyReader.setOutputFile(options.valueOf(outputFileSpec));
         }
     }
 

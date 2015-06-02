@@ -41,6 +41,8 @@ public class PropertyReader {
 
     private String gitHubRepository;
 
+    private String outputFile;
+
     public String getHost() {
         return host;
     }
@@ -77,6 +79,14 @@ public class PropertyReader {
 
     public void setMinCodeCoverage(GitHubStatus status, Double codeCoverage) {
         minCodeCoverage.put(status, codeCoverage);
+    }
+
+    public String getOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(String outputFile) {
+        this.outputFile = outputFile;
     }
 
     public static PropertyReader fromPropertyFile() throws IOException {
