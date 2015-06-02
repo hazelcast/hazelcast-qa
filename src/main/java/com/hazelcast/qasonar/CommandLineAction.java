@@ -19,6 +19,6 @@ package com.hazelcast.qasonar;
 public enum CommandLineAction {
 
     PRINT_HELP,
-    LIST_RESOURCES,
+    LIST_PROJECTS,
     PULL_REQUESTS
 }

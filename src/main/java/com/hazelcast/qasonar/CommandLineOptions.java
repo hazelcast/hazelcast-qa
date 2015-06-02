@@ -37,8 +37,8 @@ public class CommandLineOptions {
 
     private final OptionParser parser = new OptionParser();
 
-    private final OptionSpec listResourcesSpec = parser.accepts("listResources",
-            "Lists resources of specified SonarQube instance.");
+    private final OptionSpec listProjectsSpec = parser.accepts("listProjects",
+            "Lists projects of specified SonarQube instance.");
 
     private final OptionSpec<String> pullRequestsSpec = parser.accepts("pullRequests",
             "Specifies the pull requests whose code coverage should be printed.\n"
@@ -102,8 +102,8 @@ public class CommandLineOptions {
         setMinCodeCoverageModified();
         setOutputFile();
 
-        if (options.has(listResourcesSpec)) {
-            return CommandLineAction.LIST_RESOURCES;
+        if (options.has(listProjectsSpec)) {
+            return CommandLineAction.LIST_PROJECTS;
         }
 
         if (options.has(pullRequestsSpec)) {

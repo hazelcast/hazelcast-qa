@@ -26,11 +26,11 @@ import java.io.IOException;
 import static com.hazelcast.qa.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
-public class ListResources {
+public class ListProjects {
 
     PropertyReader props;
 
-    public ListResources(PropertyReader propertyReader) {
+    public ListProjects(PropertyReader propertyReader) {
         this.props = propertyReader;
     }
 

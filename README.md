@@ -50,6 +50,17 @@ Use the bash scripts with the created JAR file.
 
 # QA Sonar
 
-A tool to generate a code coverage table from a list of pull requests
+A tool to generate a code coverage table from a list of pull requests.
 
-Usage: `qa-sonar --pullRequests 1,2,3 --minCodeCoverage 87.5`
+## List projects
+
+Prints a list of all projects in the configured SonarQube instance.
+Useful to retrieve the resourceIDs for PR analysis configuration.
+
+Usage: `qa-sonar --listProjects`
+
+## Analysis of Pull Requests
+
+Analyses the code coverage of list of PRs.
+
+Usage: `qa-sonar --pullRequests 1,2,3 --minCodeCoverage 87.5 --minCodeCoverageModified 75 --outputFile code-coverage.txt`

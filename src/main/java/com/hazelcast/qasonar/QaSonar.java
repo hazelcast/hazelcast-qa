@@ -37,9 +37,9 @@ public final class QaSonar {
                 commandLineOptions.printHelp();
                 break;
 
-            case LIST_RESOURCES:
-                ListResources listResources = new ListResources(propertyReader);
-                listResources.run();
+            case LIST_PROJECTS:
+                ListProjects listProjects = new ListProjects(propertyReader);
+                listProjects.run();
                 break;
 
             case PULL_REQUESTS:
