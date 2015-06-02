@@ -17,32 +17,31 @@
 package com.hazelcast.qa;
 
 import com.hazelcast.qasonar.GitHubStatus;
-import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-
-import static java.util.Arrays.asList;
 
 public class PropertyReader {
 
     private final List<String> projectResourceIds = new ArrayList<String>();
     private final Map<GitHubStatus, Double> minCodeCoverage = new HashMap<GitHubStatus, Double>();
 
-    private String host;
-    private String username;
-    private String password;
+    private final String host;
+    private final String username;
+    private final String password;
 
     private String gitHubRepository;
     private boolean gitHubRepositoryOverwritten;
 
     private String outputFile;
+
+    public PropertyReader(String host, String username, String password) {
+        this.host = host;
+        this.username = username;
+        this.password = password;
+    }
 
     public String getHost() {
         return host;
@@ -58,6 +57,10 @@ public class PropertyReader {
 
     public List<String> getProjectResourceIds() {
         return projectResourceIds;
+    }
+
+    public void addProjectResourceId(String projectResourceId) {
+        projectResourceIds.add(projectResourceId);
     }
 
     public String getGitHubRepository() {
@@ -93,64 +96,5 @@ public class PropertyReader {
 
     public void setOutputFile(String outputFile) {
         this.outputFile = outputFile;
-    }
-
-    public static PropertyReader fromPropertyFile() throws IOException {
-        File homeDir = new File(System.getProperty("user.home"));
-        File propertyFile = new File(homeDir, ".hazelcast-qa");
-        return fromPropertyFile(propertyFile.getPath());
-    }
-
-    public static PropertyReader fromPropertyFile(String propertyFileName) throws IOException {
-        Properties props = new Properties();
-        FileInputStream in = null;
-        try {
-            in = new FileInputStream(propertyFileName);
-            props.load(in);
-        } finally {
-            IOUtils.closeQuietly(in);
-        }
-
-        return fromProperties(props);
-    }
-
-    public static PropertyReader fromProperties(Properties props) {
-        PropertyReader self = new PropertyReader();
-
-        try {
-            self.host = props.getProperty("host").trim();
-            self.username = props.getProperty("username").trim();
-            self.password = props.getProperty("password").trim();
-            addProjectResourceIds(self, props.getProperty("projectResourceIds").trim());
-
-            self.gitHubRepository = props.getProperty("gitHubRepository").trim();
-
-            double minCodeCoverage = Double.valueOf(props.getProperty("minCodeCoverage").trim());
-            for (GitHubStatus gitHubStatus : GitHubStatus.values()) {
-                self.minCodeCoverage.put(gitHubStatus, minCodeCoverage);
-            }
-
-            if (props.getProperty("minCodeCoverageModified") != null) {
-                minCodeCoverage = Double.valueOf(props.getProperty("minCodeCoverageModified").trim());
-                self.minCodeCoverage.put(GitHubStatus.MODIFIED, minCodeCoverage);
-                self.minCodeCoverage.put(GitHubStatus.RENAMED, minCodeCoverage);
-            }
-        } catch (Exception e) {
-            System.err.println("Could not read property file! " + e.getMessage());
-            throw new IllegalStateException(e);
-        }
-
-        return self;
-    }
-
-    private static void addProjectResourceIds(PropertyReader props, String projectResourceIdString) {
-        if (!projectResourceIdString.contains(",")) {
-            props.projectResourceIds.add(projectResourceIdString);
-            return;
-        }
-
-        for (String projectResourceId : asList(projectResourceIdString.split("\\s*,\\s*"))) {
-            props.projectResourceIds.add(projectResourceId);
-        }
     }
 }

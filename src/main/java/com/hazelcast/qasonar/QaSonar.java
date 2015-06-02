@@ -17,6 +17,7 @@
 package com.hazelcast.qasonar;
 
 import com.hazelcast.qa.PropertyReader;
+import com.hazelcast.qa.PropertyReaderBuilder;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
@@ -28,10 +29,9 @@ public final class QaSonar {
     }
 
     public static void main(String[] args) throws IOException {
-        PropertyReader propertyReader = PropertyReader.fromPropertyFile();
+        PropertyReader propertyReader = PropertyReaderBuilder.fromPropertyFile();
 
         CommandLineOptions commandLineOptions = new CommandLineOptions(args, propertyReader);
-
         switch (commandLineOptions.getAction()) {
             case PRINT_HELP:
                 commandLineOptions.printHelp();
