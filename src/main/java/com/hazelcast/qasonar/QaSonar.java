@@ -24,6 +24,7 @@ import org.kohsuke.github.GitHub;
 import java.io.IOException;
 
 import static com.hazelcast.qa.Utils.debug;
+import static com.hazelcast.qa.Utils.debugCommandLine;
 import static com.hazelcast.qa.Utils.setDebug;
 import static java.lang.String.format;
 
@@ -49,9 +50,7 @@ public final class QaSonar {
                 break;
 
             case PULL_REQUESTS:
-                if (propertyReader.getOutputFile() != null) {
-                    debug("Fetching data for " + propertyReader.getOutputFile());
-                }
+                debugCommandLine(propertyReader, commandLineOptions);
 
                 debug("Connecting to GitHub...");
                 GitHub github = GitHub.connect();
@@ -83,5 +82,4 @@ public final class QaSonar {
                 throw new IllegalStateException("Unwanted command line action: " + commandLineOptions.getAction());
         }
     }
-
 }

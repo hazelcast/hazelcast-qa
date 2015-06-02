@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static com.hazelcast.qa.Utils.appendCommandLine;
 import static com.hazelcast.qa.Utils.debug;
 import static com.hazelcast.qa.Utils.fillString;
 import static com.hazelcast.qa.Utils.formatCoverage;
@@ -91,26 +92,13 @@ public class CodeCoveragePrinter {
         separator = "|";
 
         StringBuilder sb = new StringBuilder();
-        appendCommandLine(sb, pullRequests);
+        appendCommandLine(props, sb, pullRequests, false);
         sb.append("||Sonar||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA||\n");
 
         int qaCheckPassCount = appendTableEntries(sb, false);
         appendSummary(sb, qaCheckPassCount);
 
         print(sb);
-    }
-
-    private void appendCommandLine(StringBuilder sb, List<Integer> pullRequests) {
-        sb.append("Command line: {{qa-sonar --pullRequests ");
-        String separator = "";
-        for (Integer pullRequest : pullRequests) {
-            sb.append(separator).append(pullRequest);
-            separator = ",";
-        }
-        if (props.isGitHubRepositoryOverwritten()) {
-            sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
-        }
-        sb.append("}}\n");
     }
 
     private int appendTableEntries(StringBuilder sb, boolean plainOutput) {

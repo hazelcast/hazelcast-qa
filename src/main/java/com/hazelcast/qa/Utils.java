@@ -18,6 +18,7 @@ package com.hazelcast.qa;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.hazelcast.qasonar.CommandLineOptions;
 import com.hazelcast.qasonar.GitHubStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHContent;
@@ -32,6 +33,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
@@ -50,6 +52,38 @@ public final class Utils {
     public static void debug(String msg) {
         if (debug) {
             System.out.println(msg);
+        }
+    }
+
+    public static void debugCommandLine(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
+        if (debug) {
+            StringBuilder sb = new StringBuilder();
+            appendCommandLine(propertyReader, sb, commandLineOptions.getPullRequests(), true);
+            debug(sb.toString());
+        }
+    }
+
+    public static void appendCommandLine(PropertyReader props, StringBuilder sb, List<Integer> pullRequests, boolean plain) {
+        if (plain) {
+            sb.append("Executing: ");
+        } else {
+            sb.append("Command line: {{");
+        }
+        sb.append("qa-sonar --pullRequests ");
+        String separator = "";
+        for (Integer pullRequest : pullRequests) {
+            sb.append(separator).append(pullRequest);
+            separator = ",";
+        }
+        if (props.isGitHubRepositoryOverwritten()) {
+            sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
+        }
+        if (plain) {
+            if (props.getOutputFile() != null) {
+                sb.append(" --outputFile ").append(props.getOutputFile());
+            }
+        } else {
+            sb.append("}}\n");
         }
     }
 
@@ -98,11 +132,12 @@ public final class Utils {
                     .replace("src/main/java/com/hazelcast", "main")
                     .replace("src/test/java/com/hazelcast", "test"), width);
         }
-        int pos = fileName.lastIndexOf('/');
-        if (fileName.length() < 80 || pos == -1) {
-            return fileName;
-        }
-        return fileName.substring(0, pos) + "/\n" + fileName.substring(pos + 1, fileName.length());
+        return format("{span:style=font-size:10px}%s{span}", fileName);
+        //int pos = fileName.lastIndexOf('/');
+        //if (fileName.length() < 80 || pos == -1) {
+        //    return fileName;
+        //}
+        //return fileName.substring(0, pos) + "/\n" + fileName.substring(pos + 1, fileName.length());
     }
 
     public static String formatGitHubStatus(GitHubStatus status, boolean plainOutput) {
