@@ -38,7 +38,19 @@ import static org.apache.commons.io.IOUtils.copy;
 
 public final class Utils {
 
+    private static volatile boolean debug;
+
     private Utils() {
+    }
+
+    public static void setDebug(boolean debug) {
+        Utils.debug = debug;
+    }
+
+    public static void debug(String msg) {
+        if (debug) {
+            System.out.println(msg);
+        }
     }
 
     public static String fillString(int length, char charToFill) {

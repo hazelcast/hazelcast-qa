@@ -23,11 +23,11 @@ import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 
+import static com.hazelcast.qa.Utils.debug;
+import static com.hazelcast.qa.Utils.setDebug;
 import static java.lang.String.format;
 
 public final class QaSonar {
-
-    private static boolean verbose;
 
     private QaSonar() {
     }
@@ -36,7 +36,7 @@ public final class QaSonar {
         PropertyReader propertyReader = PropertyReaderBuilder.fromPropertyFile();
 
         CommandLineOptions commandLineOptions = new CommandLineOptions(args, propertyReader);
-        verbose = commandLineOptions.isVerbose();
+        setDebug(commandLineOptions.isVerbose());
 
         switch (commandLineOptions.getAction()) {
             case PRINT_HELP:
@@ -76,7 +76,7 @@ public final class QaSonar {
                     printer.markUp(commandLineOptions.getPullRequests());
                 }
 
-                debug("Done!");
+                debug("Done!\n");
                 break;
 
             default:
@@ -84,9 +84,4 @@ public final class QaSonar {
         }
     }
 
-    private static void debug(String msg) {
-        if (verbose) {
-            System.out.println(msg);
-        }
-    }
 }

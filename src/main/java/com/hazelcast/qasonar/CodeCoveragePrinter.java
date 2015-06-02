@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static com.hazelcast.qa.Utils.debug;
 import static com.hazelcast.qa.Utils.fillString;
 import static com.hazelcast.qa.Utils.formatCoverage;
 import static com.hazelcast.qa.Utils.formatFileName;
@@ -141,14 +142,18 @@ public class CodeCoveragePrinter {
     private void appendSummary(StringBuilder sb, int qaCheckPassCount) {
         int totalCount = tableEntries.size();
         double minCodeCoverage = props.getMinCodeCoverage(GitHubStatus.ADDED);
-        sb.append("Summary: ")
+        StringBuilder summary = new StringBuilder();
+        summary.append("Summary: ")
                 .append(qaCheckPassCount).append("/").append(totalCount)
                 .append(" files passed QA Check with minimum code coverage of ").append(minCodeCoverage).append("%");
 
         double minCodeCoverageModified = props.getMinCodeCoverage(GitHubStatus.MODIFIED);
         if (Math.abs(minCodeCoverage - minCodeCoverageModified) > 0.01) {
-            sb.append(" (").append(minCodeCoverageModified).append("% for modified files)");
+            summary.append(" (").append(minCodeCoverageModified).append("% for modified files)");
         }
+
+        debug(summary.toString());
+        sb.append(summary);
     }
 
     private void print(StringBuilder sb) throws IOException {
