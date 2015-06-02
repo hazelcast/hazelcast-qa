@@ -64,6 +64,9 @@ public class CommandLineOptions {
     private final OptionSpec plainOutputSpec = parser.accepts("plainOutput",
             "Generates plain output without Confluence markup.");
 
+    private final OptionSpec verboseSpec = parser.accepts("verbose",
+            "Prints debug output.");
+
     private final PropertyReader propertyReader;
     private final OptionSet options;
     private final CommandLineAction action;
@@ -85,6 +88,9 @@ public class CommandLineOptions {
 
     public boolean isPlainOutput() {
         return options.has(plainOutputSpec);
+    }
+    public boolean isVerbose() {
+        return options.has(verboseSpec);
     }
 
     public List<Integer> getPullRequests() {

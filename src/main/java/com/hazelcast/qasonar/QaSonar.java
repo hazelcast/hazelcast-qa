@@ -23,7 +23,11 @@ import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 
+import static java.lang.String.format;
+
 public final class QaSonar {
+
+    private static boolean verbose;
 
     private QaSonar() {
     }
@@ -32,6 +36,8 @@ public final class QaSonar {
         PropertyReader propertyReader = PropertyReaderBuilder.fromPropertyFile();
 
         CommandLineOptions commandLineOptions = new CommandLineOptions(args, propertyReader);
+        verbose = commandLineOptions.isVerbose();
+
         switch (commandLineOptions.getAction()) {
             case PRINT_HELP:
                 commandLineOptions.printHelp();
@@ -43,27 +49,44 @@ public final class QaSonar {
                 break;
 
             case PULL_REQUESTS:
+                if (propertyReader.getOutputFile() != null) {
+                    debug("Fetching data for " + propertyReader.getOutputFile());
+                }
+
+                debug("Connecting to GitHub...");
                 GitHub github = GitHub.connect();
                 GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
 
+                debug("Reading code coverage data...");
                 CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
                 for (Integer pullRequest : commandLineOptions.getPullRequests()) {
+                    debug(format("Adding pull request %d...", pullRequest));
                     reader.addPullRequest(pullRequest);
                 }
 
+                debug("Analyzing code coverage data...");
                 CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo);
                 analyzer.run();
 
+                debug("Printing code coverage data...");
                 CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader);
                 if (commandLineOptions.isPlainOutput()) {
                     printer.plain();
                 } else {
                     printer.markUp(commandLineOptions.getPullRequests());
                 }
+
+                debug("Done!");
                 break;
 
             default:
                 throw new IllegalStateException("Unwanted command line action: " + commandLineOptions.getAction());
+        }
+    }
+
+    private static void debug(String msg) {
+        if (verbose) {
+            System.out.println(msg);
         }
     }
 }
