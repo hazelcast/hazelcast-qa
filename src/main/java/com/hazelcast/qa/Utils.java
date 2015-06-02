@@ -132,12 +132,7 @@ public final class Utils {
                     .replace("src/main/java/com/hazelcast", "main")
                     .replace("src/test/java/com/hazelcast", "test"), width);
         }
-        return format("{span:style=font-size:10px}%s{span}", fileName);
-        //int pos = fileName.lastIndexOf('/');
-        //if (fileName.length() < 80 || pos == -1) {
-        //    return fileName;
-        //}
-        //return fileName.substring(0, pos) + "/\n" + fileName.substring(pos + 1, fileName.length());
+        return format("{span:style=font-size:12px}%s{span}", fileName);
     }
 
     public static String formatGitHubStatus(GitHubStatus status, boolean plainOutput) {
@@ -148,14 +143,14 @@ public final class Utils {
         if (gitHubChanges <= 0) {
             sign = "";
         }
-        return plainOutput ? format("%4s", sign + gitHubChanges) : sign + gitHubChanges;
+        return plainOutput ? format("%4s", sign + gitHubChanges) : formatAlignRight(sign + gitHubChanges);
     }
 
     public static String formatCoverage(String coverage, boolean plainOutput) {
         if (plainOutput) {
             return format("%6s", formatNullable(coverage, "-"));
         }
-        return "{align:right}" + formatNullable(coverage, "-") + "{align}";
+        return formatAlignRight(formatNullable(coverage, "-"));
     }
 
     public static String formatNullable(String value, String defaultValue, boolean plainOutput, int minWidth) {
@@ -167,6 +162,10 @@ public final class Utils {
 
     private static String formatNullable(String value, String defaultValue) {
         return (value == null ? defaultValue : value);
+    }
+
+    private static String formatAlignRight(String value) {
+        return "{align:right}" + value + "{align}";
     }
 
     public static String findModuleName(String fileName, String delimiter) {

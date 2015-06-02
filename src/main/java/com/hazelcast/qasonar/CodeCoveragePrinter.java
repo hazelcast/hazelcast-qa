@@ -93,7 +93,7 @@ public class CodeCoveragePrinter {
 
         StringBuilder sb = new StringBuilder();
         appendCommandLine(props, sb, pullRequests, false);
-        sb.append("||Sonar||PRs||File||Status||Additions||Deletions||Coverage||Line||Branch||Comment||QA||\n");
+        sb.append("||Sonar||PRs||File||Status||Add||Del||Coverage||Line||Branch||Comment||QA||\n");
 
         int qaCheckPassCount = appendTableEntries(sb, false);
         appendSummary(sb, qaCheckPassCount);
