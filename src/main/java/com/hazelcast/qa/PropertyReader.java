@@ -68,8 +68,10 @@ public class PropertyReader {
     }
 
     public void setGitHubRepository(String gitHubRepository) {
+        if (this.gitHubRepository != null) {
+            gitHubRepositoryOverwritten = true;
+        }
         this.gitHubRepository = gitHubRepository;
-        gitHubRepositoryOverwritten = true;
     }
 
     public boolean isGitHubRepositoryOverwritten() {
