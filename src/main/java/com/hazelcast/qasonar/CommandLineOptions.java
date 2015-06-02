@@ -130,15 +130,14 @@ public class CommandLineOptions {
     private void setMinCodeCoverage() {
         if (options.has(minCodeCoverageSpec)) {
             Double minCodeCoverage = options.valueOf(minCodeCoverageSpec);
-            propertyReader.setMinCodeCoverage(minCodeCoverage);
+            propertyReader.setMinCodeCoverage(minCodeCoverage, false);
         }
     }
 
     private void setMinCodeCoverageModified() {
         if (options.has(minCodeCoverageModifiedSpec)) {
             Double minCodeCoverage = options.valueOf(minCodeCoverageModifiedSpec);
-            propertyReader.setMinCodeCoverage(GitHubStatus.MODIFIED, minCodeCoverage);
-            propertyReader.setMinCodeCoverage(GitHubStatus.RENAMED, minCodeCoverage);
+            propertyReader.setMinCodeCoverage(minCodeCoverage, true);
         }
     }
 

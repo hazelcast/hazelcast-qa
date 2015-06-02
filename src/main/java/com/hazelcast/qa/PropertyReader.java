@@ -82,14 +82,13 @@ public class PropertyReader {
         return minCodeCoverage.get(gitHubStatus);
     }
 
-    public void setMinCodeCoverage(Double codeCoverage) {
+    public void setMinCodeCoverage(Double codeCoverage, boolean setModifyingStateOnly) {
         for (GitHubStatus gitHubStatus : GitHubStatus.values()) {
+            if (setModifyingStateOnly && !gitHubStatus.isModifiedStatus()) {
+                continue;
+            }
             minCodeCoverage.put(gitHubStatus, codeCoverage);
         }
-    }
-
-    public void setMinCodeCoverage(GitHubStatus status, Double codeCoverage) {
-        minCodeCoverage.put(status, codeCoverage);
     }
 
     public String getOutputFile() {

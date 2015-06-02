@@ -16,8 +16,6 @@
 
 package com.hazelcast.qa;
 
-import com.hazelcast.qasonar.GitHubStatus;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -62,12 +60,11 @@ public final class PropertyReaderBuilder {
             propertyReader.setGitHubRepository(getProperty(props, "gitHubRepository"));
 
             double minCodeCoverage = Double.valueOf(getProperty(props, "minCodeCoverage"));
-            propertyReader.setMinCodeCoverage(minCodeCoverage);
+            propertyReader.setMinCodeCoverage(minCodeCoverage, false);
 
             if (props.getProperty("minCodeCoverageModified") != null) {
                 minCodeCoverage = Double.valueOf(getProperty(props, "minCodeCoverageModified"));
-                propertyReader.setMinCodeCoverage(GitHubStatus.MODIFIED, minCodeCoverage);
-                propertyReader.setMinCodeCoverage(GitHubStatus.RENAMED, minCodeCoverage);
+                propertyReader.setMinCodeCoverage(minCodeCoverage, true);
             }
 
             return propertyReader;

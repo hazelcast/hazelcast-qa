@@ -18,15 +18,18 @@ package com.hazelcast.qasonar;
 
 public enum GitHubStatus {
 
-    ADDED("added"),
-    MODIFIED("modified"),
-    RENAMED("renamed"),
-    REMOVED("removed");
+    ADDED("added", false),
+    MODIFIED("modified", true),
+    CHANGED("changed", true),
+    RENAMED("renamed", true),
+    REMOVED("removed", false);
 
-    private String status;
+    private final String status;
+    private final boolean isModifiedStatus;
 
-    GitHubStatus(String status) {
+    GitHubStatus(String status, boolean isModifiedStatus) {
         this.status = status;
+        this.isModifiedStatus = isModifiedStatus;
     }
 
     public static GitHubStatus fromString(String status) {
@@ -38,6 +41,10 @@ public enum GitHubStatus {
             }
         }
         throw new IllegalStateException("Unknown status: " + status);
+    }
+
+    public boolean isModifiedStatus() {
+        return isModifiedStatus;
     }
 
     @Override
