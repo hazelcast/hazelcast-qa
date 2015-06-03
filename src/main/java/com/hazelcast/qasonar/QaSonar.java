@@ -16,16 +16,21 @@
 
 package com.hazelcast.qasonar;
 
-import com.hazelcast.qa.PropertyReader;
-import com.hazelcast.qa.PropertyReaderBuilder;
+import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
+import com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzer;
+import com.hazelcast.qasonar.codecoverage.CodeCoveragePrinter;
+import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
+import com.hazelcast.qasonar.utils.CommandLineOptions;
+import com.hazelcast.qasonar.listprojects.ListProjects;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 
-import static com.hazelcast.qa.Utils.debug;
-import static com.hazelcast.qa.Utils.debugCommandLine;
-import static com.hazelcast.qa.Utils.setDebug;
+import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.Utils.debugCommandLine;
+import static com.hazelcast.qasonar.utils.Utils.setDebug;
 import static java.lang.String.format;
 
 public final class QaSonar {

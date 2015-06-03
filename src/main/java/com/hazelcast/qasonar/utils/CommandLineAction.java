@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar;
+package com.hazelcast.qasonar.utils;
 
 public enum CommandLineAction {
 

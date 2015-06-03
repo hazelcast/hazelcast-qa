@@ -14,27 +14,29 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar;
+package com.hazelcast.qasonar.codecoverage;
 
-import com.hazelcast.qa.PropertyReader;
+import com.hazelcast.qasonar.utils.GitHubStatus;
+import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.CommandLineOptions;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static com.hazelcast.qa.Utils.appendCommandLine;
-import static com.hazelcast.qa.Utils.debug;
-import static com.hazelcast.qa.Utils.fillString;
-import static com.hazelcast.qa.Utils.formatCoverage;
-import static com.hazelcast.qa.Utils.formatFileName;
-import static com.hazelcast.qa.Utils.formatGitHubChanges;
-import static com.hazelcast.qa.Utils.formatGitHubLink;
-import static com.hazelcast.qa.Utils.formatGitHubStatus;
-import static com.hazelcast.qa.Utils.formatMinWidth;
-import static com.hazelcast.qa.Utils.formatNullable;
-import static com.hazelcast.qa.Utils.formatSonarQubeLink;
-import static com.hazelcast.qa.Utils.writeToFile;
+import static com.hazelcast.qasonar.utils.Utils.appendCommandLine;
+import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.Utils.fillString;
+import static com.hazelcast.qasonar.utils.Utils.formatCoverage;
+import static com.hazelcast.qasonar.utils.Utils.formatFileName;
+import static com.hazelcast.qasonar.utils.Utils.formatGitHubChanges;
+import static com.hazelcast.qasonar.utils.Utils.formatGitHubLink;
+import static com.hazelcast.qasonar.utils.Utils.formatGitHubStatus;
+import static com.hazelcast.qasonar.utils.Utils.formatMinWidth;
+import static com.hazelcast.qasonar.utils.Utils.formatNullable;
+import static com.hazelcast.qasonar.utils.Utils.formatSonarQubeLink;
+import static com.hazelcast.qasonar.utils.Utils.writeToFile;
 
 public class CodeCoveragePrinter {
 

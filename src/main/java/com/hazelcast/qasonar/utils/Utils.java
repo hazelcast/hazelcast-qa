@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qa;
+package com.hazelcast.qasonar.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.hazelcast.qasonar.CommandLineOptions;
-import com.hazelcast.qasonar.GitHubStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;

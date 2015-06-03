@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar;
+package com.hazelcast.qasonar.utils;
 
-import com.hazelcast.qa.PropertyReader;
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;

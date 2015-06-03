@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar;
+package com.hazelcast.qasonar.codecoverage;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.hazelcast.qa.PropertyReader;
+import com.hazelcast.qasonar.utils.GitHubStatus;
+import com.hazelcast.qasonar.utils.PropertyReader;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -30,8 +31,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.hazelcast.qa.Utils.findModuleName;
-import static com.hazelcast.qa.Utils.getJsonElementsFromQuery;
+import static com.hazelcast.qasonar.utils.Utils.findModuleName;
+import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
 public class CodeCoverageReader {

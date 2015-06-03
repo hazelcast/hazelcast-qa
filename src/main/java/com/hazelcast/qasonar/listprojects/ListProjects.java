@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar;
+package com.hazelcast.qasonar.listprojects;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.hazelcast.qa.PropertyReader;
+import com.hazelcast.qasonar.utils.PropertyReader;
 
 import java.io.IOException;
 
-import static com.hazelcast.qa.Utils.getJsonElementsFromQuery;
+import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
 public class ListProjects {

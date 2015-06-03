@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qa;
-
-import com.hazelcast.qasonar.GitHubStatus;
+package com.hazelcast.qasonar.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

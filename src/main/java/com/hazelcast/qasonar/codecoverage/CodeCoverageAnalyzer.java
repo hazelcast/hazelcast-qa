@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar;
+package com.hazelcast.qasonar.codecoverage;
 
-import com.hazelcast.qa.PropertyReader;
+import com.hazelcast.qasonar.utils.GitHubStatus;
+import com.hazelcast.qasonar.utils.PropertyReader;
 import org.kohsuke.github.GHRepository;
 
 import java.io.FileNotFoundException;
@@ -24,7 +25,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.hazelcast.qa.Utils.getFileContentsFromGitHub;
+import static com.hazelcast.qasonar.utils.Utils.getFileContentsFromGitHub;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class CodeCoverageAnalyzer {
