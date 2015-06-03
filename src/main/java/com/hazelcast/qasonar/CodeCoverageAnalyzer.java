@@ -72,7 +72,7 @@ public class CodeCoverageAnalyzer {
     }
 
     private void checkFileName(TableEntry tableEntry, String gitFileName) {
-        if (gitFileName.equals("package-info.java")) {
+        if (gitFileName.endsWith("package-info.java")) {
             tableEntry.pass("Package info");
         } else if (gitFileName.contains("/src/test/java/")) {
             tableEntry.pass("Test");
