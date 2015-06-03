@@ -18,6 +18,7 @@ package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.WhiteList;
 import org.kohsuke.github.GHRepository;
 
 import java.io.FileNotFoundException;
@@ -33,11 +34,14 @@ public class CodeCoverageAnalyzer {
     private final Map<String, TableEntry> tableEntries;
     private final PropertyReader props;
     private final GHRepository repo;
+    private final WhiteList whiteList;
 
-    public CodeCoverageAnalyzer(Map<String, TableEntry> tableEntries, PropertyReader props, GHRepository repo) {
+    public CodeCoverageAnalyzer(Map<String, TableEntry> tableEntries, PropertyReader props, GHRepository repo,
+                                WhiteList whiteList) {
         this.tableEntries = tableEntries;
         this.props = props;
         this.repo = repo;
+        this.whiteList = whiteList;
     }
 
     public Map<String, TableEntry> getTableEntries() {
@@ -79,9 +83,11 @@ public class CodeCoverageAnalyzer {
             tableEntry.pass("Test");
         } else if (!gitFileName.endsWith(".java")) {
             tableEntry.pass("no Java file");
-        } else if (gitFileName.matches(".*/client/[^/]+Request\\.java")
-                || gitFileName.matches(".*/client/impl/protocol/task/.*MessageTask\\.java")) {
-            tableEntry.pass("whitelisted");
+        } else {
+            String justification = whiteList.getWhitelistJustificationOrNull(gitFileName);
+            if (justification != null) {
+                tableEntry.pass("whitelisted " + justification);
+            }
         }
     }
 

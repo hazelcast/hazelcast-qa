@@ -33,6 +33,7 @@ public class PropertyReader {
     private String gitHubRepository;
     private boolean gitHubRepositoryOverwritten;
 
+    private String whiteListFileName;
     private String outputFile;
 
     public PropertyReader(String host, String username, String password) {
@@ -87,6 +88,14 @@ public class PropertyReader {
             }
             minCodeCoverage.put(gitHubStatus, codeCoverage);
         }
+    }
+
+    public String getWhiteListFileName() {
+        return whiteListFileName;
+    }
+
+    public void setWhiteListFileName(String whiteListFileName) {
+        this.whiteListFileName = whiteListFileName;
     }
 
     public String getOutputFile() {

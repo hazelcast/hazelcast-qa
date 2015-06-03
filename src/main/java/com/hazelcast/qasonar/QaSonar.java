@@ -23,6 +23,7 @@ import com.hazelcast.qasonar.codecoverage.CodeCoveragePrinter;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.listprojects.ListProjects;
+import com.hazelcast.qasonar.utils.WhiteList;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
@@ -31,6 +32,7 @@ import java.io.IOException;
 import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.debugCommandLine;
 import static com.hazelcast.qasonar.utils.Utils.setDebug;
+import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
 import static java.lang.String.format;
 
 public final class QaSonar {
@@ -57,6 +59,9 @@ public final class QaSonar {
             case PULL_REQUESTS:
                 debugCommandLine(propertyReader, cliOptions);
 
+                debug("Parsing whitelist...");
+                WhiteList whiteList = fromJsonFile(propertyReader);
+
                 debug("Connecting to GitHub...");
                 GitHub github = GitHub.connect();
                 GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
@@ -69,7 +74,8 @@ public final class QaSonar {
                 }
 
                 debug("Analyzing code coverage data...");
-                CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo);
+                CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo,
+                        whiteList);
                 analyzer.run();
 
                 debug("Printing code coverage data...");

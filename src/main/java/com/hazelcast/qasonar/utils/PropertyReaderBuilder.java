@@ -67,6 +67,11 @@ public final class PropertyReaderBuilder {
                 propertyReader.setMinCodeCoverage(minCodeCoverage, true);
             }
 
+            String whiteListFileName = getProperty(props, "whiteListFileName");
+            if (whiteListFileName != null) {
+                propertyReader.setWhiteListFileName(whiteListFileName);
+            }
+
             return propertyReader;
         } catch (Exception e) {
             throw new IllegalStateException("Could not read property file!", e.getCause());
@@ -74,7 +79,8 @@ public final class PropertyReaderBuilder {
     }
 
     private static String getProperty(Properties props, String key) {
-        return props.getProperty(key).trim();
+        String value = props.getProperty(key);
+        return (value == null) ? null : value.trim();
     }
 
     private static void addProjectResourceIds(PropertyReader propertyReader, String projectResourceIdString) {
