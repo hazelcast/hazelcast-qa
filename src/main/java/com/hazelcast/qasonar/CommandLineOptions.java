@@ -61,8 +61,11 @@ public class CommandLineOptions {
             "Specifies a file for the output.")
             .withRequiredArg().ofType(String.class);
 
+    private final OptionSpec printFailsOnlySpec = parser.accepts("printFailsOnly",
+            "Prints failed files only.");
+
     private final OptionSpec plainOutputSpec = parser.accepts("plainOutput",
-            "Generates plain output without Confluence markup.");
+            "Prints plain output without Confluence markup.");
 
     private final OptionSpec verboseSpec = parser.accepts("verbose",
             "Prints debug output.");
@@ -86,9 +89,14 @@ public class CommandLineOptions {
         parser.printHelpOn(System.out);
     }
 
+    public boolean printFailsOnly() {
+        return options.has(printFailsOnlySpec);
+    }
+
     public boolean isPlainOutput() {
         return options.has(plainOutputSpec);
     }
+
     public boolean isVerbose() {
         return options.has(verboseSpec);
     }

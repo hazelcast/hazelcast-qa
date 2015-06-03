@@ -36,12 +36,12 @@ public final class QaSonar {
     public static void main(String[] args) throws IOException {
         PropertyReader propertyReader = PropertyReaderBuilder.fromPropertyFile();
 
-        CommandLineOptions commandLineOptions = new CommandLineOptions(args, propertyReader);
-        setDebug(commandLineOptions.isVerbose());
+        CommandLineOptions cliOptions = new CommandLineOptions(args, propertyReader);
+        setDebug(cliOptions.isVerbose());
 
-        switch (commandLineOptions.getAction()) {
+        switch (cliOptions.getAction()) {
             case PRINT_HELP:
-                commandLineOptions.printHelp();
+                cliOptions.printHelp();
                 break;
 
             case LIST_PROJECTS:
@@ -50,7 +50,7 @@ public final class QaSonar {
                 break;
 
             case PULL_REQUESTS:
-                debugCommandLine(propertyReader, commandLineOptions);
+                debugCommandLine(propertyReader, cliOptions);
 
                 debug("Connecting to GitHub...");
                 GitHub github = GitHub.connect();
@@ -58,7 +58,7 @@ public final class QaSonar {
 
                 debug("Reading code coverage data...");
                 CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
-                for (Integer pullRequest : commandLineOptions.getPullRequests()) {
+                for (Integer pullRequest : cliOptions.getPullRequests()) {
                     debug(format("Adding pull request %d...", pullRequest));
                     reader.addPullRequest(pullRequest);
                 }
@@ -68,18 +68,14 @@ public final class QaSonar {
                 analyzer.run();
 
                 debug("Printing code coverage data...");
-                CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader);
-                if (commandLineOptions.isPlainOutput()) {
-                    printer.plain();
-                } else {
-                    printer.markUp(commandLineOptions.getPullRequests());
-                }
+                CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader, cliOptions);
+                printer.run();
 
                 debug("Done!\n");
                 break;
 
             default:
-                throw new IllegalStateException("Unwanted command line action: " + commandLineOptions.getAction());
+                throw new IllegalStateException("Unwanted command line action: " + cliOptions.getAction());
         }
     }
 }

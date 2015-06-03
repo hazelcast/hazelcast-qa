@@ -19,7 +19,6 @@ package com.hazelcast.qasonar;
 import com.hazelcast.qa.PropertyReader;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -44,16 +43,26 @@ public class CodeCoveragePrinter {
 
     private final Map<String, TableEntry> tableEntries;
     private final PropertyReader props;
+    private final CommandLineOptions commandLineOptions;
 
     private String spacer;
     private String separator;
 
-    public CodeCoveragePrinter(Map<String, TableEntry> tableEntries, PropertyReader props) {
+    public CodeCoveragePrinter(Map<String, TableEntry> tableEntries, PropertyReader props, CommandLineOptions cliOptions) {
         this.tableEntries = tableEntries;
         this.props = props;
+        this.commandLineOptions = cliOptions;
     }
 
-    public void plain() throws IOException {
+    public void run() throws IOException {
+        if (commandLineOptions.isPlainOutput()) {
+            plain();
+        } else {
+            markUp();
+        }
+    }
+
+    private void plain() throws IOException {
         spacer = " ";
         separator = " | ";
 
@@ -87,12 +96,12 @@ public class CodeCoveragePrinter {
         print(sb);
     }
 
-    public void markUp(List<Integer> pullRequests) throws IOException {
+    private void markUp() throws IOException {
         spacer = "";
         separator = "|";
 
         StringBuilder sb = new StringBuilder();
-        appendCommandLine(props, sb, pullRequests, false);
+        appendCommandLine(props, sb, commandLineOptions.getPullRequests(), false);
         sb.append("||Sonar||PRs||File||Status||Add||Del||Coverage||Line||Branch||Comment||QA||\n");
 
         int qaCheckPassCount = appendTableEntries(sb, false);
@@ -102,13 +111,17 @@ public class CodeCoveragePrinter {
     }
 
     private int appendTableEntries(StringBuilder sb, boolean plainOutput) {
+        boolean printFailsOnly = commandLineOptions.printFailsOnly();
         int qaCheckPassCount = 0;
         SortedSet<String> keys = new TreeSet<String>(tableEntries.keySet());
         for (String key : keys) {
             TableEntry tableEntry = tableEntries.get(key);
-            String resourceId = tableEntry.resourceId;
+            if (printFailsOnly && tableEntry.qaCheck) {
+                continue;
+            }
+
             sb.append("|").append(spacer);
-            sb.append(resourceId == null ? "?????" : formatSonarQubeLink(props, resourceId, plainOutput));
+            sb.append(tableEntry.resourceId == null ? "?????" : formatSonarQubeLink(props, tableEntry.resourceId, plainOutput));
             sb.append(separator).append(formatGitHubLink(props, tableEntry.pullRequest, plainOutput));
             sb.append(separator).append(formatFileName(tableEntry.fileName, plainOutput, FILE_NAME_WIDTH));
             sb.append(separator).append(formatGitHubStatus(tableEntry.status, plainOutput));
