@@ -73,8 +73,12 @@ public final class Utils {
         int limit = 24;
         for (Integer pullRequest : pullRequests) {
             sb.append(separator).append(pullRequest);
-            separator = (counter++ % limit == 0) ? ",}}\n{{" : ", ";
-            limit = 30;
+            if (counter++ % limit == 0) {
+                separator = ",}}\n{{";
+                limit = 30;
+            } else {
+                separator = ", ";
+            }
         }
         if (props.isGitHubRepositoryOverwritten()) {
             sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
