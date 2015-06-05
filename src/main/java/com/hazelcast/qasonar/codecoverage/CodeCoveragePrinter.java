@@ -118,6 +118,9 @@ public class CodeCoveragePrinter {
         SortedSet<String> keys = new TreeSet<String>(tableEntries.keySet());
         for (String key : keys) {
             TableEntry tableEntry = tableEntries.get(key);
+            if (tableEntry.qaCheck) {
+                qaCheckPassCount++;
+            }
             if (printFailsOnly && tableEntry.qaCheck) {
                 continue;
             }
@@ -135,9 +138,6 @@ public class CodeCoveragePrinter {
             sb.append(separator).append(formatNullable(tableEntry.comment, " ", plainOutput, COMMENT_WIDTH));
             sb.append(separator).append(tableEntry.qaCheck ? " OK " : "FAIL");
             sb.append(spacer).append("|\n");
-            if (tableEntry.qaCheck) {
-                qaCheckPassCount++;
-            }
         }
         return qaCheckPassCount;
     }
