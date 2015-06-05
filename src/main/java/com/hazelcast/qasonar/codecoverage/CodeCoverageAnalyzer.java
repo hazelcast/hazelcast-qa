@@ -109,8 +109,11 @@ public class CodeCoverageAnalyzer {
             tableEntry.pass("Enum");
         } else if (fileContents.contains(" @interface " + baseName)) {
             tableEntry.pass("Annotation");
-        } else {
+        } else if (tableEntry.coverage == null) {
             tableEntry.fail("code coverage not found");
+        } else {
+            double minCodeCoverage = props.getMinCodeCoverage(tableEntry.status);
+            tableEntry.fail("code coverage below " + minCodeCoverage + "%");
         }
     }
 
@@ -118,7 +121,7 @@ public class CodeCoverageAnalyzer {
         double minCodeCoverage = props.getMinCodeCoverage(tableEntry.status);
         if (tableEntry.numericCoverage > minCodeCoverage) {
             tableEntry.pass();
-        } else if (tableEntry.comment == null) {
+        } else {
             tableEntry.fail("code coverage below " + minCodeCoverage + "%");
         }
     }
