@@ -62,7 +62,7 @@ public class CodeCoverageAnalyzer {
                 continue;
             }
 
-            if (tableEntry.coverage == null) {
+            if (tableEntry.coverage == null || tableEntry.numericCoverage < 0.01) {
                 checkFileWithoutCoverage(tableEntry, gitFileName);
             } else {
                 checkCodeCoverage(tableEntry);
@@ -105,6 +105,8 @@ public class CodeCoverageAnalyzer {
         String baseName = getBaseName(gitFileName);
         if (fileContents.contains(" interface " + baseName)) {
             tableEntry.pass("Interface");
+        } else if (fileContents.contains(" enum " + baseName)) {
+            tableEntry.pass("Enum");
         } else if (fileContents.contains(" @interface " + baseName)) {
             tableEntry.pass("Annotation");
         } else {
