@@ -69,9 +69,12 @@ public final class Utils {
         }
         sb.append("qa-sonar --pullRequests ");
         String separator = "";
+        int counter = 1;
+        int limit = 24;
         for (Integer pullRequest : pullRequests) {
             sb.append(separator).append(pullRequest);
-            separator = ",";
+            separator = (counter++ % limit == 0) ? ",}}\n{{" : ", ";
+            limit = 30;
         }
         if (props.isGitHubRepositoryOverwritten()) {
             sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
@@ -102,20 +105,21 @@ public final class Utils {
                 resourceId, props.getHost(), resourceId);
     }
 
-    public static String formatGitHubLink(PropertyReader props, String pullRequest, boolean plainOutput) {
+    public static String formatPullRequestLinks(PropertyReader props, String pullRequest, boolean plainOutput) {
         if (plainOutput) {
             return pullRequest;
         }
-        String separator = "";
         StringBuilder sb = new StringBuilder();
-        for (String pullRequestPart : pullRequest.split(", ")) {
-            sb.append(separator).append(formatGitHubLink(props, pullRequestPart));
-            separator = ", ";
+        String separator = "";
+        int counter = 1;
+        for (String pullRequestPart : pullRequest.split(",")) {
+            sb.append(separator).append(formatPullRequestLinks(props, pullRequestPart.trim()));
+            separator = (counter++ % 3 == 0) ? ",\n" : ", ";
         }
         return sb.toString();
     }
 
-    private static String formatGitHubLink(PropertyReader props, String pullRequest) {
+    private static String formatPullRequestLinks(PropertyReader props, String pullRequest) {
         return format("[%s|https://github.com/%s/pull/%s]",
                 pullRequest, props.getGitHubRepository(), pullRequest);
     }
