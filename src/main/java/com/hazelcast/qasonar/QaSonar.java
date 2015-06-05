@@ -16,13 +16,13 @@
 
 package com.hazelcast.qasonar;
 
-import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzer;
 import com.hazelcast.qasonar.codecoverage.CodeCoveragePrinter;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
-import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.listprojects.ListProjects;
+import com.hazelcast.qasonar.utils.CommandLineOptions;
+import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
 import com.hazelcast.qasonar.utils.WhiteList;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -33,7 +33,6 @@ import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.debugCommandLine;
 import static com.hazelcast.qasonar.utils.Utils.setDebug;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
-import static java.lang.String.format;
 
 public final class QaSonar {
 
@@ -68,18 +67,14 @@ public final class QaSonar {
 
                 debug("Reading code coverage data...");
                 CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
-                for (Integer pullRequest : cliOptions.getPullRequests()) {
-                    debug(format("Adding pull request %d...", pullRequest));
-                    reader.addPullRequest(pullRequest);
-                }
+                reader.run(cliOptions.getPullRequests());
 
                 debug("Analyzing code coverage data...");
-                CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getTableEntries(), propertyReader, repo,
-                        whiteList);
+                CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getFiles(), propertyReader, repo, whiteList);
                 analyzer.run();
 
                 debug("Printing code coverage data...");
-                CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getTableEntries(), propertyReader, cliOptions);
+                CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getFiles(), propertyReader, cliOptions);
                 printer.run();
 
                 debug("Done!\n");

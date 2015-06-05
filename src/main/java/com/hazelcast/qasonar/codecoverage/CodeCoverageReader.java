@@ -29,8 +29,10 @@ import org.kohsuke.github.PagedIterable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
@@ -40,7 +42,7 @@ public class CodeCoverageReader {
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
 
     private final Map<String, Map<String, String>> resources = new HashMap<String, Map<String, String>>();
-    private final Map<String, TableEntry> tableEntries = new HashMap<String, TableEntry>();
+    private final Map<String, FileContainer> files = new HashMap<String, FileContainer>();
 
     private final PropertyReader props;
     private final GHRepository repo;
@@ -48,8 +50,19 @@ public class CodeCoverageReader {
     public CodeCoverageReader(PropertyReader propertyReader, GHRepository repo) throws IOException {
         this.props = propertyReader;
         this.repo = repo;
+    }
 
+    public Map<String, FileContainer> getFiles() {
+        return Collections.unmodifiableMap(files);
+    }
+
+    public void run(List<Integer> pullRequests) throws IOException {
         populateResourcesMap();
+
+        for (Integer pullRequest : pullRequests) {
+            debug(format("Adding pull request %d...", pullRequest));
+            addPullRequest(pullRequest);
+        }
     }
 
     private void populateResourcesMap() throws IOException {
@@ -74,11 +87,7 @@ public class CodeCoverageReader {
         }
     }
 
-    public Map<String, TableEntry> getTableEntries() {
-        return Collections.unmodifiableMap(tableEntries);
-    }
-
-    public void addPullRequest(int gitPullRequest) throws IOException {
+    private void addPullRequest(int gitPullRequest) throws IOException {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
             String gitFileName = pullRequestFile.getFilename();
             String resourceId = getResourceIdOrNull(gitFileName);
@@ -91,7 +100,7 @@ public class CodeCoverageReader {
                         e.getCause());
             }
 
-            TableEntry candidate = tableEntries.get(gitFileName);
+            FileContainer candidate = files.get(gitFileName);
             if (candidate != null) {
                 candidate.pullRequest += ", " + gitPullRequest;
                 candidate.status = updateStatus(candidate.status, status);
@@ -101,17 +110,17 @@ public class CodeCoverageReader {
                 continue;
             }
 
-            TableEntry tableEntry = new TableEntry();
-            tableEntry.resourceId = resourceId;
-            tableEntry.pullRequest = String.valueOf(gitPullRequest);
-            tableEntry.fileName = gitFileName;
-            tableEntry.status = status;
-            tableEntry.gitHubChanges = pullRequestFile.getChanges();
-            tableEntry.gitHubAdditions = pullRequestFile.getAdditions();
-            tableEntry.gitHubDeletions = pullRequestFile.getDeletions();
+            FileContainer fileContainer = new FileContainer();
+            fileContainer.resourceId = resourceId;
+            fileContainer.pullRequest = String.valueOf(gitPullRequest);
+            fileContainer.fileName = gitFileName;
+            fileContainer.status = status;
+            fileContainer.gitHubChanges = pullRequestFile.getChanges();
+            fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
+            fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
 
             if (resourceId == null) {
-                tableEntries.put(gitFileName, tableEntry);
+                files.put(gitFileName, fileContainer);
                 continue;
             }
 
@@ -121,10 +130,10 @@ public class CodeCoverageReader {
                 JsonObject resource = jsonElement.getAsJsonObject();
 
                 if (resource.has("msr")) {
-                    setMetrics(tableEntry, resource);
+                    setMetrics(fileContainer, resource);
                 }
 
-                tableEntries.put(gitFileName, tableEntry);
+                files.put(gitFileName, fileContainer);
             }
         }
     }
@@ -159,20 +168,20 @@ public class CodeCoverageReader {
         return newStatus;
     }
 
-    private void setMetrics(TableEntry tableEntry, JsonObject resource) {
+    private void setMetrics(FileContainer fileContainer, JsonObject resource) {
         for (JsonElement metricElement : resource.get("msr").getAsJsonArray()) {
             JsonObject metric = metricElement.getAsJsonObject();
             String key = metric.get("key").getAsString();
             String value = metric.get("frmt_val").getAsString();
             if ("coverage".equals(key)) {
-                tableEntry.coverage = value;
-                tableEntry.numericCoverage = metric.get("val").getAsDouble();
+                fileContainer.coverage = value;
+                fileContainer.numericCoverage = metric.get("val").getAsDouble();
             } else if ("line_coverage".equals(key)) {
-                tableEntry.lineCoverage = value;
-                tableEntry.numericLineCoverage = metric.get("val").getAsDouble();
+                fileContainer.lineCoverage = value;
+                fileContainer.numericLineCoverage = metric.get("val").getAsDouble();
             } else if ("branch_coverage".equals(key)) {
-                tableEntry.branchCoverage = value;
-                tableEntry.numericBranchCoverage = metric.get("val").getAsDouble();
+                fileContainer.branchCoverage = value;
+                fileContainer.numericBranchCoverage = metric.get("val").getAsDouble();
             } else {
                 throw new IllegalStateException("unknown metric key: " + key);
             }

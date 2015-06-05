@@ -102,6 +102,9 @@ public final class Utils {
     }
 
     public static String formatSonarQubeLink(PropertyReader props, String resourceId, boolean plainOutput) {
+        if (resourceId == null) {
+            return "?????";
+        }
         if (plainOutput) {
             return resourceId;
         }

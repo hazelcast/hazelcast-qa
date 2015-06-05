@@ -31,72 +31,71 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class CodeCoverageAnalyzer {
 
-    private final Map<String, TableEntry> tableEntries;
+    private final Map<String, FileContainer> files;
     private final PropertyReader props;
     private final GHRepository repo;
     private final WhiteList whiteList;
 
-    public CodeCoverageAnalyzer(Map<String, TableEntry> tableEntries, PropertyReader props, GHRepository repo,
-                                WhiteList whiteList) {
-        this.tableEntries = tableEntries;
+    public CodeCoverageAnalyzer(Map<String, FileContainer> files, PropertyReader props, GHRepository repo, WhiteList whiteList) {
+        this.files = files;
         this.props = props;
         this.repo = repo;
         this.whiteList = whiteList;
     }
 
-    public Map<String, TableEntry> getTableEntries() {
-        return Collections.unmodifiableMap(tableEntries);
+    public Map<String, FileContainer> getFiles() {
+        return Collections.unmodifiableMap(files);
     }
 
     public void run() throws IOException {
-        for (TableEntry tableEntry : tableEntries.values()) {
-            String gitFileName = tableEntry.fileName;
+        for (FileContainer fileContainer : files.values()) {
+            String gitFileName = fileContainer.fileName;
 
-            checkEntryStatus(tableEntry);
-            if (tableEntry.isQaCheckSet()) {
+            checkEntryStatus(fileContainer);
+            if (fileContainer.isQaCheckSet()) {
                 continue;
             }
 
-            checkFileName(tableEntry, gitFileName);
-            if (tableEntry.isQaCheckSet()) {
+            checkFileName(fileContainer, gitFileName);
+            if (fileContainer.isQaCheckSet()) {
                 continue;
             }
 
-            if (tableEntry.coverage == null || tableEntry.numericCoverage < 0.01) {
-                checkFileWithoutCoverage(tableEntry, gitFileName);
+            if (fileContainer.coverage == null || fileContainer.numericCoverage < 0.01) {
+                checkFileWithoutCoverage(fileContainer, gitFileName);
             } else {
-                checkCodeCoverage(tableEntry);
+                checkCodeCoverage(fileContainer);
             }
         }
     }
 
-    private void checkEntryStatus(TableEntry tableEntry) {
-        if (tableEntry.status == GitHubStatus.REMOVED) {
-            tableEntry.pass("deleted");
+    private void checkEntryStatus(FileContainer fileContainer) {
+        if (fileContainer.status == GitHubStatus.REMOVED) {
+            fileContainer.pass("deleted");
         }
     }
 
-    private void checkFileName(TableEntry tableEntry, String gitFileName) {
+    private void checkFileName(FileContainer fileContainer, String gitFileName) {
         if (gitFileName.endsWith("package-info.java")) {
-            tableEntry.pass("Package info");
+            fileContainer.pass("Package info");
         } else if (gitFileName.contains("/src/test/java/")) {
-            tableEntry.pass("Test");
+            fileContainer.pass("Test");
         } else if (!gitFileName.endsWith(".java")) {
-            tableEntry.pass("no Java file");
+            fileContainer.pass("no Java file");
         } else {
             String justification = whiteList.getWhitelistJustificationOrNull(gitFileName);
             if (justification != null) {
-                tableEntry.pass("whitelisted " + justification);
+                fileContainer.pass("whitelisted " + justification);
             }
         }
     }
 
-    private void checkFileWithoutCoverage(TableEntry tableEntry, String gitFileName) throws IOException {
+    private void checkFileWithoutCoverage(FileContainer fileContainer, String gitFileName) throws IOException {
         String fileContents;
         try {
             fileContents = getFileContentsFromGitHub(repo, gitFileName);
         } catch (FileNotFoundException ignored) {
-            tableEntry.pass("deleted in newer PR");
+            fileContainer.pass("deleted in newer PR");
             return;
         } catch (Exception e) {
             throw new IOException("Could not get contents for file " + gitFileName, e.getCause());
@@ -104,25 +103,25 @@ public class CodeCoverageAnalyzer {
 
         String baseName = getBaseName(gitFileName);
         if (fileContents.contains(" interface " + baseName)) {
-            tableEntry.pass("Interface");
+            fileContainer.pass("Interface");
         } else if (fileContents.contains(" enum " + baseName)) {
-            tableEntry.pass("Enum");
+            fileContainer.pass("Enum");
         } else if (fileContents.contains(" @interface " + baseName)) {
-            tableEntry.pass("Annotation");
-        } else if (tableEntry.coverage == null) {
-            tableEntry.fail("code coverage not found");
+            fileContainer.pass("Annotation");
+        } else if (fileContainer.coverage == null) {
+            fileContainer.fail("code coverage not found");
         } else {
-            double minCodeCoverage = props.getMinCodeCoverage(tableEntry.status);
-            tableEntry.fail("code coverage below " + minCodeCoverage + "%");
+            double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
+            fileContainer.fail("code coverage below " + minCodeCoverage + "%");
         }
     }
 
-    private void checkCodeCoverage(TableEntry tableEntry) {
-        double minCodeCoverage = props.getMinCodeCoverage(tableEntry.status);
-        if (tableEntry.numericCoverage > minCodeCoverage) {
-            tableEntry.pass();
+    private void checkCodeCoverage(FileContainer fileContainer) {
+        double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
+        if (fileContainer.numericCoverage > minCodeCoverage) {
+            fileContainer.pass();
         } else {
-            tableEntry.fail("code coverage below " + minCodeCoverage + "%");
+            fileContainer.fail("code coverage below " + minCodeCoverage + "%");
         }
     }
 }

@@ -43,15 +43,15 @@ public class CodeCoveragePrinter {
     private static final int FILE_NAME_WIDTH = 100;
     private static final int COMMENT_WIDTH = 25;
 
-    private final Map<String, TableEntry> tableEntries;
+    private final Map<String, FileContainer> files;
     private final PropertyReader props;
     private final CommandLineOptions commandLineOptions;
 
     private String spacer;
     private String separator;
 
-    public CodeCoveragePrinter(Map<String, TableEntry> tableEntries, PropertyReader props, CommandLineOptions cliOptions) {
-        this.tableEntries = tableEntries;
+    public CodeCoveragePrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions cliOptions) {
+        this.files = files;
         this.props = props;
         this.commandLineOptions = cliOptions;
     }
@@ -91,7 +91,7 @@ public class CodeCoveragePrinter {
                 .append(" | QA   |\n")
                 .append(tableSeparator);
 
-        int qaCheckPassCount = appendTableEntries(sb, true);
+        int qaCheckPassCount = appendFileContainer(sb, true);
         sb.append(tableSeparator);
         appendSummary(sb, qaCheckPassCount);
 
@@ -106,44 +106,44 @@ public class CodeCoveragePrinter {
         appendCommandLine(props, sb, commandLineOptions.getPullRequests(), false);
         sb.append("||Sonar||PRs||File||Status||Add||Del||Coverage||Line||Branch||Comment||QA||\n");
 
-        int qaCheckPassCount = appendTableEntries(sb, false);
+        int qaCheckPassCount = appendFileContainer(sb, false);
         appendSummary(sb, qaCheckPassCount);
 
         print(sb);
     }
 
-    private int appendTableEntries(StringBuilder sb, boolean plainOutput) {
+    private int appendFileContainer(StringBuilder sb, boolean plainOutput) {
         boolean printFailsOnly = commandLineOptions.printFailsOnly();
         int qaCheckPassCount = 0;
-        SortedSet<String> keys = new TreeSet<String>(tableEntries.keySet());
+        SortedSet<String> keys = new TreeSet<String>(files.keySet());
         for (String key : keys) {
-            TableEntry tableEntry = tableEntries.get(key);
-            if (tableEntry.qaCheck) {
+            FileContainer fileContainer = files.get(key);
+            if (fileContainer.qaCheck) {
                 qaCheckPassCount++;
             }
-            if (printFailsOnly && tableEntry.qaCheck) {
+            if (printFailsOnly && fileContainer.qaCheck) {
                 continue;
             }
 
             sb.append("|").append(spacer);
-            sb.append(tableEntry.resourceId == null ? "?????" : formatSonarQubeLink(props, tableEntry.resourceId, plainOutput));
-            sb.append(separator).append(formatPullRequestLinks(props, tableEntry.pullRequest, plainOutput));
-            sb.append(separator).append(formatFileName(tableEntry.fileName, plainOutput, FILE_NAME_WIDTH));
-            sb.append(separator).append(formatGitHubStatus(tableEntry.status, plainOutput));
-            sb.append(separator).append(formatGitHubChanges(tableEntry.gitHubAdditions, "+", plainOutput));
-            sb.append(separator).append(formatGitHubChanges(tableEntry.gitHubDeletions, "-", plainOutput));
-            sb.append(separator).append(formatCoverage(tableEntry.coverage, plainOutput));
-            sb.append(separator).append(formatCoverage(tableEntry.lineCoverage, plainOutput));
-            sb.append(separator).append(formatCoverage(tableEntry.branchCoverage, plainOutput));
-            sb.append(separator).append(formatNullable(tableEntry.comment, " ", plainOutput, COMMENT_WIDTH));
-            sb.append(separator).append(tableEntry.qaCheck ? " OK " : "FAIL");
+            sb.append(formatSonarQubeLink(props, fileContainer.resourceId, plainOutput));
+            sb.append(separator).append(formatPullRequestLinks(props, fileContainer.pullRequest, plainOutput));
+            sb.append(separator).append(formatFileName(fileContainer.fileName, plainOutput, FILE_NAME_WIDTH));
+            sb.append(separator).append(formatGitHubStatus(fileContainer.status, plainOutput));
+            sb.append(separator).append(formatGitHubChanges(fileContainer.gitHubAdditions, "+", plainOutput));
+            sb.append(separator).append(formatGitHubChanges(fileContainer.gitHubDeletions, "-", plainOutput));
+            sb.append(separator).append(formatCoverage(fileContainer.coverage, plainOutput));
+            sb.append(separator).append(formatCoverage(fileContainer.lineCoverage, plainOutput));
+            sb.append(separator).append(formatCoverage(fileContainer.branchCoverage, plainOutput));
+            sb.append(separator).append(formatNullable(fileContainer.comment, " ", plainOutput, COMMENT_WIDTH));
+            sb.append(separator).append(fileContainer.qaCheck ? " OK " : "FAIL");
             sb.append(spacer).append("|\n");
         }
         return qaCheckPassCount;
     }
 
     private void appendSummary(StringBuilder sb, int qaCheckPassCount) {
-        int totalCount = tableEntries.size();
+        int totalCount = files.size();
         double minCodeCoverage = props.getMinCodeCoverage(GitHubStatus.ADDED);
         StringBuilder summary = new StringBuilder();
         summary.append("Summary: ")

@@ -18,7 +18,7 @@ package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.GitHubStatus;
 
-class TableEntry {
+class FileContainer {
 
     String resourceId;
 
