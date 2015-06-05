@@ -102,7 +102,7 @@ public class CodeCoverageReader {
 
             FileContainer candidate = files.get(gitFileName);
             if (candidate != null) {
-                candidate.pullRequest += ", " + gitPullRequest;
+            candidate.pullRequests += ", " + gitPullRequest;
                 candidate.status = updateStatus(candidate.status, status);
                 candidate.gitHubChanges += pullRequestFile.getChanges();
                 candidate.gitHubAdditions += pullRequestFile.getAdditions();
@@ -112,7 +112,7 @@ public class CodeCoverageReader {
 
             FileContainer fileContainer = new FileContainer();
             fileContainer.resourceId = resourceId;
-            fileContainer.pullRequest = String.valueOf(gitPullRequest);
+            fileContainer.pullRequests = String.valueOf(gitPullRequest);
             fileContainer.fileName = gitFileName;
             fileContainer.status = status;
             fileContainer.gitHubChanges = pullRequestFile.getChanges();

@@ -22,7 +22,7 @@ class FileContainer {
 
     String resourceId;
 
-    String pullRequest;
+    String pullRequests;
     String fileName;
     GitHubStatus status;
 

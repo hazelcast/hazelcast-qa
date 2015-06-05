@@ -127,7 +127,7 @@ public class CodeCoveragePrinter {
 
             sb.append("|").append(spacer);
             sb.append(formatSonarQubeLink(props, fileContainer.resourceId, plainOutput));
-            sb.append(separator).append(formatPullRequestLinks(props, fileContainer.pullRequest, plainOutput));
+            sb.append(separator).append(formatPullRequestLinks(props, fileContainer.pullRequests, plainOutput));
             sb.append(separator).append(formatFileName(fileContainer.fileName, plainOutput, FILE_NAME_WIDTH));
             sb.append(separator).append(formatGitHubStatus(fileContainer.status, plainOutput));
             sb.append(separator).append(formatGitHubChanges(fileContainer.gitHubAdditions, "+", plainOutput));
