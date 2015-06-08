@@ -118,10 +118,10 @@ public class CodeCoverageAnalyzer {
 
     private void checkCodeCoverage(FileContainer fileContainer) {
         double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
-        if (fileContainer.numericCoverage > minCodeCoverage) {
-            fileContainer.pass();
-        } else {
+        if (fileContainer.numericCoverage < minCodeCoverage) {
             fileContainer.fail("code coverage below " + minCodeCoverage + "%");
+        } else {
+            fileContainer.pass();
         }
     }
 }
