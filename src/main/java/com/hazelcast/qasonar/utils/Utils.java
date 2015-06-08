@@ -77,7 +77,7 @@ public final class Utils {
                 separator = ",}}\n{{";
                 limit = 30;
             } else {
-                separator = ", ";
+                separator = ",";
             }
         }
         if (props.isGitHubRepositoryOverwritten()) {
