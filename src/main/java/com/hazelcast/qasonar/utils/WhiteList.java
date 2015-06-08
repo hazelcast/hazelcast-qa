@@ -25,6 +25,7 @@ public class WhiteList {
         EQUALS,
         STARTS_WITH,
         ENDS_WITH,
+        CONTAINS,
         REGEX
     }
 
@@ -63,10 +64,12 @@ public class WhiteList {
                     return fileName.startsWith(value);
                 case ENDS_WITH:
                     return fileName.endsWith(value);
+                case CONTAINS:
+                    return fileName.contains(value);
                 case REGEX:
                     return fileName.matches(value);
                 default:
-                    return false;
+                    throw new UnsupportedOperationException("Unsupported whitelist type: " + type);
             }
         }
     }
