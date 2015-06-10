@@ -27,7 +27,7 @@ username = username
 password = password
 
 # SonarQube Resource Id of the project
-projectResourceId = 12345
+projectResourceIds = 12345
 
 # GitHub configuration
 gitHubRepository = organization/repository
