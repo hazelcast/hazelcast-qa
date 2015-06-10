@@ -30,10 +30,6 @@ class FileContainer {
     String lineCoverage;
     String branchCoverage;
 
-    String comment;
-    boolean qaCheck;
-    boolean qaCheckSet;
-
     double numericCoverage;
     double numericLineCoverage;
     double numericBranchCoverage;
@@ -41,6 +37,10 @@ class FileContainer {
     int gitHubChanges;
     int gitHubAdditions;
     int gitHubDeletions;
+
+    String comment;
+    boolean qaCheck;
+    boolean qaCheckSet;
 
     boolean isQaCheckSet() {
         return qaCheckSet;
