@@ -33,6 +33,8 @@ public class PropertyReader {
     private String gitHubRepository;
     private boolean gitHubRepositoryOverwritten;
 
+    private String defaultModule;
+
     private String whiteListFileName;
     private String outputFile;
 
@@ -75,6 +77,18 @@ public class PropertyReader {
 
     public boolean isGitHubRepositoryOverwritten() {
         return gitHubRepositoryOverwritten;
+    }
+
+    public String getDefaultModule() {
+        return defaultModule;
+    }
+
+    public void setDefaultModule(String defaultModule) {
+        this.defaultModule = defaultModule;
+    }
+
+    public boolean isDefaultModuleSet() {
+        return (defaultModule != null);
     }
 
     public double getMinCodeCoverage(GitHubStatus gitHubStatus) {

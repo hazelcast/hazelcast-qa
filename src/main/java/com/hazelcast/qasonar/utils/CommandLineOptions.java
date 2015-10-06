@@ -48,6 +48,10 @@ public class CommandLineOptions {
             "Specifies the GitHub repository to be used.")
             .withRequiredArg().ofType(String.class);
 
+    private final OptionSpec<String> defaultModuleSpec = parser.accepts("defaultModule",
+            "Specifies the default module if no module is found in file name.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec<Double> minCodeCoverageSpec = parser.accepts("minCodeCoverage",
             "Specifies the minimum code coverage in percent.")
             .withRequiredArg().ofType(Double.class);
@@ -111,6 +115,7 @@ public class CommandLineOptions {
 
     private CommandLineAction initCommandLineAction() {
         setGitHubRepository();
+        setDefaultModule();
         setMinCodeCoverage();
         setMinCodeCoverageModified();
         setOutputFile();
@@ -131,6 +136,12 @@ public class CommandLineOptions {
     private void setGitHubRepository() {
         if (options.has(gitHubRepositorySpec)) {
             propertyReader.setGitHubRepository(options.valueOf(gitHubRepositorySpec));
+        }
+    }
+
+    private void setDefaultModule() {
+        if (options.has(defaultModuleSpec)) {
+            propertyReader.setDefaultModule(options.valueOf(defaultModuleSpec));
         }
     }
 

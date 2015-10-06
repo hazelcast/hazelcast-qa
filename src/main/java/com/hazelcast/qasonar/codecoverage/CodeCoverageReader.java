@@ -89,7 +89,7 @@ public class CodeCoverageReader {
 
     private void addPullRequest(int gitPullRequest) throws IOException {
         for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
-            String gitFileName = pullRequestFile.getFilename();
+            String gitFileName = getFileNameWithDefaultModule(pullRequestFile.getFilename());
             String resourceId = getResourceIdOrNull(gitFileName);
             GitHubStatus status;
 
@@ -102,7 +102,7 @@ public class CodeCoverageReader {
 
             FileContainer candidate = files.get(gitFileName);
             if (candidate != null) {
-            candidate.pullRequests += ", " + gitPullRequest;
+                candidate.pullRequests += ", " + gitPullRequest;
                 candidate.status = updateStatus(candidate.status, status);
                 candidate.gitHubChanges += pullRequestFile.getChanges();
                 candidate.gitHubAdditions += pullRequestFile.getAdditions();
@@ -141,6 +141,16 @@ public class CodeCoverageReader {
     private PagedIterable<GHPullRequestFileDetail> getPullRequestFiles(int gitPullRequest) throws IOException {
         GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
         return pullRequest.listFiles();
+    }
+
+    private String getFileNameWithDefaultModule(String fileName) {
+        if (fileName.startsWith("src/")) {
+            if (!props.isDefaultModuleSet()) {
+                throw new IllegalArgumentException("Could not find module for " + fileName + " and default module ist not set!");
+            }
+            return props.getDefaultModule() + "/" + fileName;
+        }
+        return fileName;
     }
 
     private String getResourceIdOrNull(String fileName) {
