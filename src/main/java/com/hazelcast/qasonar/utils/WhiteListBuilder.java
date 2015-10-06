@@ -94,8 +94,14 @@ public final class WhiteListBuilder {
             JsonObject entry = element.getAsJsonObject();
             String type = entry.get("type").getAsString();
             String value = entry.get("value").getAsString();
-            String justification = entry.get("justification").getAsString();
-            whiteList.addEntry(type, value, justification);
+            JsonElement justificationElement = entry.get("justification");
+            String justification = (justificationElement == null) ? null : justificationElement.getAsString();
+            JsonElement commentElement = entry.get("comment");
+            String comment = (commentElement == null) ? null : commentElement.getAsString();
+            if ((justification == null) == (comment == null)) {
+                throw new IllegalArgumentException("Whitelist has to contain a justification or a comment!");
+            }
+            whiteList.addEntry(type, value, justification, comment);
         }
     }
 }

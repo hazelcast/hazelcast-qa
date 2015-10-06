@@ -19,6 +19,7 @@ package com.hazelcast.qasonar.codecoverage;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.WhiteList;
+import com.hazelcast.qasonar.utils.WhiteListResult;
 import org.kohsuke.github.GHRepository;
 
 import java.io.FileNotFoundException;
@@ -83,9 +84,13 @@ public class CodeCoverageAnalyzer {
         } else if (!gitFileName.endsWith(".java")) {
             fileContainer.pass("no Java file");
         } else {
-            String justification = whiteList.getWhitelistJustificationOrNull(gitFileName);
-            if (justification != null) {
-                fileContainer.pass("whitelisted " + justification);
+            WhiteListResult whiteListResult = whiteList.getWhitelistResultOrNull(gitFileName);
+            if (whiteListResult != null) {
+                if (whiteListResult.isJustification()) {
+                    fileContainer.pass("whitelisted " + whiteListResult.getJustification());
+                } else {
+                    fileContainer.comment = whiteListResult.getComment();
+                }
             }
         }
     }

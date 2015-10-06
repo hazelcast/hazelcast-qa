@@ -31,14 +31,14 @@ public class WhiteList {
 
     private final List<WhiteListEntry> whiteListEntries = new ArrayList<WhiteListEntry>();
 
-    void addEntry(String type, String value, String justification) {
-        whiteListEntries.add(new WhiteListEntry(type, value, justification));
+    void addEntry(String type, String value, String justification, String comment) {
+        whiteListEntries.add(new WhiteListEntry(type, value, justification, comment));
     }
 
-    public String getWhitelistJustificationOrNull(String fileName) {
+    public WhiteListResult getWhitelistResultOrNull(String fileName) {
         for (WhiteListEntry entry : whiteListEntries) {
             if (entry.matches(fileName)) {
-                return entry.justification;
+                return new WhiteListResult(entry.justification, entry.comment);
             }
         }
         return null;
@@ -49,11 +49,13 @@ public class WhiteList {
         private final WhiteListEntryType type;
         private final String value;
         private final String justification;
+        private final String comment;
 
-        private WhiteListEntry(String type, String value, String justification) {
+        private WhiteListEntry(String type, String value, String justification, String comment) {
             this.type = WhiteListEntryType.valueOf(type);
             this.value = value;
             this.justification = justification;
+            this.comment = comment;
         }
 
         private boolean matches(String fileName) {

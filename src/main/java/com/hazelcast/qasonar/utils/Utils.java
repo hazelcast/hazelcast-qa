@@ -170,7 +170,7 @@ public final class Utils {
     }
 
     private static String formatNullable(String value, String defaultValue) {
-        return (value == null ? defaultValue : value);
+        return (value == null ? defaultValue : value.replace("\n", " \\\\ "));
     }
 
     private static String formatAlignRight(String value) {

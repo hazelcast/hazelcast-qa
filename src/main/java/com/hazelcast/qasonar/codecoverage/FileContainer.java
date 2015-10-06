@@ -47,28 +47,25 @@ class FileContainer {
     }
 
     void pass() {
-        if (qaCheckSet) {
-            throw new IllegalStateException("QA Check already set to " + qaCheck + " with comment " + comment);
-        }
-        this.qaCheck = true;
-        this.qaCheckSet = true;
+        setValues(null, true);
     }
 
     void pass(String comment) {
-        if (qaCheckSet) {
-            throw new IllegalStateException("QA Check already set to " + qaCheck + " with comment " + comment);
-        }
-        this.comment = comment;
-        this.qaCheck = true;
-        this.qaCheckSet = true;
+        setValues(comment, true);
     }
 
     void fail(String comment) {
+        setValues(comment, false);
+    }
+
+    private void setValues(String newComment, boolean qaCheck) {
         if (qaCheckSet) {
             throw new IllegalStateException("QA Check already set to " + qaCheck + " with comment " + comment);
         }
-        this.comment = comment;
-        this.qaCheck = false;
+        if (newComment != null) {
+            this.comment = (comment == null) ? newComment : newComment + "\n" + comment;
+        }
+        this.qaCheck = qaCheck;
         this.qaCheckSet = true;
     }
 }
