@@ -87,7 +87,7 @@ public class CodeCoverageAnalyzer {
             WhiteListResult whiteListResult = whiteList.getWhitelistResultOrNull(gitFileName);
             if (whiteListResult != null) {
                 if (whiteListResult.isJustification()) {
-                    fileContainer.pass("whitelisted " + whiteListResult.getJustification());
+                    fileContainer.pass("whitelisted\n" + whiteListResult.getJustification());
                 } else {
                     fileContainer.comment = whiteListResult.getComment();
                 }
