@@ -144,9 +144,9 @@ public class CodeCoverageReader {
     }
 
     private String getFileNameWithDefaultModule(String fileName) {
-        if (fileName.startsWith("src/")) {
+        if (fileName.startsWith("src/") && fileName.endsWith(".java")) {
             if (!props.isDefaultModuleSet()) {
-                throw new IllegalArgumentException("Could not find module for " + fileName + " and default module ist not set!");
+                throw new IllegalArgumentException("Could not find module for " + fileName + " and default module is not set!");
             }
             return props.getDefaultModule() + "/" + fileName;
         }
