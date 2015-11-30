@@ -77,6 +77,9 @@ public class CodeCoverageAnalyzer {
         if (fileContainer.status == GitHubStatus.RENAMED) {
             fileContainer.pass("renamed");
         }
+        if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges == 0) {
+            fileContainer.pass("no changes");
+        }
     }
 
     private void checkFileName(FileContainer fileContainer, String gitFileName) {
