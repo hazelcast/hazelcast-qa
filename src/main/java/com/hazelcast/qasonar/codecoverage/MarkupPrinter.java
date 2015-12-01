@@ -19,22 +19,23 @@ package com.hazelcast.qasonar.codecoverage;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
 
-import java.io.IOException;
 import java.util.Map;
 
-public class CodeCoveragePrinter {
+import static com.hazelcast.qasonar.utils.Utils.appendCommandLine;
 
-    private final AbstractPrinter printer;
+class MarkupPrinter extends AbstractPrinter {
 
-    public CodeCoveragePrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions cliOptions) {
-        if (cliOptions.isPlainOutput()) {
-            printer = new PlainPrinter(files, props, cliOptions);
-        } else {
-            printer = new MarkupPrinter(files, props, cliOptions);
-        }
+    MarkupPrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions commandLineOptions) {
+        super(files, props, commandLineOptions, "", "|", false);
     }
 
-    public void run() throws IOException {
-        printer.run();
+    @Override
+    void addHeader(StringBuilder sb) {
+        appendCommandLine(getProps(), sb, getCommandLineOptions().getPullRequests(), false);
+        sb.append("||Sonar||PRs||File||Status||Add||Del||Coverage||Line||Branch||Comment||QA||\n");
+    }
+
+    @Override
+    void addFooter(StringBuilder sb) {
     }
 }
