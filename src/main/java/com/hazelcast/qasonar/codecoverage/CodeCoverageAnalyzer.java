@@ -124,6 +124,7 @@ public class CodeCoverageAnalyzer {
         } else {
             double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
             fileContainer.fail("code coverage below " + minCodeCoverage + "%");
+            fileContainer.useForCoverageCalculation();
         }
     }
 
