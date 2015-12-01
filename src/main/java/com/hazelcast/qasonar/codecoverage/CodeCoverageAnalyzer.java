@@ -74,7 +74,7 @@ public class CodeCoverageAnalyzer {
         if (fileContainer.status == GitHubStatus.REMOVED) {
             fileContainer.pass("deleted");
         }
-        if (fileContainer.status == GitHubStatus.RENAMED) {
+        if (fileContainer.status == GitHubStatus.RENAMED && fileContainer.gitHubChanges == 0) {
             fileContainer.pass("renamed");
         }
         if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges == 0) {

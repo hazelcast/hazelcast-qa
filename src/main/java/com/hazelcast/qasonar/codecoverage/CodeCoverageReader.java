@@ -175,6 +175,9 @@ public class CodeCoverageReader {
         if (oldStatus == GitHubStatus.ADDED || newStatus == GitHubStatus.ADDED) {
             return GitHubStatus.ADDED;
         }
+        if (oldStatus != GitHubStatus.RENAMED && newStatus == GitHubStatus.RENAMED) {
+            return oldStatus;
+        }
         return newStatus;
     }
 
