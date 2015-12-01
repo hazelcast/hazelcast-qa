@@ -134,5 +134,6 @@ public class CodeCoverageAnalyzer {
         } else {
             fileContainer.pass();
         }
+        fileContainer.useForCoverageCalculation();
     }
 }

@@ -38,9 +38,19 @@ class FileContainer {
     int gitHubAdditions;
     int gitHubDeletions;
 
+    boolean isForCoverageCalculation;
+
     String comment;
     boolean qaCheck;
     boolean qaCheckSet;
+
+    public boolean isForCoverageCalculation() {
+        return isForCoverageCalculation;
+    }
+
+    public void useForCoverageCalculation() {
+        this.isForCoverageCalculation = true;
+    }
 
     boolean isQaCheckSet() {
         return qaCheckSet;

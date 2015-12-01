@@ -34,6 +34,7 @@ import static com.hazelcast.qasonar.utils.Utils.formatNullable;
 import static com.hazelcast.qasonar.utils.Utils.formatPullRequestLinks;
 import static com.hazelcast.qasonar.utils.Utils.formatSonarQubeLink;
 import static com.hazelcast.qasonar.utils.Utils.writeToFile;
+import static java.lang.String.format;
 
 abstract class AbstractPrinter {
 
@@ -48,6 +49,16 @@ abstract class AbstractPrinter {
     private final String separator;
     private final boolean isPlainOutput;
 
+    private double addedCoverageMin;
+    private double addedCoverageMax;
+    private double addedCoverageSum;
+    private int addedCoverageFileCount;
+
+    private double modifiedCoverageMin;
+    private double modifiedCoverageMax;
+    private double modifiedCoverageSum;
+    private int modifiedCoverageFileCount;
+
     AbstractPrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions commandLineOptions,
                     String spacer, String separator, boolean isPlainOutput) {
         this.files = files;
@@ -56,6 +67,12 @@ abstract class AbstractPrinter {
         this.spacer = spacer;
         this.separator = separator;
         this.isPlainOutput = isPlainOutput;
+
+        this.addedCoverageMin = Double.MAX_VALUE;
+        this.addedCoverageMax = Double.MIN_VALUE;
+
+        this.modifiedCoverageMin = Double.MAX_VALUE;
+        this.modifiedCoverageMax = Double.MIN_VALUE;
     }
 
     void run() throws IOException {
@@ -90,6 +107,9 @@ abstract class AbstractPrinter {
             if (fileContainer.qaCheck) {
                 qaCheckPassCount++;
             }
+            if (fileContainer.isForCoverageCalculation) {
+                calculateCoverage(fileContainer);
+            }
             if (printFailsOnly && fileContainer.qaCheck) {
                 continue;
             }
@@ -111,6 +131,33 @@ abstract class AbstractPrinter {
         return qaCheckPassCount;
     }
 
+    private void calculateCoverage(FileContainer fileContainer) {
+        if (!fileContainer.isForCoverageCalculation()) {
+            return;
+        }
+
+        double fileCoverage = fileContainer.numericCoverage;
+        if (fileContainer.status == GitHubStatus.ADDED) {
+            if (fileCoverage < addedCoverageMin) {
+                addedCoverageMin = fileCoverage;
+            }
+            if (fileCoverage > addedCoverageMax) {
+                addedCoverageMax = fileCoverage;
+            }
+            addedCoverageSum += fileCoverage;
+            addedCoverageFileCount++;
+        } else {
+            if (fileCoverage < modifiedCoverageMin) {
+                modifiedCoverageMin = fileCoverage;
+            }
+            if (fileCoverage > modifiedCoverageMax) {
+                modifiedCoverageMax = fileCoverage;
+            }
+            modifiedCoverageSum += fileCoverage;
+            modifiedCoverageFileCount++;
+        }
+    }
+
     private void appendSummary(StringBuilder sb, int qaCheckPassCount) {
         int totalCount = files.size();
         double minCodeCoverage = props.getMinCodeCoverage(GitHubStatus.ADDED);
@@ -122,6 +169,17 @@ abstract class AbstractPrinter {
         double minCodeCoverageModified = props.getMinCodeCoverage(GitHubStatus.MODIFIED);
         if (Math.abs(minCodeCoverage - minCodeCoverageModified) > 0.01) {
             summary.append(" (").append(minCodeCoverageModified).append("% for modified files)");
+        }
+
+        if (addedCoverageFileCount > 0) {
+            double addedCoverage = addedCoverageSum / addedCoverageFileCount;
+            summary.append(format("%nCoverage on added files: %.1f%% avg, %.1f%% min, %.1f%% max (%d files)",
+                    addedCoverage, addedCoverageMin, addedCoverageMax, addedCoverageFileCount));
+        }
+        if (modifiedCoverageFileCount > 0) {
+            double modifiedCoverage = modifiedCoverageSum / modifiedCoverageFileCount;
+            summary.append(format("%nCoverage on modified files: %.1f%% avg, %.1f%% min, %.1f%% max (%d files)",
+                    modifiedCoverage, modifiedCoverageMin, modifiedCoverageMax, modifiedCoverageFileCount));
         }
 
         debug(summary.toString());
