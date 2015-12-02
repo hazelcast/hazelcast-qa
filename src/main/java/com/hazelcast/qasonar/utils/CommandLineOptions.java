@@ -36,6 +36,9 @@ public class CommandLineOptions {
 
     private final OptionParser parser = new OptionParser();
 
+    private final OptionSpec ideaConverterSpec = parser.accepts("ideaConverter",
+            "Converts an IDEA coverage report for QA Sonar.");
+
     private final OptionSpec listProjectsSpec = parser.accepts("listProjects",
             "Lists projects of specified SonarQube instance.");
 
@@ -119,6 +122,10 @@ public class CommandLineOptions {
         setMinCodeCoverage();
         setMinCodeCoverageModified();
         setOutputFile();
+
+        if (options.has(ideaConverterSpec)) {
+            return CommandLineAction.IDEA_CONVERTER;
+        }
 
         if (options.has(listProjectsSpec)) {
             return CommandLineAction.LIST_PROJECTS;

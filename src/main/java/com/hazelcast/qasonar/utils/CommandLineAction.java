@@ -19,6 +19,7 @@ package com.hazelcast.qasonar.utils;
 public enum CommandLineAction {
 
     PRINT_HELP,
+    IDEA_CONVERTER,
     LIST_PROJECTS,
     PULL_REQUESTS
 }
