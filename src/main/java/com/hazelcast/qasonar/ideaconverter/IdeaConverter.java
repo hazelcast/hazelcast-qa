@@ -22,25 +22,34 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
+import static com.hazelcast.qasonar.utils.Utils.debug;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
 
 public class IdeaConverter {
 
+    public static final String OUTPUT_FILENAME = "idea-coverage.csv";
+
     public void run() {
         try {
+            int parsedClasses = 0;
+
             FileFinder finder = new FileFinder("index.html");
             walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
             Collection<Path> matchedFiles = finder.getMatchedPaths();
+            System.out.println(format("Parsing classes from %s report files...", matchedFiles.size()));
+
+            StringBuilder sb = new StringBuilder();
             for (Path file : matchedFiles) {
                 Elements tableRows = getLastTableRows(file);
                 if (!isClassTable(tableRows)) {
-                    //System.out.println("File does not contain class table: " + file);
+                    debug("File does not contain class table: " + file);
                     continue;
                 }
 
@@ -50,9 +59,16 @@ public class IdeaConverter {
                     String className = tableColumns.first().getElementsByTag("a").text();
                     String lineCoverageString = tableColumns.last().getElementsByClass("percent").text().trim();
                     double lineCoverage = Double.valueOf(lineCoverageString.substring(0, lineCoverageString.length() - 1));
-                    System.out.println(format("%s.%s.java -> %.1f%%", packageName, className, lineCoverage));
+                    sb.append(format("%s.%s.java;%.1f%%%n", packageName, className, lineCoverage));
+                    parsedClasses++;
                 }
             }
+            System.out.println(format("Successfully parsed %d classes!", parsedClasses));
+
+            System.out.println(format("Writing data to %s...", OUTPUT_FILENAME));
+            Files.write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
+
+            System.out.println("Done!");
         } catch (IOException e) {
             e.printStackTrace();
         }
