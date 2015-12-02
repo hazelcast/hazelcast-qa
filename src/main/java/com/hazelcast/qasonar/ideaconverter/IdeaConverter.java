@@ -59,7 +59,7 @@ public class IdeaConverter {
                     String className = tableColumns.first().getElementsByTag("a").text();
                     String lineCoverageString = tableColumns.last().getElementsByClass("percent").text().trim();
                     double lineCoverage = Double.valueOf(lineCoverageString.substring(0, lineCoverageString.length() - 1));
-                    sb.append(format("%s.%s.java;%.1f%%%n", packageName, className, lineCoverage));
+                    sb.append(format("%s.%s.java;%.1f%n", packageName, className, lineCoverage));
                     parsedClasses++;
                 }
             }

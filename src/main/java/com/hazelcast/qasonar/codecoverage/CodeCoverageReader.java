@@ -27,6 +27,8 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.PagedIterable;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,12 +38,15 @@ import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.readAllLines;
 
 public class CodeCoverageReader {
 
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
 
     private final Map<String, Map<String, String>> resources = new HashMap<String, Map<String, String>>();
+    private final Map<String, Double> ideaCoverage = new HashMap<String, Double>();
     private final Map<String, FileContainer> files = new HashMap<String, FileContainer>();
 
     private final PropertyReader props;
@@ -58,6 +63,7 @@ public class CodeCoverageReader {
 
     public void run(List<Integer> pullRequests) throws IOException {
         populateResourcesMap();
+        populateIdeaCoverage();
 
         for (Integer pullRequest : pullRequests) {
             debug(format("Adding pull request %d...", pullRequest));
@@ -84,6 +90,23 @@ public class CodeCoverageReader {
                 }
                 resources.get(module).put(mapKey, resource.get("id").getAsString());
             }
+        }
+    }
+
+    private void populateIdeaCoverage() throws IOException {
+        Path path = Paths.get("idea-coverage.csv");
+        if (!exists(path)) {
+            return;
+        }
+
+        List<String> lines = readAllLines(path);
+        debug(format("Adding %d classes from IDEA coverage report...", lines.size()));
+
+        for (String line : lines) {
+            String[] lineArray = line.split(";");
+            String fileName = lineArray[0];
+            Double coverage = Double.valueOf(lineArray[1]);
+            ideaCoverage.put(fileName, coverage);
         }
     }
 
