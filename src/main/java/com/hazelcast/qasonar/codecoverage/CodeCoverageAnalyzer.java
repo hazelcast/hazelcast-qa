@@ -76,9 +76,11 @@ public class CodeCoverageAnalyzer {
     private void checkEntryStatus(FileContainer fileContainer) {
         if (fileContainer.status == GitHubStatus.REMOVED) {
             fileContainer.pass("deleted");
+            return;
         }
         if (fileContainer.status == GitHubStatus.RENAMED && fileContainer.gitHubChanges == 0) {
             fileContainer.pass("renamed");
+            return;
         }
         if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges == 0) {
             fileContainer.pass("no changes");
@@ -86,20 +88,24 @@ public class CodeCoverageAnalyzer {
     }
 
     private void checkFileName(FileContainer fileContainer, String gitFileName) {
+        if (!gitFileName.endsWith(".java")) {
+            fileContainer.pass("no Java file");
+            return;
+        }
         if (gitFileName.endsWith("package-info.java")) {
             fileContainer.pass("Package info");
-        } else if (gitFileName.contains("/src/test/java/")) {
+            return;
+        }
+        if (gitFileName.contains("/src/test/java/")) {
             fileContainer.pass("Test");
-        } else if (!gitFileName.endsWith(".java")) {
-            fileContainer.pass("no Java file");
-        } else {
-            WhiteListResult whiteListResult = whiteList.getWhitelistResultOrNull(gitFileName);
-            if (whiteListResult != null) {
-                if (whiteListResult.isJustification()) {
-                    fileContainer.pass("whitelisted\n" + whiteListResult.getJustification());
-                } else {
-                    fileContainer.comment = whiteListResult.getComment();
-                }
+            return;
+        }
+        WhiteListResult whiteListResult = whiteList.getWhitelistResultOrNull(gitFileName);
+        if (whiteListResult != null) {
+            if (whiteListResult.isJustification()) {
+                fileContainer.pass("whitelisted\n" + whiteListResult.getJustification());
+            } else {
+                fileContainer.comment = whiteListResult.getComment();
             }
         }
     }
@@ -118,15 +124,21 @@ public class CodeCoverageAnalyzer {
         String baseName = getBaseName(gitFileName);
         if (fileContents.contains(" interface " + baseName)) {
             fileContainer.pass("Interface");
-        } else if (fileContents.contains(" enum " + baseName)) {
-            fileContainer.pass("Enum");
-        } else if (fileContents.contains(" @interface " + baseName)) {
-            fileContainer.pass("Annotation");
-        } else if (fileContainer.coverage == null) {
-            fileContainer.fail("code coverage not found");
-        } else {
-            checkCodeCoverage(fileContainer);
+            return;
         }
+        if (fileContents.contains(" enum " + baseName)) {
+            fileContainer.pass("Enum");
+            return;
+        }
+        if (fileContents.contains(" @interface " + baseName)) {
+            fileContainer.pass("Annotation");
+            return;
+        }
+        if (fileContainer.coverage == null) {
+            fileContainer.fail("code coverage not found");
+            return;
+        }
+        checkCodeCoverage(fileContainer);
     }
 
     private void checkCodeCoverage(FileContainer fileContainer) {
