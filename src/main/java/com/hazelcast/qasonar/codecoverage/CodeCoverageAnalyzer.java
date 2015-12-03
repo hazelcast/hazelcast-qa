@@ -33,6 +33,8 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class CodeCoverageAnalyzer {
 
+    private static final double MIN_IDEA_COVERAGE_DIFF = 0.5;
+
     private final Map<String, FileContainer> files;
     private final PropertyReader props;
     private final GHRepository repo;
@@ -135,10 +137,14 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass();
             return;
         }
-        if (fileContainer.ideaCoverage >= minCodeCoverage) {
+        if (fileContainer.ideaCoverage >= minCodeCoverage && isIdeaCoverageSignificantlyHigher(fileContainer)) {
             fileContainer.pass(format("IDEA coverage: %.1f%%", fileContainer.ideaCoverage));
             return;
         }
         fileContainer.fail("code coverage below " + minCodeCoverage + "%");
+    }
+
+    private boolean isIdeaCoverageSignificantlyHigher(FileContainer fileContainer) {
+        return (fileContainer.ideaCoverage > fileContainer.numericLineCoverage + MIN_IDEA_COVERAGE_DIFF);
     }
 }
