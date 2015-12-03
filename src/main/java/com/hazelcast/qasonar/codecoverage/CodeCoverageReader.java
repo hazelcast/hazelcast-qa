@@ -141,6 +141,7 @@ public class CodeCoverageReader {
             fileContainer.gitHubChanges = pullRequestFile.getChanges();
             fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
             fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
+            fileContainer.ideaCoverage = getIdeaCoverage(gitFileName);
 
             if (resourceId == null) {
                 files.put(gitFileName, fileContainer);
@@ -202,6 +203,17 @@ public class CodeCoverageReader {
             return oldStatus;
         }
         return newStatus;
+    }
+
+    private double getIdeaCoverage(String fileName) {
+        if (!fileName.endsWith(".java")) {
+            return 0;
+        }
+
+        String fullyQualifiedClassName = fileName.substring(fileName.indexOf("com/hazelcast")).replace('/', '.');
+
+        Double coverage = ideaCoverage.get(fullyQualifiedClassName);
+        return (coverage == null) ? 0 : coverage;
     }
 
     private void setMetrics(FileContainer fileContainer, JsonObject resource) {

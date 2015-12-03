@@ -34,6 +34,8 @@ class FileContainer {
     double numericLineCoverage;
     double numericBranchCoverage;
 
+    double ideaCoverage;
+
     int gitHubChanges;
     int gitHubAdditions;
     int gitHubDeletions;
