@@ -123,14 +123,7 @@ public class CodeCoverageAnalyzer {
         } else if (fileContainer.coverage == null) {
             fileContainer.fail("code coverage not found");
         } else {
-            fileContainer.useForCoverageCalculation();
-
-            double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
-            if (fileContainer.ideaCoverage >= minCodeCoverage) {
-                fileContainer.pass(format("IDEA coverage: %.1f%%", fileContainer.ideaCoverage));
-            } else {
-                fileContainer.fail("code coverage below " + minCodeCoverage + "%");
-            }
+            checkCodeCoverage(fileContainer);
         }
     }
 
