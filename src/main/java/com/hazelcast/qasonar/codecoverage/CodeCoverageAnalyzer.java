@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.utils.Utils.getFileContentsFromGitHub;
+import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 public class CodeCoverageAnalyzer {
@@ -122,19 +123,29 @@ public class CodeCoverageAnalyzer {
         } else if (fileContainer.coverage == null) {
             fileContainer.fail("code coverage not found");
         } else {
-            double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
-            fileContainer.fail("code coverage below " + minCodeCoverage + "%");
             fileContainer.useForCoverageCalculation();
+
+            double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
+            if (fileContainer.ideaCoverage >= minCodeCoverage) {
+                fileContainer.pass(format("IDEA coverage: %.1f%%", fileContainer.ideaCoverage));
+            } else {
+                fileContainer.fail("code coverage below " + minCodeCoverage + "%");
+            }
         }
     }
 
     private void checkCodeCoverage(FileContainer fileContainer) {
-        double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
-        if (fileContainer.numericCoverage < minCodeCoverage) {
-            fileContainer.fail("code coverage below " + minCodeCoverage + "%");
-        } else {
-            fileContainer.pass();
-        }
         fileContainer.useForCoverageCalculation();
+
+        double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
+        if (fileContainer.numericCoverage >= minCodeCoverage) {
+            fileContainer.pass();
+            return;
+        }
+        if (fileContainer.ideaCoverage >= minCodeCoverage) {
+            fileContainer.pass(format("IDEA coverage: %.1f%%", fileContainer.ideaCoverage));
+            return;
+        }
+        fileContainer.fail("code coverage below " + minCodeCoverage + "%");
     }
 }
