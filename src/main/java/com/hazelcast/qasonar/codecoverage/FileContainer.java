@@ -20,6 +20,11 @@ import com.hazelcast.qasonar.utils.GitHubStatus;
 
 class FileContainer {
 
+    public enum CoverageType {
+        SONAR,
+        IDEA
+    }
+
     String resourceId;
 
     String pullRequests;
@@ -41,6 +46,7 @@ class FileContainer {
     int gitHubDeletions;
 
     boolean isForCoverageCalculation;
+    CoverageType coverageType;
 
     String comment;
     boolean qaCheck;
@@ -50,8 +56,20 @@ class FileContainer {
         return isForCoverageCalculation;
     }
 
-    public void useForCoverageCalculation() {
+    public void useForCoverageCalculation(CoverageType coverageType) {
         this.isForCoverageCalculation = true;
+        this.coverageType = coverageType;
+    }
+
+    double getCoverageForCalculation() {
+        switch (coverageType) {
+            case SONAR:
+                return numericCoverage;
+            case IDEA:
+                return ideaCoverage;
+            default:
+                throw new IllegalStateException("CoverageType has not been set!");
+        }
     }
 
     boolean isQaCheckSet() {

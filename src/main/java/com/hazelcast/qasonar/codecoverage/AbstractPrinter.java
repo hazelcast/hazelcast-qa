@@ -136,7 +136,7 @@ abstract class AbstractPrinter {
             return;
         }
 
-        double fileCoverage = fileContainer.numericCoverage;
+        double fileCoverage = fileContainer.getCoverageForCalculation();
         if (fileContainer.status == GitHubStatus.ADDED) {
             if (fileCoverage < addedCoverageMin) {
                 addedCoverageMin = fileCoverage;
