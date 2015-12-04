@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
@@ -94,7 +95,7 @@ public class CodeCoverageReader {
     }
 
     private void populateIdeaCoverage() throws IOException {
-        Path path = Paths.get("idea-coverage.csv");
+        Path path = Paths.get(OUTPUT_FILENAME);
         if (!exists(path)) {
             return;
         }
