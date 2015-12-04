@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.ideaconverter;
+package com.hazelcast.qasonar.utils;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -29,12 +29,12 @@ import java.util.List;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
-class FileFinder extends SimpleFileVisitor<Path> {
+public class FileFinder extends SimpleFileVisitor<Path> {
 
     private final PathMatcher matcher;
     private List<Path> matchedPaths = new ArrayList<Path>();
 
-    FileFinder(String pattern) {
+    public FileFinder(String pattern) {
         matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
     }
 

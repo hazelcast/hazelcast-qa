@@ -16,13 +16,13 @@
 
 package com.hazelcast.qasonar.ideaconverter;
 
+import com.hazelcast.qasonar.utils.FileFinder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -30,6 +30,7 @@ import java.util.Collection;
 import static com.hazelcast.qasonar.utils.Utils.debug;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
+import static java.nio.file.Files.write;
 
 public class IdeaConverter {
 
@@ -43,7 +44,7 @@ public class IdeaConverter {
             walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
             Collection<Path> matchedFiles = finder.getMatchedPaths();
-            System.out.println(format("Parsing classes from %s report files...", matchedFiles.size()));
+            System.out.println(format("Parsing classes from %d report files...", matchedFiles.size()));
 
             StringBuilder sb = new StringBuilder();
             for (Path file : matchedFiles) {
@@ -66,7 +67,7 @@ public class IdeaConverter {
             System.out.println(format("Successfully parsed %d classes!", parsedClasses));
 
             System.out.println(format("Writing data to %s...", OUTPUT_FILENAME));
-            Files.write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
+            write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
 
             System.out.println("Done!");
         } catch (IOException e) {
