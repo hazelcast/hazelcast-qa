@@ -39,6 +39,9 @@ public class CommandLineOptions {
     private final OptionSpec ideaConverterSpec = parser.accepts("ideaConverter",
             "Converts an IDEA coverage report for QA Sonar.");
 
+    private final OptionSpec csvMergeSpec = parser.accepts("csvMerge",
+            "Merges multiple IDEA coverage reports to a single one.");
+
     private final OptionSpec listProjectsSpec = parser.accepts("listProjects",
             "Lists projects of specified SonarQube instance.");
 
@@ -125,6 +128,10 @@ public class CommandLineOptions {
 
         if (options.has(ideaConverterSpec)) {
             return CommandLineAction.IDEA_CONVERTER;
+        }
+
+        if (options.has(csvMergeSpec)) {
+            return CommandLineAction.CSV_MERGE;
         }
 
         if (options.has(listProjectsSpec)) {

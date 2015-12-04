@@ -19,6 +19,7 @@ package com.hazelcast.qasonar;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzer;
 import com.hazelcast.qasonar.codecoverage.CodeCoveragePrinter;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
+import com.hazelcast.qasonar.csvmerge.CsvMerge;
 import com.hazelcast.qasonar.ideaconverter.IdeaConverter;
 import com.hazelcast.qasonar.listprojects.ListProjects;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
@@ -54,6 +55,11 @@ public final class QaSonar {
             case IDEA_CONVERTER:
                 IdeaConverter converter = new IdeaConverter();
                 converter.run();
+                break;
+
+            case CSV_MERGE:
+                CsvMerge csvMerge = new CsvMerge();
+                csvMerge.run();
                 break;
 
             case LIST_PROJECTS:
