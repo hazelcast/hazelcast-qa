@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
+import static com.hazelcast.qasonar.utils.Utils.debug;
 import static java.lang.String.format;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
@@ -34,11 +35,10 @@ public class CsvMerge {
                 String fileName = lineArray[0];
                 Double coverage = Double.valueOf(lineArray[1]);
                 Double oldCoverage = ideaCoverage.get(fileName);
-                if (oldCoverage != null) {
-                    if (coverage > oldCoverage) {
-                        ideaCoverage.put(fileName, coverage);
-                    }
-                } else {
+                if (oldCoverage == null) {
+                    ideaCoverage.put(fileName, coverage);
+                } else if (coverage > oldCoverage) {
+                    debug(format("Replaced coverage %.1f with %.1f for class %s", oldCoverage, coverage, fileName));
                     ideaCoverage.put(fileName, coverage);
                 }
             }
