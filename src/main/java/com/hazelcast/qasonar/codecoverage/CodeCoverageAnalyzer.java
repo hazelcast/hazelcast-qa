@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
+import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.getFileContentsFromGitHub;
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
@@ -153,6 +154,8 @@ public class CodeCoverageAnalyzer {
         if (fileContainer.ideaCoverage >= minCodeCoverage && isIdeaCoverageSignificantlyHigher(fileContainer)) {
             fileContainer.useForCoverageCalculation(IDEA);
             fileContainer.pass(format("IDEA coverage: %.1f%%", fileContainer.ideaCoverage));
+            debug(format("Used IDEA coverage for %s (%.1f%% vs. %.1f%%)", fileContainer.fileName, fileContainer.ideaCoverage,
+                    fileContainer.numericCoverage));
             return;
         }
         fileContainer.fail("code coverage below " + minCodeCoverage + "%");
