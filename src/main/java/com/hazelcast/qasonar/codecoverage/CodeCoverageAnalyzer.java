@@ -37,6 +37,7 @@ import static org.apache.commons.io.FilenameUtils.getBaseName;
 public class CodeCoverageAnalyzer {
 
     private static final double MIN_IDEA_COVERAGE_DIFF = 0.5;
+    private static final double COVERAGE_MARGIN = 0.01;
 
     private final Map<String, FileContainer> files;
     private final PropertyReader props;
@@ -68,7 +69,7 @@ public class CodeCoverageAnalyzer {
                 continue;
             }
 
-            if (fileContainer.coverage == null || fileContainer.numericCoverage < 0.01) {
+            if (fileContainer.coverage == null || fileContainer.numericCoverage < COVERAGE_MARGIN) {
                 checkFileWithoutCoverage(fileContainer, gitFileName);
             } else {
                 checkCodeCoverage(fileContainer);
@@ -137,7 +138,7 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass("Annotation");
             return;
         }
-        if (fileContainer.coverage == null) {
+        if (fileContainer.coverage == null && fileContainer.ideaCoverage < COVERAGE_MARGIN) {
             fileContainer.fail("code coverage not found");
             debug(format("No coverage found for %s", gitFileName));
             return;
