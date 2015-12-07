@@ -54,7 +54,7 @@ public class CsvMerge {
         System.out.println("Storing results...");
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Double> coverageEntry : ideaCoverage.entrySet()) {
-            sb.append(format("%s;%f%n", coverageEntry.getKey(), coverageEntry.getValue()));
+            sb.append(format("%s;%.1f%n", coverageEntry.getKey(), coverageEntry.getValue()));
         }
         write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
 
