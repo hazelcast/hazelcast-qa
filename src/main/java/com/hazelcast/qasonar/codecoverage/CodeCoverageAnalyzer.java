@@ -142,7 +142,7 @@ public class CodeCoverageAnalyzer {
         }
         if (fileContainer.coverage == null && fileContainer.ideaCoverage < COVERAGE_MARGIN) {
             fileContainer.fail("code coverage not found");
-            debugRed("Failed with no coverage %s", gitFileName);
+            debugRed("Failed with code coverage not found %s", gitFileName);
             return;
         }
         checkCodeCoverage(fileContainer);
