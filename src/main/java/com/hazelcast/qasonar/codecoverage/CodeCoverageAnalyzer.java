@@ -139,6 +139,7 @@ public class CodeCoverageAnalyzer {
         }
         if (fileContainer.coverage == null) {
             fileContainer.fail("code coverage not found");
+            debug(format("No coverage found for %s", gitFileName));
             return;
         }
         checkCodeCoverage(fileContainer);
