@@ -126,15 +126,15 @@ public class CodeCoverageAnalyzer {
         }
 
         String baseName = getBaseName(gitFileName);
-        if (fileContents.contains(" interface " + baseName)) {
+        if (fileContents.contains("interface " + baseName)) {
             fileContainer.pass("Interface");
             return;
         }
-        if (fileContents.contains(" enum " + baseName)) {
+        if (fileContents.contains("enum " + baseName)) {
             fileContainer.pass("Enum");
             return;
         }
-        if (fileContents.contains(" @interface " + baseName)) {
+        if (fileContents.contains("@interface " + baseName)) {
             fileContainer.pass("Annotation");
             return;
         }
