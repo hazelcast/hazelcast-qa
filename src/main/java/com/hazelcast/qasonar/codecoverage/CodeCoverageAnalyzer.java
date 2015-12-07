@@ -150,21 +150,25 @@ public class CodeCoverageAnalyzer {
 
     private void checkCodeCoverage(FileContainer fileContainer) {
         double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
+
         double sonarCoverage = fileContainer.numericCoverage;
-        double ideaCoverage = fileContainer.ideaCoverage;
         if (sonarCoverage >= minCodeCoverage) {
             fileContainer.useForCoverageCalculation(SONAR);
             fileContainer.pass();
             return;
         }
-        if (ideaCoverage >= minCodeCoverage && isIdeaCoverageSignificantlyHigher(fileContainer)) {
+
+        double ideaCoverage = fileContainer.ideaCoverage;
+        boolean useIdeaCoverage = isIdeaCoverageSignificantlyHigher(fileContainer);
+        if (ideaCoverage >= minCodeCoverage && useIdeaCoverage) {
             fileContainer.useForCoverageCalculation(IDEA);
             fileContainer.pass(format("IDEA coverage: %.1f%%", ideaCoverage));
             debugGreen("Passed with IDEA coverage %5.1f%% (%+6.1f%%) %s", ideaCoverage, (ideaCoverage - sonarCoverage),
                     fileContainer.fileName);
             return;
         }
-        double failedCoverage = isIdeaCoverageSignificantlyHigher(fileContainer) ? ideaCoverage : sonarCoverage;
+
+        double failedCoverage = useIdeaCoverage ? ideaCoverage : sonarCoverage;
         fileContainer.fail("code coverage below " + minCodeCoverage + "%");
         debugYellow("Failed with code coverage %5.1f%% (%6.1f%%) %s", failedCoverage, failedCoverage - minCodeCoverage,
                 fileContainer.fileName);
