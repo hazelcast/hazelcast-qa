@@ -29,7 +29,9 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
-import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.Utils.debugGreen;
+import static com.hazelcast.qasonar.utils.Utils.debugRed;
+import static com.hazelcast.qasonar.utils.Utils.debugYellow;
 import static com.hazelcast.qasonar.utils.Utils.getFileContentsFromGitHub;
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
@@ -140,7 +142,7 @@ public class CodeCoverageAnalyzer {
         }
         if (fileContainer.coverage == null && fileContainer.ideaCoverage < COVERAGE_MARGIN) {
             fileContainer.fail("code coverage not found");
-            debug(format("Failed with no coverage %s", gitFileName));
+            debugRed("Failed with no coverage %s", gitFileName);
             return;
         }
         checkCodeCoverage(fileContainer);
@@ -158,14 +160,14 @@ public class CodeCoverageAnalyzer {
         if (ideaCoverage >= minCodeCoverage && isIdeaCoverageSignificantlyHigher(fileContainer)) {
             fileContainer.useForCoverageCalculation(IDEA);
             fileContainer.pass(format("IDEA coverage: %.1f%%", ideaCoverage));
-            debug(format("Passed with IDEA coverage %5.1f%% (%+6.1f%%) %s", ideaCoverage, (ideaCoverage - sonarCoverage),
-                    fileContainer.fileName));
+            debugGreen("Passed with IDEA coverage %5.1f%% (%+6.1f%%) %s", ideaCoverage, (ideaCoverage - sonarCoverage),
+                    fileContainer.fileName);
             return;
         }
         double failedCoverage = isIdeaCoverageSignificantlyHigher(fileContainer) ? ideaCoverage : sonarCoverage;
         fileContainer.fail("code coverage below " + minCodeCoverage + "%");
-        debug((format("Failed with code coverage %5.1f%% (%6.1f%%) %s", failedCoverage, failedCoverage - minCodeCoverage,
-                fileContainer.fileName)));
+        debugYellow("Failed with code coverage %5.1f%% (%6.1f%%) %s", failedCoverage, failedCoverage - minCodeCoverage,
+                fileContainer.fileName);
     }
 
     private boolean isIdeaCoverageSignificantlyHigher(FileContainer fileContainer) {

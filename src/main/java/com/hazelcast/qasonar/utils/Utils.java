@@ -19,6 +19,7 @@ package com.hazelcast.qasonar.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import org.apache.commons.codec.binary.Base64;
+import org.fusesource.jansi.Ansi.Color;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
 
@@ -35,6 +36,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
+import static org.fusesource.jansi.Ansi.ansi;
 
 public final class Utils {
 
@@ -50,6 +52,24 @@ public final class Utils {
     public static void debug(String msg) {
         if (debug) {
             System.out.println(msg);
+        }
+    }
+
+    public static void debugGreen(String msg, Object... parameters) {
+        debugColor(Color.GREEN, msg, parameters);
+    }
+
+    public static void debugYellow(String msg, Object... parameters) {
+        debugColor(Color.YELLOW, msg, parameters);
+    }
+
+    public static void debugRed(String msg, Object... parameters) {
+        debugColor(Color.RED, msg, parameters);
+    }
+
+    private static void debugColor(Color color, String msg, Object... parameters) {
+        if (debug) {
+            System.out.println(ansi().fg(color).a(format(msg, parameters)).reset().toString());
         }
     }
 
