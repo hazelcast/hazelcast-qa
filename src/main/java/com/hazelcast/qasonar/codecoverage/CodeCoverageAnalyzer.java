@@ -140,7 +140,7 @@ public class CodeCoverageAnalyzer {
         }
         if (fileContainer.coverage == null && fileContainer.ideaCoverage < COVERAGE_MARGIN) {
             fileContainer.fail("code coverage not found");
-            debug(format("No coverage found for %s", gitFileName));
+            debug(format("Failed with no coverage %s", gitFileName));
             return;
         }
         checkCodeCoverage(fileContainer);
@@ -162,7 +162,10 @@ public class CodeCoverageAnalyzer {
                     fileContainer.fileName));
             return;
         }
+        double failedCoverage = isIdeaCoverageSignificantlyHigher(fileContainer) ? ideaCoverage : sonarCoverage;
         fileContainer.fail("code coverage below " + minCodeCoverage + "%");
+        debug((format("Failed with code coverage %5.1f%% (%6.1f%%) %s", failedCoverage, failedCoverage - minCodeCoverage,
+                fileContainer.fileName)));
     }
 
     private boolean isIdeaCoverageSignificantlyHigher(FileContainer fileContainer) {
