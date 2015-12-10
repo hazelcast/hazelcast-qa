@@ -50,6 +50,10 @@ public class CodeCoverageAnalyzerTest {
 
     @Test
     public void testRun() throws Exception {
+        addFile("pom.xml", ADDED);
+        addFile("package-info.java", ADDED);
+        addFile("src/test/java/HazelcastTestSupport.java", ADDED);
+
         addFile("AddedFileWithLowBranchCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
         addFile("AddedFileWithSufficientCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
         addFile("AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
@@ -59,6 +63,10 @@ public class CodeCoverageAnalyzerTest {
 
         analyzer.run();
 
+        assertThatFileHasPassed("pom.xml");
+        assertThatFileHasPassed("package-info.java");
+        assertThatFileHasPassed("src/test/java/HazelcastTestSupport.java");
+
         assertThatFileHasFailed("AddedFileWithLowBranchCoverage.java");
         assertThatFileHasPassed("AddedFileWithSufficientCoverage.java");
         assertThatFileHasPassed("AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java");
@@ -67,7 +75,7 @@ public class CodeCoverageAnalyzerTest {
         assertThatFileHasPassed("ModifiedFileWithSufficientCoverage.java");
     }
 
-    private FileContainer addFile(String fileName, GitHubStatus status, double ideaCoverage) {
+    private FileContainer addFile(String fileName, GitHubStatus status) {
         FileContainer fileContainer = new FileContainer();
         fileContainer.resourceId = "0";
         fileContainer.pullRequests = "23";
@@ -76,15 +84,21 @@ public class CodeCoverageAnalyzerTest {
         fileContainer.gitHubChanges = 0;
         fileContainer.gitHubAdditions = 0;
         fileContainer.gitHubDeletions = 0;
-        fileContainer.ideaCoverage = ideaCoverage;
 
         files.put(HZ_PREFIX + fileName, fileContainer);
 
         return fileContainer;
     }
 
-    private void addFile(String fileName, GitHubStatus status, double sonarCoverage, double lineCoverage, double branchCoverage,
-                         double ideaCoverage) {
+    private FileContainer addFile(String fileName, GitHubStatus status, double ideaCoverage) {
+        FileContainer fileContainer = addFile(fileName, status);
+        fileContainer.ideaCoverage = ideaCoverage;
+
+        return fileContainer;
+    }
+
+    private FileContainer addFile(String fileName, GitHubStatus status, double sonarCoverage, double lineCoverage,
+                                  double branchCoverage, double ideaCoverage) {
         FileContainer fileContainer = addFile(fileName, status, ideaCoverage);
         fileContainer.coverage = format("%.1f%%", sonarCoverage);
         fileContainer.numericCoverage = sonarCoverage;
@@ -92,6 +106,8 @@ public class CodeCoverageAnalyzerTest {
         fileContainer.numericLineCoverage = lineCoverage;
         fileContainer.branchCoverage = format("%.1f%%", branchCoverage);
         fileContainer.numericBranchCoverage = branchCoverage;
+
+        return fileContainer;
     }
 
     private void assertThatFileHasFailed(String fileName) {
