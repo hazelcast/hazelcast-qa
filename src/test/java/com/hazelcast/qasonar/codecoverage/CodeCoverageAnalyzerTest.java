@@ -3,6 +3,7 @@ package com.hazelcast.qasonar.codecoverage;
 import com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.Utils;
 import com.hazelcast.qasonar.utils.WhiteList;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,10 +49,14 @@ public class CodeCoverageAnalyzerTest {
     private Map<String, Result> expectedResults;
     private Map<String, CoverageType> expectedCoverageTypes;
 
+    private WhiteList whiteList;
+
     private CodeCoverageAnalyzer analyzer;
 
     @Before
     public void setUp() throws Exception {
+        Utils.setDebug(true);
+
         files = new HashMap<String, FileContainer>();
         expectedResults = new HashMap<String, Result>();
         expectedCoverageTypes = new HashMap<String, CoverageType>();
@@ -65,7 +70,7 @@ public class CodeCoverageAnalyzerTest {
         GHRepository repo = mock(GHRepository.class);
         when(repo.getFileContent(anyString())).thenReturn(ghContent);
 
-        WhiteList whiteList = new WhiteList();
+        whiteList = new WhiteList();
 
         analyzer = new CodeCoverageAnalyzer(files, props, repo, whiteList);
     }
@@ -79,6 +84,12 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, NONE, "RemovedFile.java", REMOVED);
         addFile(PASS, NONE, "RenamedFile.java", RENAMED);
         addFile(PASS, NONE, "ChangedFile.java", CHANGED);
+
+        addFile(PASS, NONE, "WhitelistedFile.java", ADDED);
+        whiteList.addEntry("ENDS_WITH", "WhitelistedFile.java", "cross project", null);
+
+        addFile(FAIL, NONE, "WhitelistedFileJustComment.java", ADDED);
+        whiteList.addEntry("ENDS_WITH", "WhitelistedFileJustComment.java", null, "just a comment");
 
         addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 0.0);
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
