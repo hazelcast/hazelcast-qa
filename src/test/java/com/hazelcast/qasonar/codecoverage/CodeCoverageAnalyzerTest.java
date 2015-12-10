@@ -80,15 +80,15 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, NONE, "RenamedFile.java", RENAMED);
         addFile(PASS, NONE, "ChangedFile.java", CHANGED);
 
-        addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
-        addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
-        addFile(PASS, IDEA, "AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
-        addFile(FAIL, IDEA, "AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
+        addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 0.0);
+        addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
+        addFile(PASS, IDEA, "AddedFileNoSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
+        addFile(FAIL, IDEA, "AddedFileNoSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
 
         addFile(PASS, SONAR, "ModifiedFileWithSufficientSonarCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0.0);
         addFile(FAIL, SONAR, "ModifiedFileWithInsufficientSonarCoverage.java", MODIFIED, 45.6, 48.6, 40.2, 0.0);
-        addFile(PASS, IDEA, "ModifiedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
-        addFile(FAIL, IDEA, "ModifiedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
+        addFile(PASS, IDEA, "ModifiedFileNoSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
+        addFile(FAIL, IDEA, "ModifiedFileNoSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
 
         analyzer.run();
 
@@ -145,15 +145,15 @@ public class CodeCoverageAnalyzerTest {
 
             assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
 
+            CoverageType expectedCoverageType = expectedCoverageTypes.get(fileName);
+            CoverageType actualCoverageType = fileContainer.coverageType;
+            assertEquals(
+                    format("%s should have coverage from %s, but was %s!", fileName, expectedCoverageType, actualCoverageType),
+                    expectedCoverageType, actualCoverageType);
+
             switch (resultEntry.getValue()) {
                 case PASS:
                     assertTrue(format("%s should have passed QA check!", fileName), fileContainer.qaCheck);
-
-                    CoverageType expectedCoverageType = expectedCoverageTypes.get(fileName);
-                    CoverageType actualCoverageType = fileContainer.coverageType;
-                    assertEquals(format("%s should have coverage from %s, but was %s!",
-                            fileName, expectedCoverageType, actualCoverageType),
-                            expectedCoverageType, actualCoverageType);
                     break;
                 case FAIL:
                     assertFalse(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
