@@ -21,6 +21,7 @@ import com.hazelcast.qasonar.utils.GitHubStatus;
 class FileContainer {
 
     public enum CoverageType {
+        NONE,
         SONAR,
         IDEA
     }
@@ -46,7 +47,7 @@ class FileContainer {
     int gitHubDeletions;
 
     boolean isForCoverageCalculation;
-    CoverageType coverageType;
+    CoverageType coverageType = CoverageType.NONE;
 
     String comment;
     boolean qaCheck;

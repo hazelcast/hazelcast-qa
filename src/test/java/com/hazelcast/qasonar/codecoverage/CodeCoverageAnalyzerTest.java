@@ -1,5 +1,6 @@
 package com.hazelcast.qasonar.codecoverage;
 
+import com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.WhiteList;
@@ -17,12 +18,16 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzerTest.Result.FAIL;
 import static com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzerTest.Result.PASS;
+import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
+import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.NONE;
+import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
 import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.CHANGED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.MODIFIED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.REMOVED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.RENAMED;
 import static java.lang.String.format;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -41,6 +46,7 @@ public class CodeCoverageAnalyzerTest {
 
     private Map<String, FileContainer> files;
     private Map<String, Result> expectedResults;
+    private Map<String, CoverageType> expectedCoverageTypes;
 
     private CodeCoverageAnalyzer analyzer;
 
@@ -48,6 +54,7 @@ public class CodeCoverageAnalyzerTest {
     public void setUp() throws Exception {
         files = new HashMap<String, FileContainer>();
         expectedResults = new HashMap<String, Result>();
+        expectedCoverageTypes = new HashMap<String, CoverageType>();
 
         PropertyReader props = new PropertyReader("host", "username", "password");
         props.setMinCodeCoverage(87.5, false);
@@ -65,29 +72,31 @@ public class CodeCoverageAnalyzerTest {
 
     @Test
     public void testRun() throws Exception {
-        addFile(PASS, "pom.xml", ADDED);
-        addFile(PASS, "package-info.java", ADDED);
-        addFile(PASS, "src/test/java/HazelcastTestSupport.java", ADDED);
+        addFile(PASS, NONE, "pom.xml", ADDED);
+        addFile(PASS, NONE, "package-info.java", ADDED);
+        addFile(PASS, NONE, "src/test/java/HazelcastTestSupport.java", ADDED);
 
-        addFile(PASS, "RemovedFile.java", REMOVED);
-        addFile(PASS, "RenamedFile.java", RENAMED);
-        addFile(PASS, "ChangedFile.java", CHANGED);
+        addFile(PASS, NONE, "RemovedFile.java", REMOVED);
+        addFile(PASS, NONE, "RenamedFile.java", RENAMED);
+        addFile(PASS, NONE, "ChangedFile.java", CHANGED);
 
-        addFile(PASS, "AddedFileWithSufficientCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
-        addFile(FAIL, "AddedFileWithLowBranchCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
-        addFile(PASS, "AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
-        addFile(FAIL, "AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
+        addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
+        addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
+        addFile(PASS, IDEA, "AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
+        addFile(FAIL, IDEA, "AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
 
-        addFile(PASS, "ModifiedFileWithSufficientSonarCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0.0);
-        addFile(PASS, "ModifiedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
-        addFile(FAIL, "ModifiedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
+        addFile(PASS, SONAR, "ModifiedFileWithSufficientSonarCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0.0);
+        addFile(FAIL, SONAR, "ModifiedFileWithInsufficientSonarCoverage.java", MODIFIED, 45.6, 48.6, 40.2, 0.0);
+        addFile(PASS, IDEA, "ModifiedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
+        addFile(FAIL, IDEA, "ModifiedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
 
         analyzer.run();
 
         assertQACheckOfAllFiles();
     }
 
-    private FileContainer addFile(Result expectedResult, String fileName, GitHubStatus status) {
+    private FileContainer addFile(Result expectedResult, CoverageType expectedCoverageType, String fileName,
+                                  GitHubStatus status) {
         FileContainer fileContainer = new FileContainer();
         fileContainer.resourceId = "0";
         fileContainer.pullRequests = "23";
@@ -99,20 +108,22 @@ public class CodeCoverageAnalyzerTest {
 
         files.put(HZ_PREFIX + fileName, fileContainer);
         expectedResults.put(fileName, expectedResult);
+        expectedCoverageTypes.put(fileName, expectedCoverageType);
 
         return fileContainer;
     }
 
-    private FileContainer addFile(Result expectedResult, String fileName, GitHubStatus status, double ideaCoverage) {
-        FileContainer fileContainer = addFile(expectedResult, fileName, status);
+    private FileContainer addFile(Result expectedResult, CoverageType expectedCoverageType, String fileName, GitHubStatus status,
+                                  double ideaCoverage) {
+        FileContainer fileContainer = addFile(expectedResult, expectedCoverageType, fileName, status);
         fileContainer.ideaCoverage = ideaCoverage;
 
         return fileContainer;
     }
 
-    private FileContainer addFile(Result expectedResult, String fileName, GitHubStatus status, double sonarCoverage,
-                                  double lineCoverage, double branchCoverage, double ideaCoverage) {
-        FileContainer fileContainer = addFile(expectedResult, fileName, status, ideaCoverage);
+    private FileContainer addFile(Result expectedResult, CoverageType expectedCoverageType, String fileName, GitHubStatus status,
+                                  double sonarCoverage, double lineCoverage, double branchCoverage, double ideaCoverage) {
+        FileContainer fileContainer = addFile(expectedResult, expectedCoverageType, fileName, status, ideaCoverage);
         fileContainer.coverage = format("%.1f%%", sonarCoverage);
         fileContainer.numericCoverage = sonarCoverage;
         fileContainer.lineCoverage = format("%.1f%%", lineCoverage);
@@ -136,10 +147,16 @@ public class CodeCoverageAnalyzerTest {
 
             switch (resultEntry.getValue()) {
                 case PASS:
-                    assertTrue(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
+                    assertTrue(format("%s should have passed QA check!", fileName), fileContainer.qaCheck);
+
+                    CoverageType expectedCoverageType = expectedCoverageTypes.get(fileName);
+                    CoverageType actualCoverageType = fileContainer.coverageType;
+                    assertEquals(format("%s should have coverage from %s, but was %s!",
+                            fileName, expectedCoverageType, actualCoverageType),
+                            expectedCoverageType, actualCoverageType);
                     break;
                 case FAIL:
-                assertFalse(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
+                    assertFalse(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
                     break;
                 default:
                     throw new UnsupportedOperationException("Unknown Result: " + resultEntry.getValue());
