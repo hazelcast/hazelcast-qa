@@ -18,7 +18,10 @@ import java.util.Map;
 import static com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzerTest.Result.FAIL;
 import static com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzerTest.Result.PASS;
 import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
+import static com.hazelcast.qasonar.utils.GitHubStatus.CHANGED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.MODIFIED;
+import static com.hazelcast.qasonar.utils.GitHubStatus.REMOVED;
+import static com.hazelcast.qasonar.utils.GitHubStatus.RENAMED;
 import static java.lang.String.format;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -50,7 +53,7 @@ public class CodeCoverageAnalyzerTest {
         props.setMinCodeCoverage(87.5, false);
         props.setMinCodeCoverage(60.0, true);
 
-        GHContent ghContent = createGHContent("");
+        GHContent ghContent = createGHContentMock("");
 
         GHRepository repo = mock(GHRepository.class);
         when(repo.getFileContent(anyString())).thenReturn(ghContent);
@@ -65,6 +68,10 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, "pom.xml", ADDED);
         addFile(PASS, "package-info.java", ADDED);
         addFile(PASS, "src/test/java/HazelcastTestSupport.java", ADDED);
+
+        addFile(PASS, "RemovedFile.java", REMOVED);
+        addFile(PASS, "RenamedFile.java", RENAMED);
+        addFile(PASS, "ChangedFile.java", CHANGED);
 
         addFile(PASS, "AddedFileWithSufficientCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
         addFile(FAIL, "AddedFileWithLowBranchCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
@@ -115,10 +122,12 @@ public class CodeCoverageAnalyzerTest {
     }
 
     private void assertQACheckOfAllFiles() {
+        Map<String, FileContainer> analyzerFiles = analyzer.getFiles();
+
         for (Map.Entry<String, Result> resultEntry : expectedResults.entrySet()) {
             String fileName = resultEntry.getKey();
 
-            FileContainer fileContainer = files.get(HZ_PREFIX + fileName);
+            FileContainer fileContainer = analyzerFiles.get(HZ_PREFIX + fileName);
             assertNotNull(format("Could not find fileContainer for %s ", fileName), fileContainer);
 
             assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
@@ -136,7 +145,7 @@ public class CodeCoverageAnalyzerTest {
         }
     }
 
-    private static GHContent createGHContent(String content) throws IOException {
+    private static GHContent createGHContentMock(String content) throws IOException {
         InputStream stream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
 
         GHContent ghContent = mock(GHContent.class);
