@@ -153,16 +153,10 @@ public class CodeCoverageAnalyzerTest {
 
             FileContainer fileContainer = analyzerFiles.get(HZ_PREFIX + fileName);
             assertNotNull(format("Could not find fileContainer for %s ", fileName), fileContainer);
-
             assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
 
-            CoverageType expectedCoverageType = expectedCoverageTypes.get(fileName);
-            CoverageType actualCoverageType = fileContainer.coverageType;
-            assertEquals(
-                    format("%s should have coverage from %s, but was %s!", fileName, expectedCoverageType, actualCoverageType),
-                    expectedCoverageType, actualCoverageType);
-
-            switch (resultEntry.getValue()) {
+            Result expectedResult = resultEntry.getValue();
+            switch (expectedResult) {
                 case PASS:
                     assertTrue(format("%s should have passed QA check!", fileName), fileContainer.qaCheck);
                     break;
@@ -170,8 +164,14 @@ public class CodeCoverageAnalyzerTest {
                     assertFalse(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
                     break;
                 default:
-                    throw new UnsupportedOperationException("Unknown Result: " + resultEntry.getValue());
+                    throw new UnsupportedOperationException("Unknown Result: " + expectedResult);
             }
+
+            CoverageType expectedCoverageType = expectedCoverageTypes.get(fileName);
+            CoverageType actualCoverageType = fileContainer.coverageType;
+            assertEquals(
+                    format("%s should have coverage from %s, but was %s!", fileName, expectedCoverageType, actualCoverageType),
+                    expectedCoverageType, actualCoverageType);
         }
     }
 
