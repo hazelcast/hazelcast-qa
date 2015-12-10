@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzerTest.Result.FAIL;
+import static com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzerTest.Result.PASS;
 import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.MODIFIED;
 import static java.lang.String.format;
@@ -27,15 +29,23 @@ import static org.mockito.Mockito.when;
 
 public class CodeCoverageAnalyzerTest {
 
+    enum Result {
+        PASS,
+        FAIL
+    }
+
     private static final String HZ_PREFIX = "hazelcast/src/main/java/com/hazelcast/";
 
-    private Map<String, FileContainer> files = new HashMap<String, FileContainer>();
-    private WhiteList whiteList = new WhiteList();
+    private Map<String, FileContainer> files;
+    private Map<String, Result> expectedResults;
 
     private CodeCoverageAnalyzer analyzer;
 
     @Before
     public void setUp() throws Exception {
+        files = new HashMap<String, FileContainer>();
+        expectedResults = new HashMap<String, Result>();
+
         PropertyReader props = new PropertyReader("host", "username", "password");
         props.setMinCodeCoverage(87.5, false);
         props.setMinCodeCoverage(60.0, true);
@@ -45,37 +55,30 @@ public class CodeCoverageAnalyzerTest {
         GHRepository repo = mock(GHRepository.class);
         when(repo.getFileContent(anyString())).thenReturn(ghContent);
 
+        WhiteList whiteList = new WhiteList();
+
         analyzer = new CodeCoverageAnalyzer(files, props, repo, whiteList);
     }
 
     @Test
     public void testRun() throws Exception {
-        addFile("pom.xml", ADDED);
-        addFile("package-info.java", ADDED);
-        addFile("src/test/java/HazelcastTestSupport.java", ADDED);
+        addFile(PASS, "pom.xml", ADDED);
+        addFile(PASS, "package-info.java", ADDED);
+        addFile(PASS, "src/test/java/HazelcastTestSupport.java", ADDED);
 
-        addFile("AddedFileWithLowBranchCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
-        addFile("AddedFileWithSufficientCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
-        addFile("AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
-        addFile("AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
+        addFile(PASS, "AddedFileWithSufficientCoverage.java", ADDED, 89.4, 93.8, 78.1, 91.4);
+        addFile(FAIL, "AddedFileWithLowBranchCoverage.java", ADDED, 86.7, 91.4, 75.0, 91.4);
+        addFile(PASS, "AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
+        addFile(FAIL, "AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
 
-        addFile("ModifiedFileWithSufficientCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0);
+        addFile(PASS, "ModifiedFileWithSufficientCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0);
 
         analyzer.run();
 
-        assertThatFileHasPassed("pom.xml");
-        assertThatFileHasPassed("package-info.java");
-        assertThatFileHasPassed("src/test/java/HazelcastTestSupport.java");
-
-        assertThatFileHasFailed("AddedFileWithLowBranchCoverage.java");
-        assertThatFileHasPassed("AddedFileWithSufficientCoverage.java");
-        assertThatFileHasPassed("AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java");
-        assertThatFileHasFailed("AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java");
-
-        assertThatFileHasPassed("ModifiedFileWithSufficientCoverage.java");
+        assertQACheckOfAllFiles();
     }
 
-    private FileContainer addFile(String fileName, GitHubStatus status) {
+    private FileContainer addFile(Result expectedResult, String fileName, GitHubStatus status) {
         FileContainer fileContainer = new FileContainer();
         fileContainer.resourceId = "0";
         fileContainer.pullRequests = "23";
@@ -86,20 +89,21 @@ public class CodeCoverageAnalyzerTest {
         fileContainer.gitHubDeletions = 0;
 
         files.put(HZ_PREFIX + fileName, fileContainer);
+        expectedResults.put(fileName, expectedResult);
 
         return fileContainer;
     }
 
-    private FileContainer addFile(String fileName, GitHubStatus status, double ideaCoverage) {
-        FileContainer fileContainer = addFile(fileName, status);
+    private FileContainer addFile(Result expectedResult, String fileName, GitHubStatus status, double ideaCoverage) {
+        FileContainer fileContainer = addFile(expectedResult, fileName, status);
         fileContainer.ideaCoverage = ideaCoverage;
 
         return fileContainer;
     }
 
-    private FileContainer addFile(String fileName, GitHubStatus status, double sonarCoverage, double lineCoverage,
-                                  double branchCoverage, double ideaCoverage) {
-        FileContainer fileContainer = addFile(fileName, status, ideaCoverage);
+    private FileContainer addFile(Result expectedResult, String fileName, GitHubStatus status, double sonarCoverage,
+                                  double lineCoverage, double branchCoverage, double ideaCoverage) {
+        FileContainer fileContainer = addFile(expectedResult, fileName, status, ideaCoverage);
         fileContainer.coverage = format("%.1f%%", sonarCoverage);
         fileContainer.numericCoverage = sonarCoverage;
         fileContainer.lineCoverage = format("%.1f%%", lineCoverage);
@@ -110,20 +114,26 @@ public class CodeCoverageAnalyzerTest {
         return fileContainer;
     }
 
-    private void assertThatFileHasFailed(String fileName) {
-        FileContainer fileContainer = files.get(HZ_PREFIX + fileName);
-        assertNotNull(format("Could not find fileContainer for %s ", fileName), fileContainer);
+    private void assertQACheckOfAllFiles() {
+        for (Map.Entry<String, Result> resultEntry : expectedResults.entrySet()) {
+            String fileName = resultEntry.getKey();
 
-        assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
-        assertFalse(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
-    }
+            FileContainer fileContainer = files.get(HZ_PREFIX + fileName);
+            assertNotNull(format("Could not find fileContainer for %s ", fileName), fileContainer);
 
-    private void assertThatFileHasPassed(String fileName) {
-        FileContainer fileContainer = files.get(HZ_PREFIX + fileName);
-        assertNotNull(format("Could not find fileContainer for %s ", fileName), fileContainer);
+            assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
 
-        assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
-        assertTrue(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
+            switch (resultEntry.getValue()) {
+                case PASS:
+                    assertTrue(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
+                    break;
+                case FAIL:
+                assertFalse(format("%s should have failed QA check!", fileName), fileContainer.qaCheck);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unknown Result: " + resultEntry.getValue());
+            }
+        }
     }
 
     private static GHContent createGHContent(String content) throws IOException {
