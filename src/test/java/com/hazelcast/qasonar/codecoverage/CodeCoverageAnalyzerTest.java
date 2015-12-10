@@ -78,7 +78,9 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, "AddedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
         addFile(FAIL, "AddedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
 
-        addFile(PASS, "ModifiedFileWithSufficientCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0);
+        addFile(PASS, "ModifiedFileWithSufficientSonarCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0.0);
+        addFile(PASS, "ModifiedFileWithoutSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
+        addFile(FAIL, "ModifiedFileWithoutSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
 
         analyzer.run();
 
