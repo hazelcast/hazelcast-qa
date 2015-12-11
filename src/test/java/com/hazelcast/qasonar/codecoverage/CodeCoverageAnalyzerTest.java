@@ -13,7 +13,11 @@ import org.kohsuke.github.GHRepository;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,6 +53,7 @@ public class CodeCoverageAnalyzerTest {
     private Map<String, Result> expectedResults;
     private Map<String, CoverageType> expectedCoverageTypes;
 
+    private GHRepository repo;
     private WhiteList whiteList;
 
     private CodeCoverageAnalyzer analyzer;
@@ -67,7 +72,7 @@ public class CodeCoverageAnalyzerTest {
 
         GHContent ghContent = createGHContentMock("");
 
-        GHRepository repo = mock(GHRepository.class);
+        repo = mock(GHRepository.class);
         when(repo.getFileContent(anyString())).thenReturn(ghContent);
 
         whiteList = new WhiteList();
@@ -87,9 +92,17 @@ public class CodeCoverageAnalyzerTest {
 
         addFile(PASS, NONE, "WhitelistedFile.java", ADDED);
         whiteList.addEntry("ENDS_WITH", "WhitelistedFile.java", "cross project", null);
-
         addFile(FAIL, NONE, "WhitelistedFileJustComment.java", ADDED);
         whiteList.addEntry("ENDS_WITH", "WhitelistedFileJustComment.java", null, "just a comment");
+
+        addFile(PASS, NONE, "PublicInterface.java", ADDED);
+        addFileFromGitHub("PublicInterface.java");
+        addFile(PASS, NONE, "PackagePrivateInterface.java", ADDED);
+        addFileFromGitHub("PackagePrivateInterface.java");
+        addFile(PASS, NONE, "PublicEnum.java", MODIFIED);
+        addFileFromGitHub("PublicEnum.java");
+        addFile(PASS, NONE, "CustomAnnotation.java", MODIFIED);
+        addFileFromGitHub("CustomAnnotation.java");
 
         addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 0.0);
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
@@ -143,6 +156,14 @@ public class CodeCoverageAnalyzerTest {
         fileContainer.numericBranchCoverage = branchCoverage;
 
         return fileContainer;
+    }
+
+    private void addFileFromGitHub(String fileName) throws Exception {
+        URL resource = getClass().getResource(fileName);
+        Path path = Paths.get(resource.toURI());
+        String fileContent = new String(Files.readAllBytes(path));
+        GHContent ghContent = createGHContentMock(fileContent);
+        when(repo.getFileContent(HZ_PREFIX + fileName)).thenReturn(ghContent);
     }
 
     private void assertQACheckOfAllFiles() {
