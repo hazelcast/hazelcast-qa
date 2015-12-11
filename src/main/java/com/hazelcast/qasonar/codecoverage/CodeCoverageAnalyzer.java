@@ -118,7 +118,7 @@ public class CodeCoverageAnalyzer {
     }
 
     private void checkFileWithoutCoverage(FileContainer fileContainer, String gitFileName) throws IOException {
-        if (fileContainer.numericCoverage > COVERAGE_MARGIN || fileContainer.ideaCoverage > COVERAGE_MARGIN) {
+        if (fileContainer.coverage != null || fileContainer.ideaCoverage > COVERAGE_MARGIN) {
             return;
         }
 
