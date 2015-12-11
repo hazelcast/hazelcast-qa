@@ -89,6 +89,8 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, NONE, "RemovedFile.java", REMOVED);
         addFile(PASS, NONE, "RenamedFile.java", RENAMED);
         addFile(PASS, NONE, "ChangedFile.java", CHANGED);
+        addFile(FAIL, NONE, "RenamedFileWithGitHubChanges.java", RENAMED, 15, 20, 5);
+        addFile(FAIL, NONE, "ChangedFileWithGitHubChanges.java", CHANGED, 19, 42, 23);
 
         addFile(PASS, NONE, "WhitelistedFile.java", ADDED);
         whiteList.addEntry("ENDS_WITH", "WhitelistedFile.java", "cross project", null);
@@ -156,6 +158,16 @@ public class CodeCoverageAnalyzerTest {
         fileContainer.numericLineCoverage = lineCoverage;
         fileContainer.branchCoverage = format("%.1f%%", branchCoverage);
         fileContainer.numericBranchCoverage = branchCoverage;
+
+        return fileContainer;
+    }
+
+    private FileContainer addFile(Result expectedResult, CoverageType expectedCoverageType, String fileName,
+                                  GitHubStatus status, int gitHubChanges, int gitHubAdditions, int gitHubDeletions) {
+        FileContainer fileContainer = addFile(expectedResult, expectedCoverageType, fileName, status);
+        fileContainer.gitHubChanges = gitHubChanges;
+        fileContainer.gitHubAdditions = gitHubAdditions;
+        fileContainer.gitHubDeletions = gitHubDeletions;
 
         return fileContainer;
     }
