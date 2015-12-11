@@ -99,6 +99,9 @@ public class CodeCoverageAnalyzerTest {
         addFile(FAIL, NONE, "WhitelistedFileJustComment.java", ADDED);
         whiteList.addEntry("ENDS_WITH", "WhitelistedFileJustComment.java", null, "just a comment");
 
+        addFile(PASS, NONE, "DeletedInNewerPR.java", ADDED);
+        throwExceptionForGitHubFile("DeletedInNewerPR.java", new FileNotFoundException("DeletedInNewerPR.java not found"));
+
         addFile(PASS, NONE, "PublicInterface.java", ADDED);
         addFileFromGitHub("PublicInterface.java");
         addFile(PASS, NONE, "PackagePrivateInterface.java", ADDED);
@@ -107,9 +110,6 @@ public class CodeCoverageAnalyzerTest {
         addFileFromGitHub("PublicEnum.java");
         addFile(PASS, NONE, "CustomAnnotation.java", MODIFIED);
         addFileFromGitHub("CustomAnnotation.java");
-
-        addFile(PASS, NONE, "DeletedInNewerPR.java", ADDED);
-        throwExceptionForGitHubFile("DeletedInNewerPR.java", new FileNotFoundException("DeletedInNewerPR.java not found"));
 
         addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 0.0);
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
