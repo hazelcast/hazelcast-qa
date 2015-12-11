@@ -89,7 +89,7 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass("renamed");
             return;
         }
-        if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges <= 1) {
+        if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges == 0) {
             fileContainer.pass("no changes");
         }
     }
