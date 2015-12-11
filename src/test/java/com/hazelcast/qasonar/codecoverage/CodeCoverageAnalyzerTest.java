@@ -11,6 +11,7 @@ import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -107,6 +108,10 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, NONE, "CustomAnnotation.java", MODIFIED);
         addFileFromGitHub("CustomAnnotation.java");
 
+        addFile(PASS, NONE, "DeletedInNewerPR.java", ADDED);
+        when(repo.getFileContent(HZ_PREFIX + "DeletedInNewerPR.java"))
+                .thenThrow(new FileNotFoundException(HZ_PREFIX + "DeletedInNewerPR.java not found"));
+
         addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 0.0);
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
         addFile(PASS, IDEA, "AddedFileNoSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
@@ -124,6 +129,15 @@ public class CodeCoverageAnalyzerTest {
         analyzer.run();
 
         assertQACheckOfAllFiles();
+    }
+
+    @Test(expected = IOException.class)
+    public void testRun_shouldThrowIfFileCouldNotBeRetrieved() throws Exception {
+        addFile(PASS, NONE, "CouldNotRetrieveFileContent.java", ADDED);
+        when(repo.getFileContent(HZ_PREFIX + "CouldNotRetrieveFileContent.java"))
+                .thenThrow(new IOException("Expected connection failure!"));
+
+        analyzer.run();
     }
 
     private FileContainer addFile(Result expectedResult, CoverageType expectedCoverageType, String fileName,
