@@ -71,11 +71,12 @@ public class CodeCoverageAnalyzer {
                 continue;
             }
 
-            if (fileContainer.coverage == null || fileContainer.ideaCoverage < COVERAGE_MARGIN) {
-                checkFileWithoutCoverage(fileContainer, gitFileName);
-            } else {
-                checkCodeCoverage(fileContainer);
+            checkFileWithoutCoverage(fileContainer, gitFileName);
+            if (fileContainer.isQaCheckSet()) {
+                continue;
             }
+
+            checkCodeCoverage(fileContainer);
         }
     }
 
@@ -117,6 +118,10 @@ public class CodeCoverageAnalyzer {
     }
 
     private void checkFileWithoutCoverage(FileContainer fileContainer, String gitFileName) throws IOException {
+        if (fileContainer.numericCoverage > COVERAGE_MARGIN || fileContainer.ideaCoverage > COVERAGE_MARGIN) {
+            return;
+        }
+
         String fileContents;
         try {
             fileContents = getFileContentsFromGitHub(repo, gitFileName);
@@ -140,12 +145,9 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass("Enum");
             return;
         }
-        if (fileContainer.coverage == null && fileContainer.ideaCoverage < COVERAGE_MARGIN) {
-            fileContainer.fail("code coverage not found");
-            debugRed("Failed with code coverage not found %s", gitFileName);
-            return;
-        }
-        checkCodeCoverage(fileContainer);
+
+        fileContainer.fail("code coverage not found");
+        debugRed("Failed with code coverage not found %s", gitFileName);
     }
 
     private void checkCodeCoverage(FileContainer fileContainer) {
