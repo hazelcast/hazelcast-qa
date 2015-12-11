@@ -71,7 +71,7 @@ public class CodeCoverageAnalyzer {
                 continue;
             }
 
-            if (fileContainer.coverage == null || fileContainer.numericCoverage < COVERAGE_MARGIN) {
+            if (fileContainer.coverage == null || fileContainer.ideaCoverage < COVERAGE_MARGIN) {
                 checkFileWithoutCoverage(fileContainer, gitFileName);
             } else {
                 checkCodeCoverage(fileContainer);
