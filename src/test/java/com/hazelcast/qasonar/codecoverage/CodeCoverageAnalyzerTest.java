@@ -109,8 +109,7 @@ public class CodeCoverageAnalyzerTest {
         addFileFromGitHub("CustomAnnotation.java");
 
         addFile(PASS, NONE, "DeletedInNewerPR.java", ADDED);
-        when(repo.getFileContent(HZ_PREFIX + "DeletedInNewerPR.java"))
-                .thenThrow(new FileNotFoundException(HZ_PREFIX + "DeletedInNewerPR.java not found"));
+        throwExceptionForGitHubFile("DeletedInNewerPR.java", new FileNotFoundException("DeletedInNewerPR.java not found"));
 
         addFile(PASS, SONAR, "AddedFileWithSufficientSonarCoverage.java", ADDED, 89.4, 93.8, 78.1, 0.0);
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
@@ -133,9 +132,8 @@ public class CodeCoverageAnalyzerTest {
 
     @Test(expected = IOException.class)
     public void testRun_shouldThrowIfFileCouldNotBeRetrieved() throws Exception {
-        addFile(PASS, NONE, "CouldNotRetrieveFileContent.java", ADDED);
-        when(repo.getFileContent(HZ_PREFIX + "CouldNotRetrieveFileContent.java"))
-                .thenThrow(new IOException("Expected connection failure!"));
+        addFile(FAIL, NONE, "CouldNotRetrieveFileContent.java", ADDED);
+        throwExceptionForGitHubFile("CouldNotRetrieveFileContent.java", new IOException("Expected connection failure!"));
 
         analyzer.run();
     }
@@ -195,6 +193,10 @@ public class CodeCoverageAnalyzerTest {
         String fileContent = new String(Files.readAllBytes(path));
         GHContent ghContent = createGHContentMock(fileContent);
         when(repo.getFileContent(HZ_PREFIX + fileName)).thenReturn(ghContent);
+    }
+
+    private void throwExceptionForGitHubFile(String fileName, Exception exception) throws Exception {
+        when(repo.getFileContent(HZ_PREFIX + fileName)).thenThrow(exception);
     }
 
     private void assertQACheckOfAllFiles() {
