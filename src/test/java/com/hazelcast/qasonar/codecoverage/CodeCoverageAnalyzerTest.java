@@ -115,12 +115,14 @@ public class CodeCoverageAnalyzerTest {
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverage.java", ADDED, 86.7, 91.4, 75.0, 0.0);
         addFile(PASS, IDEA, "AddedFileNoSonarCoverageAndSufficientIdeaCoverage.java", ADDED, 88.2);
         addFile(FAIL, IDEA, "AddedFileNoSonarCoverageAndInsufficientIdeaCoverage.java", ADDED, 87.2);
+        addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarAndIdeaCoverage.java", ADDED, 0.0, 0.0, 0.0, 0.0);
         addFile(FAIL, NONE, "AddedFileNoSonarCoverageAndNoIdeaCoverage.java", ADDED, 0.0);
 
         addFile(PASS, SONAR, "ModifiedFileWithSufficientSonarCoverage.java", MODIFIED, 86.5, 87.5, 80.6, 0.0);
         addFile(FAIL, SONAR, "ModifiedFileWithInsufficientSonarCoverage.java", MODIFIED, 45.6, 48.6, 40.2, 0.0);
         addFile(PASS, IDEA, "ModifiedFileNoSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
         addFile(FAIL, IDEA, "ModifiedFileNoSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
+        addFile(FAIL, SONAR, "ModifiedFileWithInsufficientSonarAndIdeaCoverage.java", MODIFIED, 0.0, 0.0, 0.0, 0.0);
         addFile(FAIL, NONE, "ModifiedFileNoSonarCoverageAndNoIdeaCoverage.java", MODIFIED, 0.0);
 
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverageAndIdeaCoverageNotUsed.java", ADDED, 82.3, 87.3, 79.2, 87.6);
