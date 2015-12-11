@@ -114,6 +114,8 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, IDEA, "ModifiedFileNoSonarCoverageAndSufficientIdeaCoverage.java", MODIFIED, 61.2);
         addFile(FAIL, IDEA, "ModifiedFileNoSonarCoverageAndInsufficientIdeaCoverage.java", MODIFIED, 48.9);
 
+        addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverageAndIdeaCoverageNotUsed.java", ADDED, 82.3, 87.3, 79.2, 87.6);
+
         analyzer.run();
 
         assertQACheckOfAllFiles();
