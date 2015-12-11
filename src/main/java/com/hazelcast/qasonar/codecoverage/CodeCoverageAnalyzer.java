@@ -85,11 +85,11 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass("deleted");
             return;
         }
-        if (fileContainer.status == GitHubStatus.RENAMED && fileContainer.gitHubChanges == 0) {
+        if (fileContainer.status == GitHubStatus.RENAMED && fileContainer.gitHubChanges <= 1) {
             fileContainer.pass("renamed");
             return;
         }
-        if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges == 0) {
+        if (fileContainer.status == GitHubStatus.CHANGED && fileContainer.gitHubChanges <= 1) {
             fileContainer.pass("no changes");
         }
     }

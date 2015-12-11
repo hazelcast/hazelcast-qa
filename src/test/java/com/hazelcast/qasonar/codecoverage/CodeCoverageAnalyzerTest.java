@@ -91,8 +91,10 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, NONE, "RemovedFile.java", REMOVED);
         addFile(PASS, NONE, "RenamedFile.java", RENAMED);
         addFile(PASS, NONE, "ChangedFile.java", CHANGED);
-        addFile(FAIL, NONE, "RenamedFileWithGitHubChanges.java", RENAMED, 15, 20, 5);
-        addFile(FAIL, NONE, "ChangedFileWithGitHubChanges.java", CHANGED, 19, 42, 23);
+        addFile(PASS, NONE, "RenamedFileWithSingleLineGitHubChanges.java", RENAMED, 1, 1, 1);
+        addFile(PASS, NONE, "ChangedFileWithSingleLineGitHubChanges.java", CHANGED, 1, 1, 1);
+        addFile(FAIL, NONE, "RenamedFileWithSignificantGitHubChanges.java", RENAMED, 15, 20, 5);
+        addFile(FAIL, NONE, "ChangedFileWithSignificantGitHubChanges.java", CHANGED, 19, 42, 23);
 
         addFile(PASS, NONE, "WhitelistedFile.java", ADDED);
         whiteList.addEntry("ENDS_WITH", "WhitelistedFile.java", "cross project", null);
