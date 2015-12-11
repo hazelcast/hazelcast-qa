@@ -164,14 +164,16 @@ public class CodeCoverageAnalyzer {
         double ideaCoverage = fileContainer.ideaCoverage;
         if (ideaCoverage >= minCodeCoverage && useIdeaCoverage) {
             fileContainer.pass(format("IDEA coverage: %.1f%%", ideaCoverage));
-            debugGreen("Passed with IDEA coverage %5.1f%% (%+6.1f%%) %s", ideaCoverage, (ideaCoverage - sonarCoverage),
+            debugGreen("Passed with code coverage %5.1f%% (%+6.1f%%) (IDEA ) %s", ideaCoverage, (ideaCoverage - sonarCoverage),
                     fileContainer.fileName);
             return;
         }
 
         double failedCoverage = useIdeaCoverage ? ideaCoverage : sonarCoverage;
-        fileContainer.fail("code coverage below " + minCodeCoverage + "%");
-        debugYellow("Failed with code coverage %5.1f%% (%6.1f%%) %s", failedCoverage, failedCoverage - minCodeCoverage,
+        double diff = failedCoverage - minCodeCoverage;
+        String coverageType = useIdeaCoverage ? "IDEA" : "Sonar";
+        fileContainer.fail(format("code coverage %.1f%% (%.1f%%) (%s)", failedCoverage, diff, coverageType));
+        debugYellow("Failed with code coverage %5.1f%% (%6.1f%%) (%-5s) %s", failedCoverage, diff, coverageType,
                 fileContainer.fileName);
     }
 
