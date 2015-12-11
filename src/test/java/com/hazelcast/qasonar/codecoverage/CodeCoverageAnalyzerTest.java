@@ -138,6 +138,27 @@ public class CodeCoverageAnalyzerTest {
         analyzer.run();
     }
 
+    @Test
+    public void testGetFiles() {
+        addFile(PASS, NONE, "RemovedFile.java", REMOVED);
+        addFile(PASS, NONE, "RenamedFile.java", RENAMED);
+        addFile(PASS, NONE, "ChangedFile.java", CHANGED);
+
+        Map<String, FileContainer> analyzerFiles = analyzer.getFiles();
+
+        assertEquals(files.size(), analyzerFiles.size());
+        assertTrue(analyzerFiles.containsKey(HZ_PREFIX + "RemovedFile.java"));
+        assertTrue(analyzerFiles.containsKey(HZ_PREFIX + "RenamedFile.java"));
+        assertTrue(analyzerFiles.containsKey(HZ_PREFIX + "ChangedFile.java"));
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testGetFiles_shouldBeUnmodifiable() {
+        Map<String, FileContainer> analyzerFiles = analyzer.getFiles();
+
+        analyzerFiles.put("key", new FileContainer());
+    }
+
     private FileContainer addFile(Result expectedResult, CoverageType expectedCoverageType, String fileName,
                                   GitHubStatus status) {
         FileContainer fileContainer = new FileContainer();
@@ -200,12 +221,10 @@ public class CodeCoverageAnalyzerTest {
     }
 
     private void assertQACheckOfAllFiles() {
-        Map<String, FileContainer> analyzerFiles = analyzer.getFiles();
-
         for (Map.Entry<String, Result> resultEntry : expectedResults.entrySet()) {
             String fileName = resultEntry.getKey();
 
-            FileContainer fileContainer = analyzerFiles.get(HZ_PREFIX + fileName);
+            FileContainer fileContainer = files.get(HZ_PREFIX + fileName);
             assertNotNull(format("Could not find fileContainer for %s ", fileName), fileContainer);
             assertTrue(format("%s should have been QA checked!", fileName), fileContainer.isQaCheckSet());
 
