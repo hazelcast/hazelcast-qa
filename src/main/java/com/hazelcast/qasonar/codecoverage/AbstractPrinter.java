@@ -20,7 +20,6 @@ import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -33,7 +32,6 @@ import static com.hazelcast.qasonar.utils.Utils.formatGitHubStatus;
 import static com.hazelcast.qasonar.utils.Utils.formatNullable;
 import static com.hazelcast.qasonar.utils.Utils.formatPullRequestLinks;
 import static com.hazelcast.qasonar.utils.Utils.formatSonarQubeLink;
-import static com.hazelcast.qasonar.utils.Utils.writeToFile;
 import static java.lang.String.format;
 
 abstract class AbstractPrinter {
@@ -75,7 +73,7 @@ abstract class AbstractPrinter {
         this.modifiedCoverageMax = Double.MIN_VALUE;
     }
 
-    void run() throws IOException {
+    StringBuilder run() {
         StringBuilder sb = new StringBuilder();
         addHeader(sb);
 
@@ -83,7 +81,7 @@ abstract class AbstractPrinter {
         addFooter(sb);
         appendSummary(sb, qaCheckPassCount);
 
-        print(sb);
+        return sb;
     }
 
     abstract void addHeader(StringBuilder sb);
@@ -184,13 +182,5 @@ abstract class AbstractPrinter {
 
         debug(summary.toString());
         sb.append(summary);
-    }
-
-    private void print(StringBuilder sb) throws IOException {
-        if (props.getOutputFile() != null) {
-            writeToFile(props.getOutputFile(), sb);
-        } else {
-            System.out.println(sb.toString());
-        }
     }
 }
