@@ -94,7 +94,7 @@ public final class Utils {
         for (Integer pullRequest : pullRequests) {
             sb.append(separator).append(pullRequest);
             if (counter++ % limit == 0) {
-                separator = ",}}\n{{";
+                separator = (plain ? ",\n" : ",}}\n{{");
                 limit = 30;
             } else {
                 separator = ",";
