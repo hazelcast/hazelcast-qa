@@ -87,7 +87,11 @@ public final class Utils {
         } else {
             sb.append("Command line: {{");
         }
-        sb.append("qa-sonar --pullRequests ");
+        sb.append("qa-sonar");
+        if (debug) {
+            sb.append(" --verbose");
+        }
+        sb.append(" --pullRequests ");
         String separator = "";
         int counter = 1;
         int limit = 24;
