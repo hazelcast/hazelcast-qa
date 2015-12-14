@@ -34,6 +34,7 @@ import java.io.IOException;
 
 import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.debugCommandLine;
+import static com.hazelcast.qasonar.utils.Utils.debugGreen;
 import static com.hazelcast.qasonar.utils.Utils.setDebug;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
 
@@ -95,7 +96,7 @@ public final class QaSonar {
                 CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getFiles(), propertyReader, cliOptions);
                 printer.run();
 
-                debug("Done!\n");
+                debugGreen("Done!\n");
                 break;
 
             default:

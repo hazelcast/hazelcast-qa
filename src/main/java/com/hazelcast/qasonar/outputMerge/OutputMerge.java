@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hazelcast.qasonar.utils.Utils.printGreen;
+import static com.hazelcast.qasonar.utils.Utils.printRed;
+import static com.hazelcast.qasonar.utils.Utils.printYellow;
 import static com.hazelcast.qasonar.utils.Utils.writeToFile;
 import static java.lang.String.format;
 import static java.nio.file.Files.readAllLines;
@@ -51,7 +54,7 @@ public class OutputMerge {
 
         Collection<Path> matchedFiles = finder.getMatchedPaths();
         if (matchedFiles.size() == 0) {
-            System.err.println("No files found!");
+            printRed("No files found!");
             return;
         }
 
@@ -62,7 +65,7 @@ public class OutputMerge {
             String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
 
             if (baseName.equals(outputFile)) {
-                System.out.println("Filename equals the output filename (skipping)...");
+                printYellow("Filename equals the output filename (skipping)...");
                 continue;
             }
 
@@ -76,7 +79,7 @@ public class OutputMerge {
             } else if (baseName.endsWith("-mancenter") | baseName.endsWith("-mc")) {
                 repository = Repository.MC;
             } else {
-                System.err.println("Filename must contain a project postfix: " + fileName);
+                printRed("Filename must contain a project postfix: " + fileName);
                 return;
             }
 
@@ -102,6 +105,6 @@ public class OutputMerge {
         }
         writeToFile(outputFile + ".txt", sb);
 
-        System.out.println("Done!\n");
+        printGreen("Done!\n");
     }
 }

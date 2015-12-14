@@ -27,7 +27,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
-import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.Utils.debugYellow;
+import static com.hazelcast.qasonar.utils.Utils.printGreen;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.Files.write;
@@ -50,7 +51,7 @@ public class IdeaConverter {
             for (Path file : matchedFiles) {
                 Elements tableRows = getLastTableRows(file);
                 if (!isClassTable(tableRows)) {
-                    debug("File does not contain class table: " + file);
+                    debugYellow("File does not contain class table: " + file);
                     continue;
                 }
 
@@ -69,7 +70,7 @@ public class IdeaConverter {
             System.out.println(format("Writing data to %s...", OUTPUT_FILENAME));
             write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
 
-            System.out.println("Done!");
+            printGreen("Done!");
         } catch (IOException e) {
             e.printStackTrace();
         }

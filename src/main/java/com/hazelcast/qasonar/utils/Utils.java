@@ -69,8 +69,24 @@ public final class Utils {
 
     private static void debugColor(Color color, String msg, Object... parameters) {
         if (debug) {
-            System.out.println(ansi().fg(color).a(format(msg, parameters)).reset().toString());
+            printColor(color, msg, parameters);
         }
+    }
+
+    public static void printGreen(String msg, Object... parameters) {
+        printColor(Color.GREEN, msg, parameters);
+    }
+
+    public static void printYellow(String msg, Object... parameters) {
+        printColor(Color.YELLOW, msg, parameters);
+    }
+
+    public static void printRed(String msg, Object... parameters) {
+        printColor(Color.RED, msg, parameters);
+    }
+
+    private static void printColor(Color color, String msg, Object... parameters) {
+        System.out.println(ansi().fg(color).a(format(msg, parameters)).reset().toString());
     }
 
     public static void debugCommandLine(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {

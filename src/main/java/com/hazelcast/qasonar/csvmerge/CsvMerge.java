@@ -28,6 +28,8 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.Utils.printGreen;
+import static com.hazelcast.qasonar.utils.Utils.printYellow;
 import static java.lang.String.format;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
@@ -63,7 +65,7 @@ public class CsvMerge {
         int classCount = ideaCoverage.size();
         System.out.println(format("Merged coverage data for %d classes...", classCount));
         if (classCount == 0) {
-            System.out.println("Nothing to store, we're done!");
+            printYellow("Nothing to store, we're done!");
             return;
         }
 
@@ -74,6 +76,6 @@ public class CsvMerge {
         }
         write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
 
-        System.out.println("Done!");
+        printGreen("Done!");
     }
 }
