@@ -21,6 +21,7 @@ public enum CommandLineAction {
     PRINT_HELP,
     IDEA_CONVERTER,
     CSV_MERGE,
+    OUTPUT_MERGE,
     LIST_PROJECTS,
     PULL_REQUESTS
 }

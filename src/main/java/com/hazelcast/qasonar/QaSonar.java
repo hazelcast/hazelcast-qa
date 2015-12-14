@@ -22,6 +22,7 @@ import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
 import com.hazelcast.qasonar.csvmerge.CsvMerge;
 import com.hazelcast.qasonar.ideaconverter.IdeaConverter;
 import com.hazelcast.qasonar.listprojects.ListProjects;
+import com.hazelcast.qasonar.outputMerge.OutputMerge;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
@@ -60,6 +61,11 @@ public final class QaSonar {
             case CSV_MERGE:
                 CsvMerge csvMerge = new CsvMerge();
                 csvMerge.run();
+                break;
+
+            case OUTPUT_MERGE:
+                OutputMerge outputMerge = new OutputMerge(propertyReader);
+                outputMerge.run();
                 break;
 
             case LIST_PROJECTS:

@@ -42,6 +42,9 @@ public class CommandLineOptions {
     private final OptionSpec csvMergeSpec = parser.accepts("csvMerge",
             "Merges multiple IDEA coverage reports to a single one.");
 
+    private final OptionSpec outputMergeSpec = parser.accepts("outputMerge",
+            "Merges multiple Confluence coverage reports to a single one.");
+
     private final OptionSpec listProjectsSpec = parser.accepts("listProjects",
             "Lists projects of specified SonarQube instance.");
 
@@ -132,6 +135,10 @@ public class CommandLineOptions {
 
         if (options.has(csvMergeSpec)) {
             return CommandLineAction.CSV_MERGE;
+        }
+
+        if (options.has(outputMergeSpec)) {
+            return CommandLineAction.OUTPUT_MERGE;
         }
 
         if (options.has(listProjectsSpec)) {
