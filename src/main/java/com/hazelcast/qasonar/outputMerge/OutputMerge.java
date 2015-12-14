@@ -102,6 +102,6 @@ public class OutputMerge {
         }
         writeToFile(outputFile + ".txt", sb);
 
-        System.out.println("Done!");
+        System.out.println("Done!\n");
     }
 }
