@@ -46,7 +46,7 @@ public class OutputMerge {
     public void run() throws IOException {
         String outputFile = propertyReader.getOutputFile();
 
-        FileFinder finder = new FileFinder(outputFile + "*.txt");
+        FileFinder finder = new FileFinder(outputFile + "-(opensource|os|enterprise|ee|mancenter|mc).txt", true);
         walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
         Collection<Path> matchedFiles = finder.getMatchedPaths();
@@ -73,7 +73,7 @@ public class OutputMerge {
                 repository = Repository.OS;
             } else if (baseName.endsWith("-enterprise") || baseName.endsWith("-ee")) {
                 repository = Repository.EE;
-            } else if (baseName.endsWith("-mc")) {
+            } else if (baseName.endsWith("-mancenter") | baseName.endsWith("-mc")) {
                 repository = Repository.MC;
             } else {
                 System.err.println("Filename must contain a project postfix: " + fileName);
