@@ -62,8 +62,8 @@ public class OutputMerge {
             String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
 
             if (baseName.equals(outputFile)) {
-                System.err.println("Filename equals the output filename: " + outputFile);
-                return;
+                System.out.println("Filename equals the output filename (skipping)...");
+                continue;
             }
 
             System.out.println("Parsing " + fileName + "...");
