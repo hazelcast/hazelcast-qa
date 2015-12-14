@@ -53,12 +53,16 @@ public class OutputMerge {
         walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
         Collection<Path> matchedFiles = finder.getMatchedPaths();
-        if (matchedFiles.size() == 0) {
+        int matchedFilesNumber = matchedFiles.size();
+        if (matchedFilesNumber == 0) {
             printRed("No files found!");
             return;
         }
+        if (matchedFilesNumber == 1) {
+            printYellow("Found just a single file, are you sure you need to merge it?");
+        }
 
-        System.out.println(format("Merging %d txt files...", matchedFiles.size()));
+        System.out.println(format("Merging %d txt files...", matchedFilesNumber));
         StringBuilder sb = new StringBuilder();
         for (Path file : matchedFiles) {
             String fileName = file.getFileName().toString().toLowerCase();
