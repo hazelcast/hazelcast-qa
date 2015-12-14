@@ -35,7 +35,11 @@ public class FileFinder extends SimpleFileVisitor<Path> {
     private List<Path> matchedPaths = new ArrayList<Path>();
 
     public FileFinder(String pattern) {
-        matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        this(pattern, false);
+    }
+
+    public FileFinder(String pattern, boolean useRegex) {
+        matcher = FileSystems.getDefault().getPathMatcher((useRegex ? "regex:" : "glob:") + pattern);
     }
 
     // compares the glob pattern against the file or directory name
