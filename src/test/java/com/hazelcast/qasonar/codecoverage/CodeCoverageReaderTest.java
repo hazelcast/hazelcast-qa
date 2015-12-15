@@ -29,6 +29,8 @@ public class CodeCoverageReaderTest {
 
     private List<Integer> pullRequests = new ArrayList<Integer>();
 
+    private int pullRequestIdGenerator;
+
     private GHRepository repo;
 
     private CodeCoverageReader reader;
@@ -46,10 +48,10 @@ public class CodeCoverageReaderTest {
 
     @Test
     public void testRun() throws Exception {
-        addPullRequest(1,
+        addPullRequest(
                 getGhPullRequestFileDetail("AddedAndRemovedFile.java", ADDED),
                 getGhPullRequestFileDetail("AddedFile.java", ADDED));
-        addPullRequest(2, getGhPullRequestFileDetail("AddedAndRemovedFile.java", REMOVED));
+        addPullRequest(getGhPullRequestFileDetail("AddedAndRemovedFile.java", REMOVED));
 
         reader.run(pullRequests);
 
@@ -64,14 +66,14 @@ public class CodeCoverageReaderTest {
         GHPullRequestFileDetail pullRequestFile = mock(GHPullRequestFileDetail.class);
         when(pullRequestFile.getFilename()).thenReturn(HZ_PREFIX + "CannotRetrieveStatus.java");
 
-        addPullRequest(1, pullRequestFile);
+        addPullRequest(pullRequestFile);
 
         reader.run(pullRequests);
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testGetFiles_shouldBeUnmodifiable() throws Exception {
-        addPullRequest(1, getGhPullRequestFileDetail("AddedFile.java", ADDED));
+        addPullRequest(getGhPullRequestFileDetail("AddedFile.java", ADDED));
 
         reader.run(pullRequests);
         Map<String, FileContainer> readerFiles = reader.getFiles();
@@ -79,7 +81,8 @@ public class CodeCoverageReaderTest {
         readerFiles.put("key", new FileContainer());
     }
 
-    private void addPullRequest(int pullRequestId, GHPullRequestFileDetail... pullRequestFiles) throws IOException {
+    private void addPullRequest(GHPullRequestFileDetail... pullRequestFiles) throws IOException {
+        int pullRequestId = ++pullRequestIdGenerator;
         pullRequests.add(pullRequestId);
 
         PagedIterable<GHPullRequestFileDetail> iterable = mockPagedIterable(pullRequestFiles);
