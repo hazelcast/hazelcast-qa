@@ -134,15 +134,12 @@ public class CodeCoverageReader {
                 continue;
             }
 
-            String module = gitFileName.substring(0, gitFileName.indexOf('/'));
-            boolean isModuleDeleted = (resources.get(module) == null);
-
             FileContainer fileContainer = new FileContainer();
             fileContainer.resourceId = resourceId;
             fileContainer.pullRequests = String.valueOf(gitPullRequest);
             fileContainer.fileName = gitFileName;
             fileContainer.status = status;
-            fileContainer.isModuleDeleted = isModuleDeleted;
+            fileContainer.isModuleDeleted = isModuleDeleted(gitFileName);
             fileContainer.gitHubChanges = pullRequestFile.getChanges();
             fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
             fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
@@ -208,6 +205,16 @@ public class CodeCoverageReader {
             return oldStatus;
         }
         return newStatus;
+    }
+
+    private boolean isModuleDeleted(String gitFileName) {
+        int firstSlashIndex = gitFileName.indexOf('/');
+        if (firstSlashIndex == -1) {
+            return false;
+        }
+
+        String module = gitFileName.substring(0, firstSlashIndex);
+        return (resources.get(module) == null);
     }
 
     private double getIdeaCoverage(String fileName) {
