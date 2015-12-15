@@ -81,6 +81,10 @@ public class CodeCoverageAnalyzer {
     }
 
     private void checkEntryStatus(FileContainer fileContainer) {
+        if (fileContainer.isModuleDeleted) {
+            fileContainer.pass("module deleted");
+            return;
+        }
         if (fileContainer.status == GitHubStatus.REMOVED) {
             fileContainer.pass("deleted");
             return;

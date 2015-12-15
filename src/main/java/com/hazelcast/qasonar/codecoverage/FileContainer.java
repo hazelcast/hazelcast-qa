@@ -32,6 +32,8 @@ class FileContainer {
     String fileName;
     GitHubStatus status;
 
+    boolean isModuleDeleted;
+
     String coverage;
     String lineCoverage;
     String branchCoverage;

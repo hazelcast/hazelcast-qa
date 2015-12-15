@@ -88,6 +88,11 @@ public class CodeCoverageAnalyzerTest {
         addFile(PASS, NONE, "package-info.java", ADDED);
         addFile(PASS, NONE, "src/test/java/HazelcastTestSupport.java", ADDED);
 
+        FileContainer fileContainer = addFile(PASS, NONE, "ModuleDeleted.java", ADDED);
+        fileContainer.isModuleDeleted = true;
+        fileContainer = addFile(PASS, NONE, "ModuleDeletedButHasIdeaCoverageDueToNameCollision.java", ADDED, 56.7);
+        fileContainer.isModuleDeleted = true;
+
         addFile(PASS, NONE, "RemovedFile.java", REMOVED);
         addFile(PASS, NONE, "RenamedFile.java", RENAMED);
         addFile(PASS, NONE, "ChangedFile.java", CHANGED);

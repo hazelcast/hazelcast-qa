@@ -134,11 +134,15 @@ public class CodeCoverageReader {
                 continue;
             }
 
+            String module = gitFileName.substring(0, gitFileName.indexOf('/'));
+            boolean isModuleDeleted = (resources.get(module) == null);
+
             FileContainer fileContainer = new FileContainer();
             fileContainer.resourceId = resourceId;
             fileContainer.pullRequests = String.valueOf(gitPullRequest);
             fileContainer.fileName = gitFileName;
             fileContainer.status = status;
+            fileContainer.isModuleDeleted = isModuleDeleted;
             fileContainer.gitHubChanges = pullRequestFile.getChanges();
             fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
             fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
