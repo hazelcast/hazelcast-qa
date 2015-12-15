@@ -179,9 +179,9 @@ public class CodeCoverageAnalyzer {
         String coverageType = useIdeaCoverage ? "IDEA" : "Sonar";
 
         if (isBelowMinThresholdModified(fileContainer)) {
-            fileContainer.pass(format("code coverage %.1f%% (%.1f%%) (%s)\njust changed %d lines", failedCoverage, diff,
-                    coverageType, fileContainer.gitHubChanges));
-            debugGreen("Passed with code coverage %5.1f%% (%6.1f%%) (%-5s) %s (just %d lines changed)", failedCoverage,
+            fileContainer.pass(format("under threshold with %d changed lines\ncode coverage %.1f%% (%.1f%%) (%s)",
+                    fileContainer.gitHubChanges, failedCoverage, diff, coverageType));
+            debugGreen("Passed with code coverage %5.1f%% (%6.1f%%) (%-5s) %s (%d lines changed below threshold)", failedCoverage,
                     diff, coverageType, fileContainer.fileName, fileContainer.gitHubChanges);
             return;
         }
