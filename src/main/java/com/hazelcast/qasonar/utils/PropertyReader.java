@@ -25,6 +25,7 @@ public class PropertyReader {
 
     private final List<String> projectResourceIds = new ArrayList<String>();
     private final Map<GitHubStatus, Double> minCodeCoverage = new HashMap<GitHubStatus, Double>();
+    private int minThresholdModified;
 
     private final String host;
     private final String username;
@@ -102,6 +103,14 @@ public class PropertyReader {
             }
             minCodeCoverage.put(gitHubStatus, codeCoverage);
         }
+    }
+
+    public int getMinThresholdModified() {
+        return minThresholdModified;
+    }
+
+    public void setMinThresholdModified(int minThresholdModified) {
+        this.minThresholdModified = minThresholdModified;
     }
 
     public String getWhiteListFileName() {

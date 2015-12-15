@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
+import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
 import static com.hazelcast.qasonar.utils.Utils.debugGreen;
 import static com.hazelcast.qasonar.utils.Utils.debugRed;
 import static com.hazelcast.qasonar.utils.Utils.debugYellow;
@@ -176,6 +177,15 @@ public class CodeCoverageAnalyzer {
         double failedCoverage = useIdeaCoverage ? ideaCoverage : sonarCoverage;
         double diff = failedCoverage - minCodeCoverage;
         String coverageType = useIdeaCoverage ? "IDEA" : "Sonar";
+
+        if (isBelowMinThresholdModified(fileContainer)) {
+            fileContainer.pass(format("code coverage %.1f%% (%.1f%%) (%s)\njust changed %d lines", failedCoverage, diff,
+                    coverageType, fileContainer.gitHubChanges));
+            debugGreen("Passed with code coverage %5.1f%% (%6.1f%%) (%-5s) %s (just %d lines changed)", failedCoverage,
+                    diff, coverageType, fileContainer.fileName, fileContainer.gitHubChanges);
+            return;
+        }
+
         fileContainer.fail(format("code coverage %.1f%% (%.1f%%) (%s)", failedCoverage, diff, coverageType));
         debugYellow("Failed with code coverage %5.1f%% (%6.1f%%) (%-5s) %s", failedCoverage, diff, coverageType,
                 fileContainer.fileName);
@@ -183,5 +193,10 @@ public class CodeCoverageAnalyzer {
 
     private boolean isIdeaCoverageSignificantlyHigher(FileContainer fileContainer) {
         return (fileContainer.ideaCoverage > fileContainer.numericLineCoverage + MIN_IDEA_COVERAGE_DIFF);
+    }
+
+    private boolean isBelowMinThresholdModified(FileContainer fileContainer) {
+        int minThresholdModified = props.getMinThresholdModified();
+        return (fileContainer.status != ADDED && minThresholdModified > 0 && fileContainer.gitHubChanges <= minThresholdModified);
     }
 }

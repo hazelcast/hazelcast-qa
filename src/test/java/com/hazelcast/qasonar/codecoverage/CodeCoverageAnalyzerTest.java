@@ -54,6 +54,7 @@ public class CodeCoverageAnalyzerTest {
     private Map<String, Result> expectedResults;
     private Map<String, CoverageType> expectedCoverageTypes;
 
+    private PropertyReader props;
     private GHRepository repo;
     private WhiteList whiteList;
 
@@ -68,7 +69,7 @@ public class CodeCoverageAnalyzerTest {
         expectedResults = new HashMap<String, Result>();
         expectedCoverageTypes = new HashMap<String, CoverageType>();
 
-        PropertyReader props = new PropertyReader("host", "username", "password");
+        props = new PropertyReader("host", "username", "password");
         props.setMinCodeCoverage(87.5, false);
         props.setMinCodeCoverage(60.0, true);
 
@@ -133,6 +134,20 @@ public class CodeCoverageAnalyzerTest {
         addFile(FAIL, NONE, "ModifiedFileNoSonarCoverageAndNoIdeaCoverage.java", MODIFIED, 0.0);
 
         addFile(FAIL, SONAR, "AddedFileWithInsufficientSonarCoverageAndIdeaCoverageNotUsed.java", ADDED, 82.3, 87.3, 79.2, 87.6);
+
+        analyzer.run();
+
+        assertQACheckOfAllFiles();
+    }
+
+    @Test
+    public void testRun_withMinThresholdModified() throws Exception {
+        props.setMinThresholdModified(5);
+
+        addFile(FAIL, SONAR, "AddedFileShouldAlwaysFail.java", ADDED, 23.0, 26.5, 18.3, 26.5).gitHubChanges = 2;
+        addFile(FAIL, SONAR, "ModifiedWithChangesAboveThreshold.java", MODIFIED, 27.0, 29.4, 25.3, 29.5).gitHubChanges = 6;
+        addFile(PASS, IDEA, "ModifiedWithChangesOnThreshold.java", MODIFIED, 12.6).gitHubChanges = 5;
+        addFile(PASS, SONAR, "ModifiedWithChangesBelowThreshold.java", MODIFIED, 13.0, 18.5, 12.3, 18.6).gitHubChanges = 4;
 
         analyzer.run();
 

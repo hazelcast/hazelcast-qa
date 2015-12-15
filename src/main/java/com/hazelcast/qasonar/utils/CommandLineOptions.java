@@ -69,6 +69,10 @@ public class CommandLineOptions {
             "Specifies the minimum code coverage for modified files in percent.")
             .withRequiredArg().ofType(Double.class);
 
+    private final OptionSpec<Integer> minThresholdModifiedSpec = parser.accepts("minThresholdModified",
+            "Specifies the minimum threshold for modified files in changed lines.")
+            .withRequiredArg().ofType(Integer.class);
+
     private final OptionSpec<String> outputFileSpec = parser.accepts("outputFile",
             "Specifies a file for the output.")
             .withRequiredArg().ofType(String.class);
@@ -127,6 +131,7 @@ public class CommandLineOptions {
         setDefaultModule();
         setMinCodeCoverage();
         setMinCodeCoverageModified();
+        setMinThresholdModified();
         setOutputFile();
 
         if (options.has(ideaConverterSpec)) {
@@ -177,6 +182,13 @@ public class CommandLineOptions {
         if (options.has(minCodeCoverageModifiedSpec)) {
             Double minCodeCoverage = options.valueOf(minCodeCoverageModifiedSpec);
             propertyReader.setMinCodeCoverage(minCodeCoverage, true);
+        }
+    }
+
+    private void setMinThresholdModified() {
+        if (options.has(minThresholdModifiedSpec)) {
+            Integer minThresholdModified = options.valueOf(minThresholdModifiedSpec);
+            propertyReader.setMinThresholdModified(minThresholdModified);
         }
     }
 

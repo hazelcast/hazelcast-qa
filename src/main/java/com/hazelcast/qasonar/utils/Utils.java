@@ -123,6 +123,9 @@ public final class Utils {
         if (props.isGitHubRepositoryOverwritten()) {
             sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
         }
+        if (props.getMinThresholdModified() > 0) {
+            sb.append(" --minThresholdModified ").append(props.getMinThresholdModified());
+        }
         if (plain) {
             if (props.getOutputFile() != null) {
                 sb.append(" --outputFile ").append(props.getOutputFile());
