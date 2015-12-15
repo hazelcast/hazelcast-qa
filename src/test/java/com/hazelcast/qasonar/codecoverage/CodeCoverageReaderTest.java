@@ -44,7 +44,9 @@ public class CodeCoverageReaderTest {
         props.setMinCodeCoverage(87.5, false);
         props.setMinCodeCoverage(60.0, true);
 
-        reader = new CodeCoverageReader(props, repo);
+        JsonDownloader jsonDownloader = mock(JsonDownloader.class);
+
+        reader = new CodeCoverageReader(props, repo, jsonDownloader);
     }
 
     @Test

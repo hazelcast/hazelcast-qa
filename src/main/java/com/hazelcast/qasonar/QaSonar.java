@@ -19,6 +19,7 @@ package com.hazelcast.qasonar;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzer;
 import com.hazelcast.qasonar.codecoverage.CodeCoveragePrinter;
 import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
+import com.hazelcast.qasonar.codecoverage.JsonDownloader;
 import com.hazelcast.qasonar.csvmerge.CsvMerge;
 import com.hazelcast.qasonar.ideaconverter.IdeaConverter;
 import com.hazelcast.qasonar.listprojects.ListProjects;
@@ -85,7 +86,8 @@ public final class QaSonar {
                 GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
 
                 debug("Reading code coverage data...");
-                CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo);
+                JsonDownloader jsonDownloader = new JsonDownloader(propertyReader);
+                CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo, jsonDownloader);
                 reader.run(cliOptions.getPullRequests());
 
                 debug("Analyzing code coverage data...");

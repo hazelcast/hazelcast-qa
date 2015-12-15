@@ -37,7 +37,6 @@ import java.util.Map;
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.Utils.debug;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
-import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllLines;
@@ -52,10 +51,12 @@ public class CodeCoverageReader {
 
     private final PropertyReader props;
     private final GHRepository repo;
+    private final JsonDownloader jsonDownloader;
 
-    public CodeCoverageReader(PropertyReader propertyReader, GHRepository repo) throws IOException {
+    public CodeCoverageReader(PropertyReader propertyReader, GHRepository repo, JsonDownloader jsonDownloader) {
         this.props = propertyReader;
         this.repo = repo;
+        this.jsonDownloader = jsonDownloader;
     }
 
     public Map<String, FileContainer> getFiles() {
@@ -75,7 +76,7 @@ public class CodeCoverageReader {
     private void populateResourcesMap() throws IOException {
         for (String resourceId : props.getProjectResourceIds()) {
             String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1", props.getHost(), resourceId);
-            JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
+            JsonArray array = jsonDownloader.getJsonArrayFromQuery(query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
                 if (!"FIL".equals(resource.get("scope").getAsString())) {
@@ -151,7 +152,7 @@ public class CodeCoverageReader {
             }
 
             String query = format("https://%s/api/resources?resource=%s&metrics=%s", props.getHost(), resourceId, METRICS_LIST);
-            JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
+            JsonArray array = jsonDownloader.getJsonArrayFromQuery(query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
 
