@@ -59,6 +59,16 @@ public class CodeCoverageReaderTest {
         assertTrue(readerFiles.containsKey(HZ_PREFIX + "AddedAndRemovedFile.java"));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testRun_shouldThrowIfGithubStatusCannotBeRetrieved() throws Exception {
+        GHPullRequestFileDetail pullRequestFile = mock(GHPullRequestFileDetail.class);
+        when(pullRequestFile.getFilename()).thenReturn(HZ_PREFIX + "CannotRetrieveStatus.java");
+
+        addPullRequest(1, pullRequestFile);
+
+        reader.run(pullRequests);
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void testGetFiles_shouldBeUnmodifiable() throws Exception {
         addPullRequest(1, getGhPullRequestFileDetail("AddedFile.java", ADDED));
