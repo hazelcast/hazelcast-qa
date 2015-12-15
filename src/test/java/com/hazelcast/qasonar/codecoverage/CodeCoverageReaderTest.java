@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
+import static com.hazelcast.qasonar.utils.GitHubStatus.MODIFIED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.REMOVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -50,13 +51,14 @@ public class CodeCoverageReaderTest {
     public void testRun() throws Exception {
         addPullRequest(
                 getGhPullRequestFileDetail("AddedAndRemovedFile.java", ADDED),
-                getGhPullRequestFileDetail("AddedFile.java", ADDED));
+                getGhPullRequestFileDetail("AddedFile.java", ADDED),
+                getGhPullRequestFileDetail("pom.xml", MODIFIED));
         addPullRequest(getGhPullRequestFileDetail("AddedAndRemovedFile.java", REMOVED));
 
         reader.run(pullRequests);
 
         Map<String, FileContainer> readerFiles = reader.getFiles();
-        assertEquals(2, readerFiles.size());
+        assertEquals(3, readerFiles.size());
         assertTrue(readerFiles.containsKey(HZ_PREFIX + "AddedFile.java"));
         assertTrue(readerFiles.containsKey(HZ_PREFIX + "AddedAndRemovedFile.java"));
     }
