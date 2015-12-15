@@ -107,6 +107,9 @@ public final class Utils {
         if (debug) {
             sb.append(" --verbose");
         }
+        if (props.getMinThresholdModified() > 0) {
+            sb.append(" --minThresholdModified ").append(props.getMinThresholdModified());
+        }
         sb.append(" --pullRequests ");
         String separator = "";
         int counter = 1;
@@ -122,9 +125,6 @@ public final class Utils {
         }
         if (props.isGitHubRepositoryOverwritten()) {
             sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
-        }
-        if (props.getMinThresholdModified() > 0) {
-            sb.append(" --minThresholdModified ").append(props.getMinThresholdModified());
         }
         if (plain) {
             if (props.getOutputFile() != null) {
