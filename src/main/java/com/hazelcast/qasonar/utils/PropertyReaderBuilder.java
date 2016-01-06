@@ -35,7 +35,7 @@ public final class PropertyReaderBuilder {
         return fromPropertyFile(propertyFile.getPath());
     }
 
-    public static PropertyReader fromPropertyFile(String propertyFileName) throws IOException {
+    private static PropertyReader fromPropertyFile(String propertyFileName) throws IOException {
         Properties props = new Properties();
         FileInputStream in = null;
         try {
@@ -48,7 +48,7 @@ public final class PropertyReaderBuilder {
         return fromProperties(props);
     }
 
-    public static PropertyReader fromProperties(Properties props) {
+    private static PropertyReader fromProperties(Properties props) {
         try {
             PropertyReader propertyReader = new PropertyReader(
                     getProperty(props, "host"),
@@ -65,11 +65,6 @@ public final class PropertyReaderBuilder {
             if (props.getProperty("minCodeCoverageModified") != null) {
                 minCodeCoverage = Double.valueOf(getProperty(props, "minCodeCoverageModified"));
                 propertyReader.setMinCodeCoverage(minCodeCoverage, true);
-            }
-
-            String whiteListFileName = getProperty(props, "whiteListFileName");
-            if (whiteListFileName != null) {
-                propertyReader.setWhiteListFileName(whiteListFileName);
             }
 
             return propertyReader;

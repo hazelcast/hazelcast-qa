@@ -79,7 +79,7 @@ public final class QaSonar {
                 debugCommandLine(propertyReader, cliOptions);
 
                 debug("Parsing whitelist...");
-                WhiteList whiteList = fromJsonFile(propertyReader);
+                WhiteList whiteList = fromJsonFile();
 
                 debug("Connecting to GitHub...");
                 GitHub github = GitHub.connect();

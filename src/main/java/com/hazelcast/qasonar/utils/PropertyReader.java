@@ -36,7 +36,6 @@ public class PropertyReader {
 
     private String defaultModule;
 
-    private String whiteListFileName;
     private String outputFile;
 
     public PropertyReader(String host, String username, String password) {
@@ -111,14 +110,6 @@ public class PropertyReader {
 
     public void setMinThresholdModified(int minThresholdModified) {
         this.minThresholdModified = minThresholdModified;
-    }
-
-    public String getWhiteListFileName() {
-        return whiteListFileName;
-    }
-
-    public void setWhiteListFileName(String whiteListFileName) {
-        this.whiteListFileName = whiteListFileName;
     }
 
     public String getOutputFile() {

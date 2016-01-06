@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -33,11 +34,17 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public final class WhiteListBuilder {
 
+    private static final String WHITE_LIST_FILENAME = "whitelist.json";
+
     private WhiteListBuilder() {
     }
 
-    public static WhiteList fromJsonFile(PropertyReader propertyReader) {
-        return fromJsonFile(propertyReader.getWhiteListFileName());
+    public static WhiteList fromJsonFile() {
+        File file = new File(WHITE_LIST_FILENAME);
+        if (!file.exists() || !file.isFile()) {
+            return new WhiteList();
+        }
+        return fromJsonFile(WHITE_LIST_FILENAME);
     }
 
     public static WhiteList fromJsonFile(String propertyFileName) {

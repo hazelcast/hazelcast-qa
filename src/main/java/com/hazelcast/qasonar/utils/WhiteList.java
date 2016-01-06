@@ -21,7 +21,7 @@ import java.util.List;
 
 public class WhiteList {
 
-    enum WhiteListEntryType {
+    private enum WhiteListEntryType {
         EQUALS,
         STARTS_WITH,
         ENDS_WITH,
