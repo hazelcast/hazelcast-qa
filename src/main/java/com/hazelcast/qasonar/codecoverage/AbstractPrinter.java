@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.Utils.formatCoverage;
 import static com.hazelcast.qasonar.utils.Utils.formatFileName;
 import static com.hazelcast.qasonar.utils.Utils.formatGitHubChanges;

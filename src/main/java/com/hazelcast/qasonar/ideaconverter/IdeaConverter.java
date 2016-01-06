@@ -27,8 +27,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
-import static com.hazelcast.qasonar.utils.Utils.debugYellow;
-import static com.hazelcast.qasonar.utils.Utils.printGreen;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
+import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.Files.write;

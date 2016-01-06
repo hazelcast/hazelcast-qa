@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
-import static com.hazelcast.qasonar.utils.Utils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static java.lang.String.format;
 import static java.nio.file.Files.exists;

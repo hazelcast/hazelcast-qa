@@ -28,7 +28,7 @@ public class CodeCoverageReaderTest {
 
     private static final String HZ_PREFIX = "hazelcast/src/main/java/com/hazelcast/";
 
-    private List<Integer> pullRequests = new ArrayList<Integer>();
+    private List<Integer> pullRequests = new ArrayList<>();
 
     private int pullRequestIdGenerator;
 
@@ -108,7 +108,7 @@ public class CodeCoverageReaderTest {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> PagedIterable<T> mockPagedIterable(T... values) {
+    private static <T> PagedIterable<T> mockPagedIterable(T... values) {
         PagedIterator<T> mockIterator = mock(PagedIterator.class);
 
         PagedIterable<T> iterable = mock(PagedIterable.class);

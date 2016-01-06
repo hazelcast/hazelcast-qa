@@ -30,9 +30,9 @@ import java.util.Map;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
 import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
-import static com.hazelcast.qasonar.utils.Utils.debugGreen;
-import static com.hazelcast.qasonar.utils.Utils.debugRed;
-import static com.hazelcast.qasonar.utils.Utils.debugYellow;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.Utils.getFileContentsFromGitHub;
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
@@ -155,6 +155,7 @@ public class CodeCoverageAnalyzer {
         debugRed("Failed with code coverage not found %s", gitFileName);
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private void checkCodeCoverage(FileContainer fileContainer) {
         double minCodeCoverage = props.getMinCodeCoverage(fileContainer.status);
         boolean useIdeaCoverage = isIdeaCoverageSignificantlyHigher(fileContainer);

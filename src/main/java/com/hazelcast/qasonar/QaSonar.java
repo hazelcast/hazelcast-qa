@@ -33,10 +33,10 @@ import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 
-import static com.hazelcast.qasonar.utils.Utils.debug;
-import static com.hazelcast.qasonar.utils.Utils.debugCommandLine;
-import static com.hazelcast.qasonar.utils.Utils.debugGreen;
-import static com.hazelcast.qasonar.utils.Utils.setDebug;
+import static com.hazelcast.qasonar.utils.DebugUtils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugCommandLine;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
+import static com.hazelcast.qasonar.utils.DebugUtils.setDebug;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
 
 public final class QaSonar {

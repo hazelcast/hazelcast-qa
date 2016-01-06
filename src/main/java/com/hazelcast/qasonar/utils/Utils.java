@@ -19,7 +19,6 @@ package com.hazelcast.qasonar.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import org.apache.commons.codec.binary.Base64;
-import org.fusesource.jansi.Ansi.Color;
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHRepository;
 
@@ -34,67 +33,13 @@ import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
 import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
-import static org.fusesource.jansi.Ansi.ansi;
 
 public final class Utils {
 
-    private static volatile boolean debug;
-
     private Utils() {
-    }
-
-    public static void setDebug(boolean debug) {
-        Utils.debug = debug;
-    }
-
-    public static void debug(String msg) {
-        if (debug) {
-            System.out.println(msg);
-        }
-    }
-
-    public static void debugGreen(String msg, Object... parameters) {
-        debugColor(Color.GREEN, msg, parameters);
-    }
-
-    public static void debugYellow(String msg, Object... parameters) {
-        debugColor(Color.YELLOW, msg, parameters);
-    }
-
-    public static void debugRed(String msg, Object... parameters) {
-        debugColor(Color.RED, msg, parameters);
-    }
-
-    private static void debugColor(Color color, String msg, Object... parameters) {
-        if (debug) {
-            printColor(color, msg, parameters);
-        }
-    }
-
-    public static void printGreen(String msg, Object... parameters) {
-        printColor(Color.GREEN, msg, parameters);
-    }
-
-    public static void printYellow(String msg, Object... parameters) {
-        printColor(Color.YELLOW, msg, parameters);
-    }
-
-    public static void printRed(String msg, Object... parameters) {
-        printColor(Color.RED, msg, parameters);
-    }
-
-    private static void printColor(Color color, String msg, Object... parameters) {
-        System.out.println(ansi().fg(color).a(format(msg, parameters)).reset().toString());
-    }
-
-    public static void debugCommandLine(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
-        if (debug) {
-            StringBuilder sb = new StringBuilder();
-            appendCommandLine(propertyReader, sb, commandLineOptions.getPullRequests(), true);
-            debug(sb.toString());
-        }
     }
 
     public static void appendCommandLine(PropertyReader props, StringBuilder sb, List<Integer> pullRequests, boolean plain) {
@@ -104,12 +49,26 @@ public final class Utils {
             sb.append("Command line: {{");
         }
         sb.append("qa-sonar");
-        if (debug) {
+        if (isDebug()) {
             sb.append(" --verbose");
         }
         if (props.getMinThresholdModified() > 0) {
             sb.append(" --minThresholdModified ").append(props.getMinThresholdModified());
         }
+        addPullRequests(sb, pullRequests, plain);
+        if (props.isGitHubRepositoryOverwritten()) {
+            sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
+        }
+        if (plain) {
+            if (props.getOutputFile() != null) {
+                sb.append(" --outputFile ").append(props.getOutputFile());
+            }
+        } else {
+            sb.append("}}\n");
+        }
+    }
+
+    private static void addPullRequests(StringBuilder sb, List<Integer> pullRequests, boolean plain) {
         sb.append(" --pullRequests ");
         String separator = "";
         int counter = 1;
@@ -122,16 +81,6 @@ public final class Utils {
             } else {
                 separator = ",";
             }
-        }
-        if (props.isGitHubRepositoryOverwritten()) {
-            sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
-        }
-        if (plain) {
-            if (props.getOutputFile() != null) {
-                sb.append(" --outputFile ").append(props.getOutputFile());
-            }
-        } else {
-            sb.append("}}\n");
         }
     }
 

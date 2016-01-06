@@ -1,9 +1,9 @@
 package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType;
+import com.hazelcast.qasonar.utils.DebugUtils;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.Utils;
 import com.hazelcast.qasonar.utils.WhiteList;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,12 +62,12 @@ public class CodeCoverageAnalyzerTest {
 
     @Before
     public void setUp() throws Exception {
-        Utils.setDebug(true);
-        Utils.debug("");
+        DebugUtils.setDebug(true);
+        DebugUtils.debug("");
 
-        files = new HashMap<String, FileContainer>();
-        expectedResults = new HashMap<String, Result>();
-        expectedCoverageTypes = new HashMap<String, CoverageType>();
+        files = new HashMap<>();
+        expectedResults = new HashMap<>();
+        expectedCoverageTypes = new HashMap<>();
 
         props = new PropertyReader("host", "username", "password");
         props.setMinCodeCoverage(87.5, false);

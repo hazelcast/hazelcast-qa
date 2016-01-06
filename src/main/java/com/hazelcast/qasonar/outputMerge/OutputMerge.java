@@ -27,9 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.hazelcast.qasonar.utils.Utils.printGreen;
-import static com.hazelcast.qasonar.utils.Utils.printRed;
-import static com.hazelcast.qasonar.utils.Utils.printYellow;
+import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
+import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
+import static com.hazelcast.qasonar.utils.DebugUtils.printYellow;
 import static com.hazelcast.qasonar.utils.Utils.writeToFile;
 import static java.lang.String.format;
 import static java.nio.file.Files.readAllLines;
@@ -79,6 +79,19 @@ public class OutputMerge {
         }
 
         System.out.println(format("Merging %d txt files...", matchedFilesNumber));
+        StringBuilder sb = mergeFiles(outputFile, matchedFiles);
+        if (sb == null) {
+            return;
+        }
+
+        System.out.println("Creating new output file...");
+        writeMergedFile(outputFile, sb);
+
+        printGreen("Done!\n");
+    }
+
+    private StringBuilder mergeFiles(String outputFile, Collection<Path> matchedFiles)
+            throws IOException {
         StringBuilder sb = new StringBuilder();
         for (Path file : matchedFiles) {
             String fileName = file.getFileName().toString().toLowerCase();
@@ -100,7 +113,7 @@ public class OutputMerge {
                 repository = Repository.MC;
             } else {
                 printRed("Filename must contain a project postfix: " + fileName);
-                return;
+                return null;
             }
 
             List<String> lines = readAllLines(file);
@@ -110,8 +123,10 @@ public class OutputMerge {
             content.put(repository, sb.toString());
             sb.setLength(0);
         }
+        return sb;
+    }
 
-        System.out.println("Creating new output file...");
+    private void writeMergedFile(String outputFile, StringBuilder sb) throws IOException {
         sb.append("{toc:type=list|style=disc|minLevel=1|maxLevel=7|indent=|class=|")
                 .append("outline=false|include=|exclude=|printable=true}\n\n");
         for (Repository repository : Repository.values()) {
@@ -124,7 +139,5 @@ public class OutputMerge {
             sb.append("\n");
         }
         writeToFile(outputFile + ".txt", sb);
-
-        printGreen("Done!\n");
     }
 }
