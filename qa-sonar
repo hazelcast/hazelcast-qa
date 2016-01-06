@@ -1,7 +1,6 @@
 #!/bin/bash
 
-cd target
-
+PROJECT_HOME=~/IdeaProjects/hazelcast-qa
 JAVA_OPTS="-server -Xms64m -Xmx1g ${JAVA_EXTRA_OPTS}"
 
-java ${JAVA_OPTS} -jar hazelcast-qa.jar "$@"
+java ${JAVA_OPTS} -jar ${PROJECT_HOME}/target/hazelcast-qa.jar "$@"
