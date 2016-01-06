@@ -20,7 +20,7 @@ import com.hazelcast.qasonar.utils.GitHubStatus;
 
 class FileContainer {
 
-    public enum CoverageType {
+    enum CoverageType {
         NONE,
         SONAR,
         IDEA

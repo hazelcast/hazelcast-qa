@@ -28,7 +28,7 @@ import static java.lang.String.format;
 
 public class ListProjects {
 
-    PropertyReader props;
+    private final PropertyReader props;
 
     public ListProjects(PropertyReader propertyReader) {
         this.props = propertyReader;

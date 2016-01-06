@@ -37,7 +37,7 @@ import static java.nio.file.Files.write;
 
 public class CsvMerge {
 
-    private final Map<String, Double> ideaCoverage = new HashMap<String, Double>();
+    private final Map<String, Double> ideaCoverage = new HashMap<>();
 
     public void run() throws IOException {
         FileFinder finder = new FileFinder("*.csv");

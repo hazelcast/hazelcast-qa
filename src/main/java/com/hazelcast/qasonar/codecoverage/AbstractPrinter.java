@@ -99,7 +99,7 @@ abstract class AbstractPrinter {
     private int appendFileContainer(StringBuilder sb) {
         boolean printFailsOnly = commandLineOptions.printFailsOnly();
         int qaCheckPassCount = 0;
-        SortedSet<String> keys = new TreeSet<String>(files.keySet());
+        SortedSet<String> keys = new TreeSet<>(files.keySet());
         for (String key : keys) {
             FileContainer fileContainer = files.get(key);
             if (fileContainer.qaCheck) {

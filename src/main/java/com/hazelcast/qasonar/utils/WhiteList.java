@@ -29,7 +29,7 @@ public class WhiteList {
         REGEX
     }
 
-    private final List<WhiteListEntry> whiteListEntries = new ArrayList<WhiteListEntry>();
+    private final List<WhiteListEntry> whiteListEntries = new ArrayList<>();
 
     public void addEntry(String type, String value, String justification, String comment) {
         whiteListEntries.add(new WhiteListEntry(type, value, justification, comment));

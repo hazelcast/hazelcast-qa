@@ -32,7 +32,7 @@ public class CommandLineOptions {
     private static final int HELP_WIDTH = 160;
     private static final int HELP_INDENTATION = 2;
 
-    private final List<Integer> pullRequests = new ArrayList<Integer>();
+    private final List<Integer> pullRequests = new ArrayList<>();
 
     private final OptionParser parser = new OptionParser();
 
@@ -205,9 +205,7 @@ public class CommandLineOptions {
             return;
         }
 
-        for (String pullRequestArrayString : Arrays.asList(pullRequestString.split("\\s*,\\s*"))) {
-            addPullRequest(pullRequestArrayString);
-        }
+        Arrays.asList(pullRequestString.split("\\s*,\\s*")).forEach(this::addPullRequest);
         if (pullRequests.size() == 0) {
             throw new IllegalArgumentException("No pull requests specified");
         }

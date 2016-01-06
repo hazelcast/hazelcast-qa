@@ -32,7 +32,7 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 public class FileFinder extends SimpleFileVisitor<Path> {
 
     private final PathMatcher matcher;
-    private List<Path> matchedPaths = new ArrayList<Path>();
+    private List<Path> matchedPaths = new ArrayList<>();
 
     public FileFinder(String pattern) {
         this(pattern, false);
@@ -40,14 +40,6 @@ public class FileFinder extends SimpleFileVisitor<Path> {
 
     public FileFinder(String pattern, boolean useRegex) {
         matcher = FileSystems.getDefault().getPathMatcher((useRegex ? "regex:" : "glob:") + pattern);
-    }
-
-    // compares the glob pattern against the file or directory name
-    void match(Path file) {
-        Path name = file.getFileName();
-        if (name != null && matcher.matches(name)) {
-            matchedPaths.add(file);
-        }
     }
 
     // invoke the pattern matching method on each file
@@ -72,5 +64,13 @@ public class FileFinder extends SimpleFileVisitor<Path> {
 
     public Collection<Path> getMatchedPaths() {
         return matchedPaths;
+    }
+
+    // compares the glob pattern against the file or directory name
+    private void match(Path file) {
+        Path name = file.getFileName();
+        if (name != null && matcher.matches(name)) {
+            matchedPaths.add(file);
+        }
     }
 }

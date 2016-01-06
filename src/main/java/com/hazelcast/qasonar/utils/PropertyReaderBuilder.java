@@ -84,8 +84,6 @@ public final class PropertyReaderBuilder {
             return;
         }
 
-        for (String projectResourceId : asList(projectResourceIdString.split("\\s*,\\s*"))) {
-            propertyReader.addProjectResourceId(projectResourceId);
-        }
+        asList(projectResourceIdString.split("\\s*,\\s*")).forEach(propertyReader::addProjectResourceId);
     }
 }

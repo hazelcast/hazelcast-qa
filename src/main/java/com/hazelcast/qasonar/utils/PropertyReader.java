@@ -23,8 +23,8 @@ import java.util.Map;
 
 public class PropertyReader {
 
-    private final List<String> projectResourceIds = new ArrayList<String>();
-    private final Map<GitHubStatus, Double> minCodeCoverage = new HashMap<GitHubStatus, Double>();
+    private final List<String> projectResourceIds = new ArrayList<>();
+    private final Map<GitHubStatus, Double> minCodeCoverage = new HashMap<>();
     private int minThresholdModified;
 
     private final String host;

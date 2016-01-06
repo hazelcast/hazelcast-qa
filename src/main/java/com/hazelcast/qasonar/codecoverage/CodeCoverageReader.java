@@ -45,9 +45,9 @@ public class CodeCoverageReader {
 
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
 
-    private final Map<String, Map<String, String>> resources = new HashMap<String, Map<String, String>>();
-    private final Map<String, Double> ideaCoverage = new HashMap<String, Double>();
-    private final Map<String, FileContainer> files = new HashMap<String, FileContainer>();
+    private final Map<String, Map<String, String>> resources = new HashMap<>();
+    private final Map<String, Double> ideaCoverage = new HashMap<>();
+    private final Map<String, FileContainer> files = new HashMap<>();
 
     private final PropertyReader props;
     private final GHRepository repo;

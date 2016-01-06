@@ -21,7 +21,7 @@ public class WhiteListResult {
     private final String justification;
     private final String comment;
 
-    public WhiteListResult(String justification, String comment) {
+    WhiteListResult(String justification, String comment) {
         this.justification = justification;
         this.comment = comment;
     }
