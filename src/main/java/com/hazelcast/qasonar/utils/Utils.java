@@ -32,12 +32,16 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
 import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
 
 public final class Utils {
+
+    private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 3;
+    private static final int GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS = 500;
 
     private Utils() {
     }
@@ -183,12 +187,21 @@ public final class Utils {
     }
 
     public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
-        GHContent fileContent = repo.getFileContent(fileName);
+        IOException exception = null;
+        for (int i = 0; i < GITHUB_FILE_DOWNLOAD_RETRIES; i++) {
+            try {
+                GHContent fileContent = repo.getFileContent(fileName);
 
-        StringWriter writer = new StringWriter();
-        copy(fileContent.read(), writer);
+                StringWriter writer = new StringWriter();
+                copy(fileContent.read(), writer);
 
-        return writer.toString();
+                return writer.toString();
+            } catch (IOException e) {
+                exception = e;
+            }
+            sleepMillis(GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS);
+        }
+        throw exception;
     }
 
     public static JsonArray getJsonElementsFromQuery(String username, String password, String query) throws IOException {
@@ -223,5 +236,13 @@ public final class Utils {
         writer.write(content.toString());
         writer.flush();
         writer.close();
+    }
+
+    public static void sleepMillis(int millis) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(millis);
+        } catch (InterruptedException ignore) {
+            EmptyStatement.ignore(ignore);
+        }
     }
 }
