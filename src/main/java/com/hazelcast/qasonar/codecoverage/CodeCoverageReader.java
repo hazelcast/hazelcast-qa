@@ -223,7 +223,16 @@ public class CodeCoverageReader {
             return 0;
         }
 
-        String fullyQualifiedClassName = fileName.substring(fileName.indexOf("com/hazelcast")).replace('/', '.');
+        int beginIndex = fileName.indexOf("com/hazelcast");
+        if (beginIndex == -1) {
+            beginIndex = fileName.indexOf("com.hazelcast");
+            System.err.println("Filename doesn't contain com/hazelcast: " + fileName);
+        }
+        if (beginIndex == -1) {
+            System.err.println("Could not parse fully qualified class name: " + fileName);
+            return 0;
+        }
+        String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
 
         Double coverage = ideaCoverage.get(fullyQualifiedClassName);
         return (coverage == null) ? 0 : coverage;
