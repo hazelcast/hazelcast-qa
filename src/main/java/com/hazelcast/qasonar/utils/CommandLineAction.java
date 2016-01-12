@@ -23,5 +23,6 @@ public enum CommandLineAction {
     CSV_MERGE,
     OUTPUT_MERGE,
     LIST_PROJECTS,
+    LIST_PULL_REQUESTS,
     PULL_REQUESTS
 }

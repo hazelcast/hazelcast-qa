@@ -23,6 +23,7 @@ import com.hazelcast.qasonar.codecoverage.JsonDownloader;
 import com.hazelcast.qasonar.csvmerge.CsvMerge;
 import com.hazelcast.qasonar.ideaconverter.IdeaConverter;
 import com.hazelcast.qasonar.listprojects.ListProjects;
+import com.hazelcast.qasonar.listpullrequests.ListPullRequests;
 import com.hazelcast.qasonar.outputMerge.OutputMerge;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
@@ -73,6 +74,11 @@ public final class QaSonar {
             case LIST_PROJECTS:
                 ListProjects listProjects = new ListProjects(propertyReader);
                 listProjects.run();
+                break;
+
+            case LIST_PULL_REQUESTS:
+                ListPullRequests listPullRequests = new ListPullRequests(propertyReader);
+                listPullRequests.run();
                 break;
 
             case PULL_REQUESTS:

@@ -38,6 +38,8 @@ public class PropertyReader {
 
     private String outputFile;
 
+    private String milestone;
+
     public PropertyReader(String host, String username, String password) {
         this.host = host;
         this.username = username;
@@ -118,5 +120,13 @@ public class PropertyReader {
 
     public void setOutputFile(String outputFile) {
         this.outputFile = outputFile;
+    }
+
+    public String getMilestone() {
+        return milestone;
+    }
+
+    public void setMilestone(String milestone) {
+        this.milestone = milestone;
     }
 }

@@ -48,6 +48,10 @@ public class CommandLineOptions {
     private final OptionSpec listProjectsSpec = parser.accepts("listProjects",
             "Lists projects of specified SonarQube instance.");
 
+    private final OptionSpec<String> listPullRequestsSpec = parser.accepts("listPullRequests",
+            "Lists pull requests of specified GitHub milestone.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec<String> pullRequestsSpec = parser.accepts("pullRequests",
             "Specifies the pull requests whose code coverage should be printed.\n"
                     + "Can either be a single value or a comma separated list.")
@@ -126,6 +130,7 @@ public class CommandLineOptions {
         return parser.parse(args);
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private CommandLineAction initCommandLineAction() {
         setGitHubRepository();
         setDefaultModule();
@@ -150,9 +155,13 @@ public class CommandLineOptions {
             return CommandLineAction.LIST_PROJECTS;
         }
 
+        if (options.has(listPullRequestsSpec)) {
+            addMileStone();
+            return CommandLineAction.LIST_PULL_REQUESTS;
+        }
+
         if (options.has(pullRequestsSpec)) {
             addPullRequests();
-
             return CommandLineAction.PULL_REQUESTS;
         }
 
@@ -196,6 +205,10 @@ public class CommandLineOptions {
         if (options.has(outputFileSpec)) {
             propertyReader.setOutputFile(options.valueOf(outputFileSpec));
         }
+    }
+
+    private void addMileStone() {
+        propertyReader.setMilestone(options.valueOf(listPullRequestsSpec));
     }
 
     private void addPullRequests() {
