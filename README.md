@@ -16,7 +16,7 @@ login = username
 password = password
 ```
 
-## ~./hazelcast-qa
+## ~/.hazelcast-qa
 
 In this configuration file you have to put in your SonarQube credentials as well as additional configuration parameters.
 
