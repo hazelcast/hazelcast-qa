@@ -76,11 +76,12 @@ public final class Utils {
         sb.append(" --pullRequests ");
         String separator = "";
         int counter = 1;
-        int limit = 24;
+        int limit = 15;
         for (Integer pullRequest : pullRequests) {
             sb.append(separator).append(pullRequest);
             if (counter++ % limit == 0) {
                 separator = (plain ? ",\n" : ",}}\n{{");
+                counter = 1;
                 limit = 30;
             } else {
                 separator = ",";
@@ -242,7 +243,7 @@ public final class Utils {
         try {
             TimeUnit.MILLISECONDS.sleep(millis);
         } catch (InterruptedException ignore) {
-            EmptyStatement.ignore(ignore);
+            Thread.currentThread().interrupt();
         }
     }
 }
