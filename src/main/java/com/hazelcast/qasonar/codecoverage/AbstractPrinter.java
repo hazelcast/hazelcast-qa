@@ -51,11 +51,13 @@ abstract class AbstractPrinter {
     private double addedCoverageMax;
     private double addedCoverageSum;
     private int addedCoverageFileCount;
+    private int addedCoveragePassedFileCount;
 
     private double modifiedCoverageMin;
     private double modifiedCoverageMax;
     private double modifiedCoverageSum;
     private int modifiedCoverageFileCount;
+    private int modifiedCoveragePassedFileCount;
 
     AbstractPrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions commandLineOptions,
                     String spacer, String separator, boolean isPlainOutput) {
@@ -144,6 +146,9 @@ abstract class AbstractPrinter {
             }
             addedCoverageSum += fileCoverage;
             addedCoverageFileCount++;
+            if (fileContainer.qaCheck) {
+                addedCoveragePassedFileCount++;
+            }
         } else {
             if (fileCoverage < modifiedCoverageMin) {
                 modifiedCoverageMin = fileCoverage;
@@ -153,6 +158,9 @@ abstract class AbstractPrinter {
             }
             modifiedCoverageSum += fileCoverage;
             modifiedCoverageFileCount++;
+            if (fileContainer.qaCheck) {
+                modifiedCoveragePassedFileCount++;
+            }
         }
     }
 
@@ -171,13 +179,14 @@ abstract class AbstractPrinter {
 
         if (addedCoverageFileCount > 0) {
             double addedCoverage = addedCoverageSum / addedCoverageFileCount;
-            summary.append(format("%nCoverage on added files: %.1f%% avg, %.1f%% min, %.1f%% max (%d files)",
-                    addedCoverage, addedCoverageMin, addedCoverageMax, addedCoverageFileCount));
+            summary.append(format("%nCoverage on added files: %.1f%% avg, %.1f%% min, %.1f%% max (%d/%d files)",
+                    addedCoverage, addedCoverageMin, addedCoverageMax, addedCoveragePassedFileCount, addedCoverageFileCount));
         }
         if (modifiedCoverageFileCount > 0) {
             double modifiedCoverage = modifiedCoverageSum / modifiedCoverageFileCount;
-            summary.append(format("%nCoverage on modified files: %.1f%% avg, %.1f%% min, %.1f%% max (%d files)",
-                    modifiedCoverage, modifiedCoverageMin, modifiedCoverageMax, modifiedCoverageFileCount));
+            summary.append(format("%nCoverage on modified files: %.1f%% avg, %.1f%% min, %.1f%% max (%d/%d files)",
+                    modifiedCoverage, modifiedCoverageMin, modifiedCoverageMax, modifiedCoveragePassedFileCount,
+                    modifiedCoverageFileCount));
         }
 
         debug(summary.toString());
