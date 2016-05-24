@@ -35,6 +35,7 @@ public class PropertyReader {
     private boolean gitHubRepositoryOverwritten;
 
     private String defaultModule;
+    private boolean throwExceptionOnMissingModule;
 
     private String outputFile;
 
@@ -91,6 +92,14 @@ public class PropertyReader {
 
     public boolean isDefaultModuleSet() {
         return (defaultModule != null);
+    }
+
+    public boolean throwExceptionOnMissingModule() {
+        return throwExceptionOnMissingModule;
+    }
+
+    public void setThrowExceptionOnMissingModule(boolean throwExceptionOnMissingModule) {
+        this.throwExceptionOnMissingModule = throwExceptionOnMissingModule;
     }
 
     public double getMinCodeCoverage(GitHubStatus gitHubStatus) {

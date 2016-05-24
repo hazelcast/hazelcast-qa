@@ -36,6 +36,7 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static java.lang.String.format;
 import static java.nio.file.Files.exists;
@@ -88,7 +89,7 @@ public class CodeCoverageReader {
                 mapKey = mapKey.substring(mapKey.indexOf("src/"));
 
                 if (!resources.containsKey(module)) {
-                    resources.put(module, new HashMap<String, String>());
+                    resources.put(module, new HashMap<>());
                 }
                 resources.get(module).put(mapKey, resource.get("id").getAsString());
             }
@@ -173,7 +174,12 @@ public class CodeCoverageReader {
     private String getFileNameWithDefaultModule(String fileName) {
         if (fileName.startsWith("src/") && fileName.endsWith(".java")) {
             if (!props.isDefaultModuleSet()) {
-                throw new IllegalArgumentException("Could not find module for " + fileName + " and default module is not set!");
+                String message = "Could not find module for " + fileName + " and default module is not set!";
+                if (props.throwExceptionOnMissingModule()) {
+                    throw new IllegalArgumentException(message);
+                } else {
+                    printRed(message);
+                }
             }
             return props.getDefaultModule() + "/" + fileName;
         }
@@ -226,10 +232,10 @@ public class CodeCoverageReader {
         int beginIndex = fileName.indexOf("com/hazelcast");
         if (beginIndex == -1) {
             beginIndex = fileName.indexOf("com.hazelcast");
-            System.err.println("Filename doesn't contain com/hazelcast: " + fileName);
+            printRed("Filename doesn't contain com/hazelcast: " + fileName);
         }
         if (beginIndex == -1) {
-            System.err.println("Could not parse fully qualified class name: " + fileName);
+            printRed("Could not parse fully qualified class name: " + fileName);
             return 0;
         }
         String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
