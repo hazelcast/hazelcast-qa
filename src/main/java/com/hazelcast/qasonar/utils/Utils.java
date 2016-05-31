@@ -46,6 +46,7 @@ public final class Utils {
     private Utils() {
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     public static void appendCommandLine(PropertyReader props, StringBuilder sb, List<Integer> pullRequests, boolean plain) {
         if (plain) {
             sb.append("Executing: ");
@@ -62,6 +63,10 @@ public final class Utils {
         addPullRequests(sb, pullRequests, plain);
         if (props.isGitHubRepositoryOverwritten()) {
             sb.append(" --gitHubRepository ").append(props.getGitHubRepository());
+        }
+        String defaultModule = props.getDefaultModule();
+        if (defaultModule != null && !defaultModule.isEmpty()) {
+            sb.append(" --defaultModule ").append(defaultModule);
         }
         if (plain) {
             if (props.getOutputFile() != null) {
