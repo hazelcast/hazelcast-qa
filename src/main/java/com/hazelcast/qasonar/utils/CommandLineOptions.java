@@ -85,6 +85,10 @@ public class CommandLineOptions {
             "Specifies a file for the output.")
             .withRequiredArg().ofType(String.class);
 
+    private final OptionSpec<String> optionalParametersSpec = parser.accepts("optionalParameters",
+            "Specifies optional command line parameters which are added to the result output.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec printFailsOnlySpec = parser.accepts("printFailsOnly",
             "Prints failed files only.");
 
@@ -111,6 +115,10 @@ public class CommandLineOptions {
     public void printHelp() throws IOException {
         parser.formatHelpWith(new BuiltinHelpFormatter(HELP_WIDTH, HELP_INDENTATION));
         parser.printHelpOn(System.out);
+    }
+
+    public String getOptionalParameters() {
+        return options.valueOf(optionalParametersSpec);
     }
 
     public boolean printFailsOnly() {

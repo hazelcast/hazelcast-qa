@@ -16,9 +16,9 @@
 
 package com.hazelcast.qasonar.listpullrequests;
 
+import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import org.kohsuke.github.GHIssue;
-import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
@@ -33,29 +33,35 @@ import java.util.stream.Collectors;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
 import static java.lang.String.format;
+import static org.kohsuke.github.GHIssueState.CLOSED;
+import static org.kohsuke.github.GHIssueState.OPEN;
 
 public class ListPullRequests {
 
     private final Calendar calendar = Calendar.getInstance();
 
-    private final PropertyReader propertyReader;
+    private final String gitHubRepository;
     private final String milestoneTitle;
+    private final String outputFile;
+    private final String optionalParameters;
 
-    public ListPullRequests(PropertyReader propertyReader) {
-        this.propertyReader = propertyReader;
+    public ListPullRequests(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
+        this.gitHubRepository = propertyReader.getGitHubRepository();
         this.milestoneTitle = propertyReader.getMilestone();
+        this.outputFile = getOutputFile(propertyReader.getOutputFile(), milestoneTitle);
+        this.optionalParameters = getOptionalParameters(commandLineOptions.getOptionalParameters());
     }
 
     public void run() throws IOException {
         System.out.println("Connecting to GitHub...");
         GitHub github = GitHub.connect();
-        GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
+        GHRepository repo = github.getRepository(gitHubRepository);
 
         System.out.println("Searching milestone...");
         GHMilestone milestone = getMilestone(milestoneTitle, repo);
 
         System.out.println("Searching merged pull requests for milestone...");
-        List<Integer> pullRequests = getPullRequests(repo, milestone);
+        List<Integer> pullRequests = getPullRequests(repo, milestone, calendar);
 
         System.out.println("Sorting result...");
         pullRequests.sort(Integer::compareTo);
@@ -65,17 +71,31 @@ public class ListPullRequests {
 
         System.out.println("Done!");
         System.out.println();
-        System.out.println(format("qa-sonar --verbose --printFailsOnly --pullRequests %s --outputFile %s-failures.txt",
-                pullRequestString, milestoneTitle));
+        System.out.println(format("qa-sonar %s--pullRequests %s --outputFile %s",
+                optionalParameters, pullRequestString, outputFile));
     }
 
-    private GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
-        for (GHMilestone milestoneEntry : repo.listMilestones(GHIssueState.OPEN)) {
+    private static String getOptionalParameters(String optionalParameters) {
+        if (optionalParameters == null || optionalParameters.isEmpty()) {
+            return "";
+        }
+        return optionalParameters + " ";
+    }
+
+    private static String getOutputFile(String outputFile, String milestoneTitle) {
+        if (outputFile == null || outputFile.isEmpty()) {
+            return milestoneTitle + "-failures.txt";
+        }
+        return outputFile;
+    }
+
+    private static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
+        for (GHMilestone milestoneEntry : repo.listMilestones(OPEN)) {
             if (milestoneTitle.equals(milestoneEntry.getTitle())) {
                 return milestoneEntry;
             }
         }
-        for (GHMilestone milestoneEntry : repo.listMilestones(GHIssueState.CLOSED)) {
+        for (GHMilestone milestoneEntry : repo.listMilestones(CLOSED)) {
             if (milestoneTitle.equals(milestoneEntry.getTitle())) {
                 return milestoneEntry;
             }
@@ -83,10 +103,10 @@ public class ListPullRequests {
         throw new IllegalStateException(format("Could not find milestone %s", milestoneTitle));
     }
 
-    private List<Integer> getPullRequests(GHRepository repo, GHMilestone milestone) throws IOException {
+    private static List<Integer> getPullRequests(GHRepository repo, GHMilestone milestone, Calendar calendar) throws IOException {
         List<Integer> pullRequests = new ArrayList<>();
         int milestoneId = milestone.getId();
-        for (GHIssue issue : repo.listIssues(GHIssueState.CLOSED)) {
+        for (GHIssue issue : repo.listIssues(CLOSED)) {
             if (!isMergedPullRequestOfMilestone(issue, milestoneId, repo)) {
                 continue;
             }

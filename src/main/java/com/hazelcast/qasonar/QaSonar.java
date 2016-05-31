@@ -77,7 +77,7 @@ public final class QaSonar {
                 break;
 
             case LIST_PULL_REQUESTS:
-                ListPullRequests listPullRequests = new ListPullRequests(propertyReader);
+                ListPullRequests listPullRequests = new ListPullRequests(propertyReader, cliOptions);
                 listPullRequests.run();
                 break;
 
