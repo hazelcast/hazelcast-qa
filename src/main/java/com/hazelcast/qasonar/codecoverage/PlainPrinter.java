@@ -48,6 +48,7 @@ class PlainPrinter extends AbstractPrinter {
         sb.append(tableSeparator);
     }
 
+    @SuppressWarnings("checkstyle:magicnumber")
     private String createTableSeparator() {
         return "|-" + fillString(5, '-')
                 + "-|-" + fillString(4, '-')

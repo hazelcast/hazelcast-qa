@@ -72,6 +72,7 @@ public final class Utils {
         }
     }
 
+    @SuppressWarnings("checkstyle:magicnumber")
     private static void addPullRequests(StringBuilder sb, List<Integer> pullRequests, boolean plain) {
         sb.append(" --pullRequests ");
         String separator = "";

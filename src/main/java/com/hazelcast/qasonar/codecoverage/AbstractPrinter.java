@@ -32,6 +32,7 @@ import static com.hazelcast.qasonar.utils.Utils.formatGitHubStatus;
 import static com.hazelcast.qasonar.utils.Utils.formatNullable;
 import static com.hazelcast.qasonar.utils.Utils.formatPullRequestLinks;
 import static com.hazelcast.qasonar.utils.Utils.formatSonarQubeLink;
+import static java.lang.Double.compare;
 import static java.lang.String.format;
 
 abstract class AbstractPrinter {
@@ -173,7 +174,7 @@ abstract class AbstractPrinter {
                 .append(" files passed QA Check with minimum code coverage of ").append(minCodeCoverage).append("%");
 
         double minCodeCoverageModified = props.getMinCodeCoverage(GitHubStatus.MODIFIED);
-        if (Math.abs(minCodeCoverage - minCodeCoverageModified) > 0.01) {
+        if (compare(minCodeCoverage, minCodeCoverageModified) != 0) {
             summary.append(" (").append(minCodeCoverageModified).append("% for modified files)");
         }
 
