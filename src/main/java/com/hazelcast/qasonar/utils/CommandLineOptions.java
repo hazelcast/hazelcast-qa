@@ -142,7 +142,6 @@ public class CommandLineOptions {
         return parser.parse(args);
     }
 
-    @SuppressWarnings("checkstyle:npathcomplexity")
     private CommandLineAction initCommandLineAction() {
         setGitHubRepository();
         setDefaultModule();
@@ -152,33 +151,7 @@ public class CommandLineOptions {
         setMinThresholdModified();
         setOutputFile();
 
-        if (options.has(ideaConverterSpec)) {
-            return CommandLineAction.IDEA_CONVERTER;
-        }
-
-        if (options.has(csvMergeSpec)) {
-            return CommandLineAction.CSV_MERGE;
-        }
-
-        if (options.has(outputMergeSpec)) {
-            return CommandLineAction.OUTPUT_MERGE;
-        }
-
-        if (options.has(listProjectsSpec)) {
-            return CommandLineAction.LIST_PROJECTS;
-        }
-
-        if (options.has(listPullRequestsSpec)) {
-            addMileStone();
-            return CommandLineAction.LIST_PULL_REQUESTS;
-        }
-
-        if (options.has(pullRequestsSpec)) {
-            addPullRequests();
-            return CommandLineAction.PULL_REQUESTS;
-        }
-
-        return CommandLineAction.PRINT_HELP;
+        return getCommandLineAction();
     }
 
     private void setGitHubRepository() {
@@ -222,6 +195,37 @@ public class CommandLineOptions {
         if (options.has(outputFileSpec)) {
             propertyReader.setOutputFile(options.valueOf(outputFileSpec));
         }
+    }
+
+    @SuppressWarnings("checkstyle:npathcomplexity")
+    private CommandLineAction getCommandLineAction() {
+        if (options.has(ideaConverterSpec)) {
+            return CommandLineAction.IDEA_CONVERTER;
+        }
+
+        if (options.has(csvMergeSpec)) {
+            return CommandLineAction.CSV_MERGE;
+        }
+
+        if (options.has(outputMergeSpec)) {
+            return CommandLineAction.OUTPUT_MERGE;
+        }
+
+        if (options.has(listProjectsSpec)) {
+            return CommandLineAction.LIST_PROJECTS;
+        }
+
+        if (options.has(listPullRequestsSpec)) {
+            addMileStone();
+            return CommandLineAction.LIST_PULL_REQUESTS;
+        }
+
+        if (options.has(pullRequestsSpec)) {
+            addPullRequests();
+            return CommandLineAction.PULL_REQUESTS;
+        }
+
+        return CommandLineAction.PRINT_HELP;
     }
 
     private void addMileStone() {
