@@ -75,29 +75,29 @@ public class ListPullRequests {
 
         System.out.println("Done!");
         System.out.println();
-        System.out.println(format("qa-sonar %s--pullRequests %s%s%s --outputFile %s",
-                optionalParameters, pullRequestString, outputGithubRepository, outputDefaultModule, outputFile));
+        System.out.println(format("qa-sonar%s%s%s --pullRequests %s --outputFile %s",
+                optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile));
     }
 
     private static String getOptionalParameters(String optionalParameters) {
         if (optionalParameters == null || optionalParameters.isEmpty()) {
             return "";
         }
-        return optionalParameters + " ";
+        return " " + optionalParameters;
     }
 
     private static String getGithubRepository(boolean isGitHubRepositoryOverwritten, String gitHubRepository) {
         if (!isGitHubRepositoryOverwritten) {
             return "";
         }
-        return " --gitHubRepository " + gitHubRepository + " ";
+        return " --gitHubRepository " + gitHubRepository;
     }
 
     private static String getDefaultModule(String defaultModule) {
         if (defaultModule == null || defaultModule.isEmpty()) {
             return "";
         }
-        return "--defaultModule " + defaultModule + " ";
+        return " --defaultModule " + defaultModule;
     }
 
     private static String getOutputFile(String outputFile, String milestoneTitle) {
