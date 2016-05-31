@@ -21,10 +21,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import static java.lang.Double.valueOf;
 import static java.util.Arrays.asList;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public final class PropertyReaderBuilder {
+
+    private static final double DEFAULT_MIN_CODE_COVERAGE = 87.5;
 
     private PropertyReaderBuilder() {
     }
@@ -59,12 +62,13 @@ public final class PropertyReaderBuilder {
 
             propertyReader.setGitHubRepository(getProperty(props, "gitHubRepository"));
 
-            double minCodeCoverage = Double.valueOf(getProperty(props, "minCodeCoverage"));
+            String minCodeCoverageString = getProperty(props, "minCodeCoverage");
+            double minCodeCoverage = (minCodeCoverageString == null) ? DEFAULT_MIN_CODE_COVERAGE : valueOf(minCodeCoverageString);
             propertyReader.setMinCodeCoverage(minCodeCoverage, false);
 
-            if (props.getProperty("minCodeCoverageModified") != null) {
-                minCodeCoverage = Double.valueOf(getProperty(props, "minCodeCoverageModified"));
-                propertyReader.setMinCodeCoverage(minCodeCoverage, true);
+            String minCodeCoverageModifiedString = props.getProperty("minCodeCoverageModified");
+            if (minCodeCoverageModifiedString != null) {
+                propertyReader.setMinCodeCoverage(valueOf(minCodeCoverageModifiedString), true);
             }
 
             return propertyReader;
