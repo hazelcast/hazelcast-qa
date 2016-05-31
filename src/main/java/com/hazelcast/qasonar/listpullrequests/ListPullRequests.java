@@ -42,14 +42,18 @@ public class ListPullRequests {
 
     private final String gitHubRepository;
     private final String milestoneTitle;
-    private final String outputFile;
     private final String optionalParameters;
+    private final String outputGithubRepository;
+    private final String outputDefaultModule;
+    private final String outputFile;
 
     public ListPullRequests(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         this.gitHubRepository = propertyReader.getGitHubRepository();
         this.milestoneTitle = propertyReader.getMilestone();
-        this.outputFile = getOutputFile(propertyReader.getOutputFile(), milestoneTitle);
         this.optionalParameters = getOptionalParameters(commandLineOptions.getOptionalParameters());
+        this.outputGithubRepository = getGithubRepository(propertyReader.isGitHubRepositoryOverwritten(), gitHubRepository);
+        this.outputDefaultModule = getDefaultModule(propertyReader.getDefaultModule());
+        this.outputFile = getOutputFile(propertyReader.getOutputFile(), milestoneTitle);
     }
 
     public void run() throws IOException {
@@ -71,8 +75,8 @@ public class ListPullRequests {
 
         System.out.println("Done!");
         System.out.println();
-        System.out.println(format("qa-sonar %s--pullRequests %s --outputFile %s",
-                optionalParameters, pullRequestString, outputFile));
+        System.out.println(format("qa-sonar %s--pullRequests %s%s%s --outputFile %s",
+                optionalParameters, pullRequestString, outputGithubRepository, outputDefaultModule, outputFile));
     }
 
     private static String getOptionalParameters(String optionalParameters) {
@@ -80,6 +84,20 @@ public class ListPullRequests {
             return "";
         }
         return optionalParameters + " ";
+    }
+
+    private static String getGithubRepository(boolean isGitHubRepositoryOverwritten, String gitHubRepository) {
+        if (!isGitHubRepositoryOverwritten) {
+            return "";
+        }
+        return " --gitHubRepository " + gitHubRepository + " ";
+    }
+
+    private static String getDefaultModule(String defaultModule) {
+        if (defaultModule == null || defaultModule.isEmpty()) {
+            return "";
+        }
+        return "--defaultModule " + defaultModule + " ";
     }
 
     private static String getOutputFile(String outputFile, String milestoneTitle) {
