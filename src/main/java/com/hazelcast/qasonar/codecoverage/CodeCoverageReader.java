@@ -230,12 +230,19 @@ public class CodeCoverageReader {
         }
 
         int beginIndex = fileName.indexOf("com/hazelcast");
-        if (beginIndex == -1) {
-            beginIndex = fileName.indexOf("com.hazelcast");
-            printRed("Filename doesn't contain com/hazelcast: " + fileName);
+        if (beginIndex == -1 && props.isDefaultModuleSet()) {
+            beginIndex = fileName.indexOf(props.getDefaultModule());
         }
         if (beginIndex == -1) {
-            printRed("Could not parse fully qualified class name: " + fileName);
+            beginIndex = fileName.indexOf("com.hazelcast");
+            if (props.isDefaultModuleSet()) {
+                printRed("Filename doesn't contain com/hazelcast or %s: %s", props.getDefaultModule(), fileName);
+            } else {
+                printRed("Filename doesn't contain com/hazelcast: %s", fileName);
+            }
+        }
+        if (beginIndex == -1) {
+            printRed("Could not parse fully qualified class name: %s", fileName);
             return 0;
         }
         String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
