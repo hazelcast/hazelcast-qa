@@ -134,8 +134,8 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass("deleted in newer PR");
             return;
         } catch (Exception e) {
-            e.printStackTrace();
             fileContainer.fail("Could not get contents for file " + gitFileName + ":" + e.getCause());
+            debugRed("Failed with file content not retrievable %s: %s", gitFileName, e.getCause());
             return;
         }
 
