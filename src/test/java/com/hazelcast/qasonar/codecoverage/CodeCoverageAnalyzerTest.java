@@ -154,12 +154,14 @@ public class CodeCoverageAnalyzerTest {
         assertQACheckOfAllFiles();
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testRun_shouldThrowIfFileCouldNotBeRetrieved() throws Exception {
         addFile(FAIL, NONE, "CouldNotRetrieveFileContent.java", ADDED);
         throwExceptionForGitHubFile("CouldNotRetrieveFileContent.java", new IOException("Expected connection failure!"));
 
         analyzer.run();
+
+        assertQACheckOfAllFiles();
     }
 
     @Test

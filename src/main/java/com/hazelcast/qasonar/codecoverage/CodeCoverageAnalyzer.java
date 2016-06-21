@@ -134,7 +134,9 @@ public class CodeCoverageAnalyzer {
             fileContainer.pass("deleted in newer PR");
             return;
         } catch (Exception e) {
-            throw new IOException("Could not get contents for file " + gitFileName, e.getCause());
+            e.printStackTrace();
+            fileContainer.fail("Could not get contents for file " + gitFileName + ":" + e.getCause());
+            return;
         }
 
         String baseName = getBaseName(gitFileName);

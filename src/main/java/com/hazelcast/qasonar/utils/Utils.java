@@ -40,8 +40,8 @@ import static org.apache.commons.io.IOUtils.copy;
 
 public final class Utils {
 
-    private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 3;
-    private static final int GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS = 500;
+    private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
+    private static final int GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS = 200;
 
     private Utils() {
     }
@@ -206,7 +206,7 @@ public final class Utils {
             } catch (IOException e) {
                 exception = e;
             }
-            sleepMillis(GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS);
+            sleepMillis(GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS * (i + 1));
         }
         throw exception;
     }
