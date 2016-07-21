@@ -40,7 +40,8 @@ public class OutputMerge {
     private enum Repository {
         OS("Open Source"),
         EE("Enterprise"),
-        MC("MC");
+        MC("MC"),
+        JCLOUDS("jclouds");
 
         String description;
 
@@ -65,7 +66,7 @@ public class OutputMerge {
     public void run() throws IOException {
         String outputFile = propertyReader.getOutputFile();
 
-        FileFinder finder = new FileFinder(outputFile + "-(opensource|os|enterprise|ee|mancenter|mc).txt", true);
+        FileFinder finder = new FileFinder(outputFile + "-(opensource|os|enterprise|ee|mancenter|mc|jclouds).txt", true);
         walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
         Collection<Path> matchedFiles = finder.getMatchedPaths();
@@ -111,6 +112,8 @@ public class OutputMerge {
                 repository = Repository.EE;
             } else if (baseName.endsWith("-mancenter") | baseName.endsWith("-mc")) {
                 repository = Repository.MC;
+            } else if (baseName.endsWith("-jclouds")) {
+                repository = Repository.JCLOUDS;
             } else {
                 printRed("Filename must contain a project postfix: " + fileName);
                 return null;
