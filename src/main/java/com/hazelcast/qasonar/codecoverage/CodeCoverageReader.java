@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.Repository;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -37,6 +38,7 @@ import java.util.Map;
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
+import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static java.lang.String.format;
 import static java.nio.file.Files.exists;
@@ -52,11 +54,13 @@ public class CodeCoverageReader {
 
     private final PropertyReader props;
     private final GHRepository repo;
+    private final Repository repository;
     private final JsonDownloader jsonDownloader;
 
     public CodeCoverageReader(PropertyReader propertyReader, GHRepository repo, JsonDownloader jsonDownloader) {
         this.props = propertyReader;
         this.repo = repo;
+        this.repository = fromRepositoryName(repo.getName());
         this.jsonDownloader = jsonDownloader;
     }
 
@@ -173,15 +177,18 @@ public class CodeCoverageReader {
 
     private String getFileNameWithDefaultModule(String fileName) {
         if (fileName.startsWith("src/") && fileName.endsWith(".java")) {
-            if (!props.isDefaultModuleSet()) {
-                String message = "Could not find module for " + fileName + " and default module is not set!";
-                if (props.throwExceptionOnMissingModule()) {
-                    throw new IllegalArgumentException(message);
-                } else {
-                    printRed(message);
-                }
+            if (props.isDefaultModuleSet()) {
+                return props.getDefaultModule() + "/" + fileName;
             }
-            return props.getDefaultModule() + "/" + fileName;
+            if (repository.hasDefaultModule()) {
+                return repository.getDefaultModule() + "/" + fileName;
+            }
+            String message = "Could not find module for " + fileName + " and default module is not set!";
+            if (props.throwExceptionOnMissingModule()) {
+                throw new IllegalArgumentException(message);
+            }
+            printRed(message);
+            return "/" + fileName;
         }
         return fileName;
     }
