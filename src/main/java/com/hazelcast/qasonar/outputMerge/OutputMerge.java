@@ -18,6 +18,7 @@ package com.hazelcast.qasonar.outputMerge;
 
 import com.hazelcast.qasonar.utils.FileFinder;
 import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.Repository;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,24 +38,6 @@ import static java.nio.file.Files.walkFileTree;
 
 public class OutputMerge {
 
-    private enum Repository {
-        OS("Open Source"),
-        EE("Enterprise"),
-        MC("MC"),
-        JCLOUDS("jclouds");
-
-        String description;
-
-        Repository(String description) {
-            this.description = description;
-        }
-
-        @Override
-        public String toString() {
-            return description;
-        }
-    }
-
     private final Map<Repository, String> content = new HashMap<>();
 
     private final PropertyReader propertyReader;
@@ -66,7 +49,7 @@ public class OutputMerge {
     public void run() throws IOException {
         String outputFile = propertyReader.getOutputFile();
 
-        FileFinder finder = new FileFinder(outputFile + "-(opensource|os|enterprise|ee|mancenter|mc|jclouds).txt", true);
+        FileFinder finder = new FileFinder(outputFile + "-(" + Repository.getSuffixes("|") + ").txt", true);
         walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
         Collection<Path> matchedFiles = finder.getMatchedPaths();
@@ -91,8 +74,7 @@ public class OutputMerge {
         printGreen("Done!\n");
     }
 
-    private StringBuilder mergeFiles(String outputFile, Collection<Path> matchedFiles)
-            throws IOException {
+    private StringBuilder mergeFiles(String outputFile, Collection<Path> matchedFiles) throws IOException {
         StringBuilder sb = new StringBuilder();
         for (Path file : matchedFiles) {
             String fileName = file.getFileName().toString().toLowerCase();
@@ -105,16 +87,13 @@ public class OutputMerge {
 
             System.out.println("Parsing " + fileName + "...");
 
-            Repository repository;
-            if (baseName.endsWith("-opensource") || baseName.endsWith("-os")) {
-                repository = Repository.OS;
-            } else if (baseName.endsWith("-enterprise") || baseName.endsWith("-ee")) {
-                repository = Repository.EE;
-            } else if (baseName.endsWith("-mancenter") | baseName.endsWith("-mc")) {
-                repository = Repository.MC;
-            } else if (baseName.endsWith("-jclouds")) {
-                repository = Repository.JCLOUDS;
-            } else {
+            Repository repository = null;
+            int suffixPos = baseName.lastIndexOf('-');
+            if (suffixPos != -1) {
+                String suffix = baseName.substring(suffixPos + 1);
+                repository = Repository.fromSuffix(suffix);
+            }
+            if (repository == null) {
                 printRed("Filename must contain a project postfix: " + fileName);
                 return null;
             }
