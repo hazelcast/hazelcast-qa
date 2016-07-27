@@ -237,13 +237,19 @@ public class CodeCoverageReader {
         }
 
         int beginIndex = fileName.indexOf("com/hazelcast");
-        if (beginIndex == -1 && props.isDefaultModuleSet()) {
-            beginIndex = fileName.indexOf(props.getDefaultModule());
+        if (beginIndex == -1) {
+            if (props.isDefaultModuleSet()) {
+                beginIndex = fileName.indexOf(props.getDefaultModule());
+            } else if (repository.hasDefaultModule()) {
+                beginIndex = fileName.indexOf(repository.getDefaultModule());
+            }
         }
         if (beginIndex == -1) {
             beginIndex = fileName.indexOf("com.hazelcast");
             if (props.isDefaultModuleSet()) {
                 printRed("Filename doesn't contain com/hazelcast or %s: %s", props.getDefaultModule(), fileName);
+            } else if (repository.hasDefaultModule()) {
+                printRed("Filename doesn't contain com/hazelcast or %s: %s", repository.getDefaultModule(), fileName);
             } else {
                 printRed("Filename doesn't contain com/hazelcast: %s", fileName);
             }
