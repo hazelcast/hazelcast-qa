@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.Repository;
-import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -119,12 +118,7 @@ public class CodeCoverageReader {
     }
 
     private void addPullRequest(int gitPullRequest) throws IOException {
-        GHIssue issue = repo.getIssue(gitPullRequest);
-        GHUser user = issue.getUser();
-        String author = user.getName();
-        if (author == null) {
-            author = user.getLogin();
-        }
+        String author = getAuthor(gitPullRequest);
 
         GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
         for (GHPullRequestFileDetail pullRequestFile : pullRequest.listFiles()) {
@@ -181,6 +175,15 @@ public class CodeCoverageReader {
                 files.put(gitFileName, fileContainer);
             }
         }
+    }
+
+    private String getAuthor(int gitPullRequest) throws IOException {
+        GHUser user = repo.getIssue(gitPullRequest).getUser();
+        String author = user.getName();
+        if (author != null) {
+            return author;
+        }
+        return user.getLogin();
     }
 
     private String getFileNameWithDefaultModule(String fileName) {
