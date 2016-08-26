@@ -32,7 +32,7 @@ class MarkupPrinter extends AbstractPrinter {
     @Override
     void addHeader(StringBuilder sb) {
         appendCommandLine(getProps(), sb, getCommandLineOptions().getPullRequests(), false);
-        sb.append("||Sonar||PRs||File||Status||Add||Del||Coverage||Line||Branch||Comment||QA||\n");
+        sb.append("||Sonar||PRs||Authors||File||Status||Add||Del||Coverage||Line||Branch||Comment||QA||\n");
     }
 
     @Override

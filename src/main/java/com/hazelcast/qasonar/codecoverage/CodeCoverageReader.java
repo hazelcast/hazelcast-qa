@@ -22,10 +22,10 @@ import com.google.gson.JsonObject;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.Repository;
+import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.PagedIterable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -118,7 +118,11 @@ public class CodeCoverageReader {
     }
 
     private void addPullRequest(int gitPullRequest) throws IOException {
-        for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(gitPullRequest)) {
+        GHIssue issue = repo.getIssue(gitPullRequest);
+        String author = issue.getUser().getName();
+
+        GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
+        for (GHPullRequestFileDetail pullRequestFile : pullRequest.listFiles()) {
             String gitFileName = getFileNameWithDefaultModule(pullRequestFile.getFilename());
             String resourceId = getResourceIdOrNull(gitFileName);
             GitHubStatus status;
@@ -133,6 +137,9 @@ public class CodeCoverageReader {
             FileContainer candidate = files.get(gitFileName);
             if (candidate != null) {
                 candidate.pullRequests += ", " + gitPullRequest;
+                if (!candidate.author.contains(author)) {
+                    candidate.author += ", " + author;
+                }
                 candidate.status = updateStatus(candidate.status, status);
                 candidate.gitHubChanges += pullRequestFile.getChanges();
                 candidate.gitHubAdditions += pullRequestFile.getAdditions();
@@ -142,6 +149,7 @@ public class CodeCoverageReader {
 
             FileContainer fileContainer = new FileContainer();
             fileContainer.resourceId = resourceId;
+            fileContainer.author = author;
             fileContainer.pullRequests = String.valueOf(gitPullRequest);
             fileContainer.fileName = gitFileName;
             fileContainer.status = status;
@@ -168,11 +176,6 @@ public class CodeCoverageReader {
                 files.put(gitFileName, fileContainer);
             }
         }
-    }
-
-    private PagedIterable<GHPullRequestFileDetail> getPullRequestFiles(int gitPullRequest) throws IOException {
-        GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
-        return pullRequest.listFiles();
     }
 
     private String getFileNameWithDefaultModule(String fileName) {

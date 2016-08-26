@@ -28,6 +28,7 @@ class FileContainer {
 
     String resourceId;
 
+    String author;
     String pullRequests;
     String fileName;
     GitHubStatus status;

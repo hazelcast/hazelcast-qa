@@ -35,7 +35,7 @@ class PlainPrinter extends AbstractPrinter {
 
     @Override
     void addHeader(StringBuilder sb) {
-        sb.append("| Sonar | PRs  | ")
+        sb.append("| Sonar | PRs  | Authors    |")
                 .append(formatMinWidth("File", FILE_NAME_WIDTH))
                 .append(" | Status   | Add  | Del  | Cover  | Line   | Branch | ")
                 .append(formatMinWidth("Comment", COMMENT_WIDTH))
@@ -52,6 +52,7 @@ class PlainPrinter extends AbstractPrinter {
     private String createTableSeparator() {
         return "|-" + fillString(5, '-')
                 + "-|-" + fillString(4, '-')
+                + "-|-" + fillString(10, '-')
                 + "-|-" + fillString(FILE_NAME_WIDTH, '-')
                 + "-|-" + fillString(8, '-')
                 + "-|-" + fillString(4, '-')

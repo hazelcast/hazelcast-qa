@@ -118,6 +118,7 @@ abstract class AbstractPrinter {
             sb.append("|").append(spacer);
             sb.append(formatSonarQubeLink(props, fileContainer.resourceId, isPlainOutput));
             sb.append(separator).append(formatPullRequestLinks(props, fileContainer.pullRequests, isPlainOutput));
+            sb.append(separator).append(fileContainer.author);
             sb.append(separator).append(formatFileName(fileContainer.fileName, isPlainOutput, FILE_NAME_WIDTH));
             sb.append(separator).append(formatGitHubStatus(fileContainer.status, isPlainOutput));
             sb.append(separator).append(formatGitHubChanges(fileContainer.gitHubAdditions, "+", isPlainOutput));
