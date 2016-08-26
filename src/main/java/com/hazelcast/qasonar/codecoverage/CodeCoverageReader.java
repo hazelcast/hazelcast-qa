@@ -26,6 +26,7 @@ import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHUser;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -119,7 +120,11 @@ public class CodeCoverageReader {
 
     private void addPullRequest(int gitPullRequest) throws IOException {
         GHIssue issue = repo.getIssue(gitPullRequest);
-        String author = issue.getUser().getName();
+        GHUser user = issue.getUser();
+        String author = user.getName();
+        if (author == null) {
+            author = user.getLogin();
+        }
 
         GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
         for (GHPullRequestFileDetail pullRequestFile : pullRequest.listFiles()) {
