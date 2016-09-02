@@ -24,6 +24,7 @@ import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
 import static java.lang.String.format;
+import static org.apache.commons.io.FileUtils.readFileToString;
+import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.kohsuke.github.GHIssueState.CLOSED;
 import static org.kohsuke.github.GHIssueState.OPEN;
 
@@ -46,6 +49,7 @@ public class ListPullRequests {
     private final String outputGithubRepository;
     private final String outputDefaultModule;
     private final String outputFile;
+    private final String scriptFile;
 
     public ListPullRequests(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         this.gitHubRepository = propertyReader.getGitHubRepository();
@@ -54,6 +58,7 @@ public class ListPullRequests {
         this.outputGithubRepository = getGithubRepository(propertyReader.isGitHubRepositoryOverwritten(), gitHubRepository);
         this.outputDefaultModule = getDefaultModule(propertyReader.getDefaultModule());
         this.outputFile = getOutputFile(propertyReader.getOutputFile(), milestoneTitle);
+        this.scriptFile = getScriptFile(commandLineOptions.getScriptFile());
     }
 
     public void run() throws IOException {
@@ -73,10 +78,20 @@ public class ListPullRequests {
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
 
+        String command = (pullRequests.size() > 0)
+                ? format("qa-sonar%s%s%s --pullRequests %s --outputFile %s%n",
+                optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile)
+                : format("No pull requests have been found for milestone %s in this repository!", milestone);
+
         System.out.println("Done!");
         System.out.println();
-        System.out.println(format("qa-sonar%s%s%s --pullRequests %s --outputFile %s",
-                optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile));
+        System.out.println(command);
+
+        if (scriptFile != null && pullRequests.size() > 0) {
+            File file = new File(scriptFile);
+            String script = readFileToString(file);
+            writeStringToFile(file, format("%s%s%n", script, command));
+        }
     }
 
     private static String getOptionalParameters(String optionalParameters) {
@@ -105,6 +120,13 @@ public class ListPullRequests {
             return milestoneTitle + "-failures.txt";
         }
         return outputFile;
+    }
+
+    private static String getScriptFile(String scriptFile) {
+        if (scriptFile == null || scriptFile.isEmpty()) {
+            return null;
+        }
+        return scriptFile;
     }
 
     private static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {

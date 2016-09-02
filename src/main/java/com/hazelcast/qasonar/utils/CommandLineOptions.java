@@ -85,6 +85,10 @@ public class CommandLineOptions {
             "Specifies a file for the output.")
             .withRequiredArg().ofType(String.class);
 
+    private final OptionSpec<String> scriptFileSpec = parser.accepts("scriptFile",
+            "Specifies a file for the script.")
+            .withRequiredArg().ofType(String.class);
+
     private final OptionSpec<String> optionalParametersSpec = parser.accepts("optionalParameters",
             "Specifies optional command line parameters which are added to the result output.")
             .withRequiredArg().ofType(String.class);
@@ -119,6 +123,10 @@ public class CommandLineOptions {
 
     public String getOptionalParameters() {
         return options.valueOf(optionalParametersSpec);
+    }
+
+    public String getScriptFile() {
+        return options.valueOf(scriptFileSpec);
     }
 
     public boolean printFailsOnly() {
