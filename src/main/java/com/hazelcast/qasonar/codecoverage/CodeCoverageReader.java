@@ -37,6 +37,7 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
@@ -121,6 +122,11 @@ public class CodeCoverageReader {
         String author = getAuthor(gitPullRequest);
 
         GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
+        if (!pullRequest.isMerged()) {
+            debugYellow("PR %d is not merged yet (skipping)!", gitPullRequest);
+            return;
+        }
+
         for (GHPullRequestFileDetail pullRequestFile : pullRequest.listFiles()) {
             String gitFileName = getFileNameWithDefaultModule(pullRequestFile.getFilename());
             String resourceId = getResourceIdOrNull(gitFileName);
