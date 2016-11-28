@@ -25,7 +25,6 @@ import com.hazelcast.qasonar.utils.Repository;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GHUser;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -39,6 +38,10 @@ import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getAuthor;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequest;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequestFiles;
+import static com.hazelcast.qasonar.utils.GitHubUtils.isMerged;
 import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static java.lang.String.format;
@@ -119,15 +122,15 @@ public class CodeCoverageReader {
     }
 
     private void addPullRequest(int gitPullRequest) throws IOException {
-        String author = getAuthor(gitPullRequest);
+        String author = getAuthor(repo, gitPullRequest);
 
-        GHPullRequest pullRequest = repo.getPullRequest(gitPullRequest);
-        if (!pullRequest.isMerged()) {
+        GHPullRequest pullRequest = getPullRequest(repo, gitPullRequest);
+        if (!isMerged(pullRequest)) {
             debugYellow("PR %d is not merged yet (skipping)!", gitPullRequest);
             return;
         }
 
-        for (GHPullRequestFileDetail pullRequestFile : pullRequest.listFiles()) {
+        for (GHPullRequestFileDetail pullRequestFile : getPullRequestFiles(pullRequest)) {
             String gitFileName = getFileNameWithDefaultModule(pullRequestFile.getFilename());
             String resourceId = getResourceIdOrNull(gitFileName);
             GitHubStatus status;
@@ -181,15 +184,6 @@ public class CodeCoverageReader {
                 files.put(gitFileName, fileContainer);
             }
         }
-    }
-
-    private String getAuthor(int gitPullRequest) throws IOException {
-        GHUser user = repo.getIssue(gitPullRequest).getUser();
-        String author = user.getName();
-        if (author != null) {
-            return author;
-        }
-        return user.getLogin();
     }
 
     private String getFileNameWithDefaultModule(String fileName) {
