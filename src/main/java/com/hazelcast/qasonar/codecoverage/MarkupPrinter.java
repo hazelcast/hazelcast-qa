@@ -25,8 +25,9 @@ import static com.hazelcast.qasonar.utils.Utils.appendCommandLine;
 
 class MarkupPrinter extends AbstractPrinter {
 
-    MarkupPrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions commandLineOptions) {
-        super(files, props, commandLineOptions, "", "|", false);
+    MarkupPrinter(Map<Integer, PullRequestStatus> pullRequests, Map<String, FileContainer> files, PropertyReader props,
+                  CommandLineOptions commandLineOptions) {
+        super(pullRequests, files, props, commandLineOptions, "", "|", false);
     }
 
     @Override

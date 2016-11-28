@@ -16,6 +16,7 @@
 
 package com.hazelcast.qasonar.utils;
 
+import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -64,6 +65,16 @@ public final class GitHubUtils {
             try {
                 return pullRequest.isMerged();
             } catch (IOException ignored) {
+                sleepMillis(EXCEPTION_DELAY_MILLIS);
+            }
+        }
+    }
+
+    public static boolean isClosed(GHPullRequest pullRequest) {
+        while (true) {
+            try {
+                return pullRequest.getState().equals(GHIssueState.CLOSED);
+            } catch (Exception ignored) {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }

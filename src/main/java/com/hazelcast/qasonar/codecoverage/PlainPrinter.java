@@ -28,8 +28,9 @@ class PlainPrinter extends AbstractPrinter {
 
     private final String tableSeparator;
 
-    PlainPrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions commandLineOptions) {
-        super(files, props, commandLineOptions, " ", " | ", true);
+    PlainPrinter(Map<Integer, PullRequestStatus> pullRequests, Map<String, FileContainer> files, PropertyReader props,
+                 CommandLineOptions commandLineOptions) {
+        super(pullRequests, files, props, commandLineOptions, " ", " | ", true);
         tableSeparator = createTableSeparator();
     }
 

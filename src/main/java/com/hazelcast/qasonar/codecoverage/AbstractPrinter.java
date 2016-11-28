@@ -40,6 +40,7 @@ abstract class AbstractPrinter {
     static final int FILE_NAME_WIDTH = 100;
     static final int COMMENT_WIDTH = 25;
 
+    private final Map<Integer, PullRequestStatus> pullRequests;
     private final Map<String, FileContainer> files;
     private final PropertyReader props;
     private final CommandLineOptions commandLineOptions;
@@ -60,8 +61,9 @@ abstract class AbstractPrinter {
     private int modifiedCoverageFileCount;
     private int modifiedCoveragePassedFileCount;
 
-    AbstractPrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions commandLineOptions,
-                    String spacer, String separator, boolean isPlainOutput) {
+    AbstractPrinter(Map<Integer, PullRequestStatus> pullRequests, Map<String, FileContainer> files, PropertyReader props,
+                    CommandLineOptions commandLineOptions, String spacer, String separator, boolean isPlainOutput) {
+        this.pullRequests = pullRequests;
         this.files = files;
         this.props = props;
         this.commandLineOptions = commandLineOptions;
@@ -190,8 +192,25 @@ abstract class AbstractPrinter {
                     modifiedCoverage, modifiedCoverageMin, modifiedCoverageMax, modifiedCoveragePassedFileCount,
                     modifiedCoverageFileCount));
         }
+        appendUnmergedPRs(summary);
 
         debug(summary.toString());
         sb.append(summary);
+    }
+
+    private void appendUnmergedPRs(StringBuilder summary) {
+        int unmergedPRs = 0;
+        StringBuilder pullRequestSummary = new StringBuilder();
+        String delimiter = "";
+        for (Map.Entry<Integer, PullRequestStatus> entry : pullRequests.entrySet()) {
+            if (entry.getValue() != PullRequestStatus.MERGED) {
+                pullRequestSummary.append(delimiter).append(entry.getKey()).append(" (").append(entry.getValue()).append(")");
+                delimiter = ", ";
+                unmergedPRs++;
+            }
+        }
+        if (unmergedPRs > 0) {
+            summary.append(format("%nUnmerged PRs: %s (%d/%d PRs)", pullRequestSummary, unmergedPRs, pullRequests.size()));
+        }
     }
 }

@@ -29,24 +29,26 @@ import org.kohsuke.github.GHRepository;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getAuthor;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequest;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequestFiles;
+import static com.hazelcast.qasonar.utils.GitHubUtils.isClosed;
 import static com.hazelcast.qasonar.utils.GitHubUtils.isMerged;
 import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
 import static com.hazelcast.qasonar.utils.Utils.findModuleName;
 import static java.lang.String.format;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllLines;
+import static java.util.Collections.unmodifiableMap;
 
 public class CodeCoverageReader {
 
@@ -55,6 +57,7 @@ public class CodeCoverageReader {
     private final Map<String, Map<String, String>> resources = new HashMap<>();
     private final Map<String, Double> ideaCoverage = new HashMap<>();
     private final Map<String, FileContainer> files = new HashMap<>();
+    private final Map<Integer, PullRequestStatus> pullRequests = new HashMap<>();
 
     private final PropertyReader props;
     private final GHRepository repo;
@@ -69,7 +72,11 @@ public class CodeCoverageReader {
     }
 
     public Map<String, FileContainer> getFiles() {
-        return Collections.unmodifiableMap(files);
+        return unmodifiableMap(files);
+    }
+
+    public Map<Integer, PullRequestStatus> getPullRequests() {
+        return unmodifiableMap(pullRequests);
     }
 
     public void run(List<Integer> pullRequests) throws IOException {
@@ -125,8 +132,7 @@ public class CodeCoverageReader {
         String author = getAuthor(repo, gitPullRequest);
 
         GHPullRequest pullRequest = getPullRequest(repo, gitPullRequest);
-        if (!isMerged(pullRequest)) {
-            debugYellow("PR %d is not merged yet (skipping)!", gitPullRequest);
+        if (!checkPullRequestState(gitPullRequest, pullRequest)) {
             return;
         }
 
@@ -168,6 +174,21 @@ public class CodeCoverageReader {
                 files.put(gitFileName, fileContainer);
             }
         }
+    }
+
+    private boolean checkPullRequestState(int gitPullRequest, GHPullRequest pullRequest) {
+        if (isMerged(pullRequest)) {
+            pullRequests.put(gitPullRequest, PullRequestStatus.MERGED);
+            return true;
+        }
+        if (isClosed(pullRequest)) {
+            debugRed("PR %d is closed (skipping)!", gitPullRequest);
+            pullRequests.put(gitPullRequest, PullRequestStatus.CLOSED);
+            return false;
+        }
+        debugYellow("PR %d is not merged yet (skipping)!", gitPullRequest);
+        pullRequests.put(gitPullRequest, PullRequestStatus.OPEN);
+        return false;
     }
 
     private String getFileNameWithDefaultModule(String fileName) {

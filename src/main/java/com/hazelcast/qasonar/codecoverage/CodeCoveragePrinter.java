@@ -28,11 +28,12 @@ public class CodeCoveragePrinter {
 
     private final AbstractPrinter printer;
 
-    public CodeCoveragePrinter(Map<String, FileContainer> files, PropertyReader props, CommandLineOptions cliOptions) {
+    public CodeCoveragePrinter(Map<Integer, PullRequestStatus> pullRequests, Map<String, FileContainer> files,
+                               PropertyReader props, CommandLineOptions cliOptions) {
         if (cliOptions.isPlainOutput()) {
-            printer = new PlainPrinter(files, props, cliOptions);
+            printer = new PlainPrinter(pullRequests, files, props, cliOptions);
         } else {
-            printer = new MarkupPrinter(files, props, cliOptions);
+            printer = new MarkupPrinter(pullRequests, files, props, cliOptions);
         }
     }
 

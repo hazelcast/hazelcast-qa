@@ -101,7 +101,8 @@ public final class QaSonar {
                 analyzer.run();
 
                 debug("Printing code coverage data...");
-                CodeCoveragePrinter printer = new CodeCoveragePrinter(analyzer.getFiles(), propertyReader, cliOptions);
+                CodeCoveragePrinter printer = new CodeCoveragePrinter(reader.getPullRequests(), analyzer.getFiles(),
+                        propertyReader, cliOptions);
                 printer.run();
 
                 debugGreen("Done!\n");
