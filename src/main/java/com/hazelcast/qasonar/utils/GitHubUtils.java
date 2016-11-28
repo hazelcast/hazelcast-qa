@@ -29,6 +29,8 @@ import static com.hazelcast.qasonar.utils.Utils.sleepMillis;
 
 public final class GitHubUtils {
 
+    private static final int EXCEPTION_DELAY_MILLIS = 100;
+
     private GitHubUtils() {
     }
 
@@ -42,7 +44,7 @@ public final class GitHubUtils {
                 }
                 return user.getLogin();
             } catch (IOException ignored) {
-                sleepMillis(100);
+                sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
     }
@@ -52,7 +54,7 @@ public final class GitHubUtils {
             try {
                 return repo.getPullRequest(gitPullRequest);
             } catch (IOException ignored) {
-                sleepMillis(100);
+                sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
     }
@@ -62,7 +64,7 @@ public final class GitHubUtils {
             try {
                 return pullRequest.isMerged();
             } catch (IOException ignored) {
-                sleepMillis(100);
+                sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
     }
@@ -76,7 +78,7 @@ public final class GitHubUtils {
                 }
                 return files;
             } catch (Exception ignored) {
-                sleepMillis(100);
+                sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
     }
