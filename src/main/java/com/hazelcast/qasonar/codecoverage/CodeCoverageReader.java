@@ -144,28 +144,12 @@ public class CodeCoverageReader {
 
             FileContainer candidate = files.get(gitFileName);
             if (candidate != null) {
-                candidate.pullRequests += ", " + gitPullRequest;
-                if (!candidate.author.contains(author)) {
-                    candidate.author += ", " + author;
-                }
-                candidate.status = updateStatus(candidate.status, status);
-                candidate.gitHubChanges += pullRequestFile.getChanges();
-                candidate.gitHubAdditions += pullRequestFile.getAdditions();
-                candidate.gitHubDeletions += pullRequestFile.getDeletions();
+                updateFileContainer(candidate, gitPullRequest, author, pullRequestFile, status);
                 continue;
             }
 
-            FileContainer fileContainer = new FileContainer();
-            fileContainer.resourceId = resourceId;
-            fileContainer.author = author;
-            fileContainer.pullRequests = String.valueOf(gitPullRequest);
-            fileContainer.fileName = gitFileName;
-            fileContainer.status = status;
-            fileContainer.isModuleDeleted = isModuleDeleted(gitFileName);
-            fileContainer.gitHubChanges = pullRequestFile.getChanges();
-            fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
-            fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
-            fileContainer.ideaCoverage = getIdeaCoverage(gitFileName);
+            FileContainer fileContainer = createFileContainer(gitPullRequest, author, pullRequestFile, gitFileName, resourceId,
+                    status);
 
             if (resourceId == null) {
                 files.put(gitFileName, fileContainer);
@@ -219,6 +203,18 @@ public class CodeCoverageReader {
         return entryMap.get(mapKey);
     }
 
+    private void updateFileContainer(FileContainer candidate, int gitPullRequest, String author,
+                                     GHPullRequestFileDetail pullRequestFile, GitHubStatus status) {
+        candidate.pullRequests += ", " + gitPullRequest;
+        if (!candidate.author.contains(author)) {
+            candidate.author += ", " + author;
+        }
+        candidate.status = updateStatus(candidate.status, status);
+        candidate.gitHubChanges += pullRequestFile.getChanges();
+        candidate.gitHubAdditions += pullRequestFile.getAdditions();
+        candidate.gitHubDeletions += pullRequestFile.getDeletions();
+    }
+
     private GitHubStatus updateStatus(GitHubStatus oldStatus, GitHubStatus newStatus) {
         if (oldStatus == GitHubStatus.REMOVED || newStatus == GitHubStatus.REMOVED) {
             return GitHubStatus.REMOVED;
@@ -232,6 +228,22 @@ public class CodeCoverageReader {
         return newStatus;
     }
 
+    private FileContainer createFileContainer(int gitPullRequest, String author, GHPullRequestFileDetail pullRequestFile,
+                                              String gitFileName, String resourceId, GitHubStatus status) {
+        FileContainer fileContainer = new FileContainer();
+        fileContainer.resourceId = resourceId;
+        fileContainer.author = author;
+        fileContainer.pullRequests = String.valueOf(gitPullRequest);
+        fileContainer.fileName = gitFileName;
+        fileContainer.status = status;
+        fileContainer.isModuleDeleted = isModuleDeleted(gitFileName);
+        fileContainer.gitHubChanges = pullRequestFile.getChanges();
+        fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
+        fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
+        fileContainer.ideaCoverage = getIdeaCoverage(gitFileName);
+        return fileContainer;
+    }
+
     private boolean isModuleDeleted(String gitFileName) {
         int firstSlashIndex = gitFileName.indexOf('/');
         if (firstSlashIndex == -1) {
@@ -242,6 +254,7 @@ public class CodeCoverageReader {
         return (resources.get(module) == null);
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private double getIdeaCoverage(String fileName) {
         if (!fileName.endsWith(".java")) {
             return 0;
