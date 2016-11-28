@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHUser;
 import org.kohsuke.github.PagedIterable;
 import org.kohsuke.github.PagedIterator;
 
@@ -21,6 +22,8 @@ import static com.hazelcast.qasonar.utils.GitHubStatus.MODIFIED;
 import static com.hazelcast.qasonar.utils.GitHubStatus.REMOVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,14 +34,17 @@ public class CodeCoverageReaderTest {
     private List<Integer> pullRequests = new ArrayList<>();
 
     private int pullRequestIdGenerator;
-
     private GHRepository repo;
-
     private CodeCoverageReader reader;
 
     @Before
     public void setUp() throws Exception {
-        repo = mock(GHRepository.class);
+        GHUser author = mock(GHUser.class);
+        when(author.getName()).thenReturn("Hazelcast");
+
+        repo = mock(GHRepository.class, RETURNS_DEEP_STUBS);
+        when(repo.getIssue(anyInt()).getUser()).thenReturn(author);
+        when(repo.getName()).thenReturn("hazelcast");
 
         PropertyReader props = new PropertyReader("host", "username", "password");
         props.setMinCodeCoverage(87.5, false);
@@ -92,6 +98,7 @@ public class CodeCoverageReaderTest {
         PagedIterable<GHPullRequestFileDetail> iterable = mockPagedIterable(pullRequestFiles);
 
         GHPullRequest pullRequest = mock(GHPullRequest.class);
+        when(pullRequest.isMerged()).thenReturn(true);
         when(pullRequest.listFiles()).thenReturn(iterable);
 
         when(repo.getPullRequest(pullRequestId)).thenReturn(pullRequest);
