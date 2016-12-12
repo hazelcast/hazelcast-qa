@@ -22,7 +22,6 @@ import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public final class GitHubUtils {
                     return author;
                 }
                 return user.getLogin();
-            } catch (IOException ignored) {
+            } catch (Throwable ignored) {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
@@ -54,7 +53,7 @@ public final class GitHubUtils {
         while (true) {
             try {
                 return repo.getPullRequest(gitPullRequest);
-            } catch (IOException ignored) {
+            } catch (Throwable ignored) {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
@@ -64,7 +63,7 @@ public final class GitHubUtils {
         while (true) {
             try {
                 return pullRequest.isMerged();
-            } catch (IOException ignored) {
+            } catch (Throwable ignored) {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
@@ -74,7 +73,7 @@ public final class GitHubUtils {
         while (true) {
             try {
                 return pullRequest.getState().equals(GHIssueState.CLOSED);
-            } catch (Exception ignored) {
+            } catch (Throwable ignored) {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
@@ -88,7 +87,7 @@ public final class GitHubUtils {
                     files.add(pullRequestFile);
                 }
                 return files;
-            } catch (Exception ignored) {
+            } catch (Throwable ignored) {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
