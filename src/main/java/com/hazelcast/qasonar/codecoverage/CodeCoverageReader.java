@@ -281,7 +281,13 @@ public class CodeCoverageReader {
             return 0;
         }
 
-        int beginIndex = fileName.indexOf("com/hazelcast");
+        // those classes are not part of the production code
+        int beginIndex = fileName.indexOf("distributedclassloading");
+        if (beginIndex != -1) {
+            return 0;
+        }
+
+        beginIndex = fileName.indexOf("com/hazelcast");
         if (beginIndex == -1) {
             if (props.isDefaultModuleSet()) {
                 beginIndex = fileName.indexOf(props.getDefaultModule());
