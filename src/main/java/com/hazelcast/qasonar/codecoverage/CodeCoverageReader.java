@@ -285,32 +285,26 @@ public class CodeCoverageReader {
             return 0;
         }
 
-        // the classes of distributed classloading are not part of the production code
-        if (fileName.contains("distributedclassloading/")) {
-            return 0;
-        }
-
         int beginIndex = getIndexOfFullyQualifiedClassName(fileName);
         if (beginIndex == -1) {
             return 0;
         }
         String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
+        System.out.println(fullyQualifiedClassName);
 
         Double coverage = ideaCoverage.get(fullyQualifiedClassName);
         return (coverage == null) ? 0 : coverage;
     }
 
     private int getIndexOfFullyQualifiedClassName(String fileName) {
-        int beginIndex = fileName.indexOf("com/hazelcast");
+        int beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "com/hazelcast");
         if (beginIndex == -1) {
-            if (props.isDefaultModuleSet()) {
-                beginIndex = fileName.indexOf(props.getDefaultModule());
-            } else if (repository.hasDefaultModule()) {
-                beginIndex = fileName.indexOf(repository.getDefaultModule());
-            }
+            beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "com.hazelcast");
         }
         if (beginIndex == -1) {
-            beginIndex = fileName.indexOf("com.hazelcast");
+            beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "distributedclassloading");
+        }
+        if (beginIndex == -1) {
             if (props.isDefaultModuleSet()) {
                 printRed("Filename doesn't contain com/hazelcast or %s: %s", props.getDefaultModule(), fileName);
             } else if (repository.hasDefaultModule()) {
@@ -319,8 +313,17 @@ public class CodeCoverageReader {
                 printRed("Filename doesn't contain com/hazelcast: %s", fileName);
             }
         }
+        return beginIndex;
+    }
+
+    private int getBeginIndexFromPathOrDefaultModule(String fileName, String path) {
+        int beginIndex = fileName.indexOf(path);
         if (beginIndex == -1) {
-            printRed("Could not parse fully qualified class name: %s", fileName);
+            if (props.isDefaultModuleSet()) {
+                return fileName.indexOf(props.getDefaultModule());
+            } else if (repository.hasDefaultModule()) {
+                return fileName.indexOf(repository.getDefaultModule());
+            }
         }
         return beginIndex;
     }

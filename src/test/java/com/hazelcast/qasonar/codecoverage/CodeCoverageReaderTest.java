@@ -32,7 +32,7 @@ public class CodeCoverageReaderTest {
     private static final String HZ_PACKAGE = "com.hazelcast.";
     private static final String HZ_PREFIX = "hazelcast/src/main/java/com/hazelcast/";
 
-    private static final String DCL_PACKAGE = "distributedclassloading";
+    private static final String DCL_PACKAGE = "distributedclassloading.";
     private static final String DCL_TEST_PREFIX = "hazelcast/src/test/java/distributedclassloading/";
 
     private static final String JET_PACKAGE = "com.hazelcast.jet.cascading.";
@@ -98,7 +98,7 @@ public class CodeCoverageReaderTest {
         Map<String, FileContainer> readerFiles = reader.getFiles();
         assertEquals(1, readerFiles.size());
 
-        assertIdeaCoverage(readerFiles, DCL_TEST_PREFIX + "IncrementingEntryProcessor.java", 0);
+        assertIdeaCoverage(readerFiles, DCL_TEST_PREFIX + "IncrementingEntryProcessor.java", 23);
     }
 
     @Test
