@@ -280,19 +280,28 @@ public class CodeCoverageReader {
         return (resources.get(module) == null);
     }
 
-    @SuppressWarnings("checkstyle:npathcomplexity")
     private double getIdeaCoverage(String fileName) {
         if (!fileName.endsWith(".java")) {
             return 0;
         }
 
-        // those classes are not part of the production code
-        int beginIndex = fileName.indexOf("distributedclassloading");
-        if (beginIndex != -1) {
+        // the classes of distributed classloading are not part of the production code
+        if (fileName.contains("distributedclassloading/")) {
             return 0;
         }
 
-        beginIndex = fileName.indexOf("com/hazelcast");
+        int beginIndex = getIndexOfFullyQualifiedClassName(fileName);
+        if (beginIndex == -1) {
+            return 0;
+        }
+        String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
+
+        Double coverage = ideaCoverage.get(fullyQualifiedClassName);
+        return (coverage == null) ? 0 : coverage;
+    }
+
+    private int getIndexOfFullyQualifiedClassName(String fileName) {
+        int beginIndex = fileName.indexOf("com/hazelcast");
         if (beginIndex == -1) {
             if (props.isDefaultModuleSet()) {
                 beginIndex = fileName.indexOf(props.getDefaultModule());
@@ -312,12 +321,8 @@ public class CodeCoverageReader {
         }
         if (beginIndex == -1) {
             printRed("Could not parse fully qualified class name: %s", fileName);
-            return 0;
         }
-        String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
-
-        Double coverage = ideaCoverage.get(fullyQualifiedClassName);
-        return (coverage == null) ? 0 : coverage;
+        return beginIndex;
     }
 
     private void setMetrics(FileContainer fileContainer, JsonObject resource) {
