@@ -32,11 +32,10 @@ public class CodeCoverageReaderTest {
     private static final String HZ_PACKAGE = "com.hazelcast.";
     private static final String HZ_PREFIX = "hazelcast/src/main/java/com/hazelcast/";
 
-    private static final String DCL_PACKAGE = "distributedclassloading.";
-    private static final String DCL_TEST_PREFIX = "hazelcast/src/test/java/distributedclassloading/";
-
     private static final String JET_PACKAGE = "com.hazelcast.jet.cascading.";
     private static final String JET_PREFIX = "hazelcast-jet-cascading/src/main/java/com/hazelcast/jet/cascading/";
+
+    private static final String JET_TEST_PACKAGE = "data.";
     private static final String JET_TEST_PREFIX = "hazelcast-jet-cascading/src/test/java/data/";
 
     private List<Integer> pullRequests = new ArrayList<>();
@@ -86,24 +85,9 @@ public class CodeCoverageReaderTest {
     }
 
     @Test
-    public void testRun_withDistributedClassloadingFiles() throws Exception {
-        reader.addIdeaCoverage(DCL_PACKAGE + "IncrementingEntryProcessor.java", 23);
-
-        addPullRequest(
-                getGhPullRequestFileDetail(DCL_TEST_PREFIX, "IncrementingEntryProcessor.java", ADDED)
-        );
-
-        reader.run(pullRequests);
-
-        Map<String, FileContainer> readerFiles = reader.getFiles();
-        assertEquals(1, readerFiles.size());
-
-        assertIdeaCoverage(readerFiles, DCL_TEST_PREFIX + "IncrementingEntryProcessor.java", 23);
-    }
-
-    @Test
     public void testRun_withJetFiles() throws Exception {
         reader.addIdeaCoverage(JET_PACKAGE + "JetFlow.java", 23);
+        reader.addIdeaCoverage(JET_TEST_PACKAGE + "InputData.java", 42);
 
         addPullRequest(
                 getGhPullRequestFileDetail(JET_PREFIX, "JetFlow.java", ADDED),

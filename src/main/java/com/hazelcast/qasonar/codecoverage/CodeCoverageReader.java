@@ -284,6 +284,9 @@ public class CodeCoverageReader {
         if (!fileName.endsWith(".java")) {
             return 0;
         }
+        if (fileName.contains("/src/test/java/")) {
+            return 0;
+        }
 
         int beginIndex = getIndexOfFullyQualifiedClassName(fileName);
         if (beginIndex == -1) {
@@ -299,9 +302,6 @@ public class CodeCoverageReader {
         int beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "com/hazelcast");
         if (beginIndex == -1) {
             beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "com.hazelcast");
-        }
-        if (beginIndex == -1) {
-            beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "distributedclassloading");
         }
         if (beginIndex == -1) {
             if (props.isDefaultModuleSet()) {
