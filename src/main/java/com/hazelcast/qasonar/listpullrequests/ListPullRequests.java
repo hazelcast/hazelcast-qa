@@ -41,6 +41,9 @@ import static org.kohsuke.github.GHIssueState.OPEN;
 
 public class ListPullRequests {
 
+    private static final String NO_MILESTONE_TITLE = "none";
+    private static final int NO_MILESTONE_ID = -1;
+
     private final Calendar calendar = Calendar.getInstance();
 
     private final String gitHubRepository;
@@ -130,6 +133,9 @@ public class ListPullRequests {
     }
 
     private static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
+        if (milestoneTitle.equals(NO_MILESTONE_TITLE)) {
+            return null;
+        }
         for (GHMilestone milestoneEntry : repo.listMilestones(OPEN)) {
             if (milestoneTitle.equals(milestoneEntry.getTitle())) {
                 return milestoneEntry;
@@ -145,7 +151,7 @@ public class ListPullRequests {
 
     private static List<Integer> getPullRequests(GHRepository repo, GHMilestone milestone, Calendar calendar) throws IOException {
         List<Integer> pullRequests = new ArrayList<>();
-        int milestoneId = milestone.getId();
+        int milestoneId = (milestone == null) ? NO_MILESTONE_ID : milestone.getId();
         for (GHIssue issue : repo.listIssues(CLOSED)) {
             if (!isMergedPullRequestOfMilestone(issue, milestoneId, repo)) {
                 continue;
@@ -168,7 +174,11 @@ public class ListPullRequests {
             return false;
         }
         GHMilestone issueMilestone = issue.getMilestone();
-        if (issueMilestone == null || issueMilestone.getId() != milestoneId) {
+        if (milestoneId > NO_MILESTONE_ID) {
+            if (issueMilestone == null || issueMilestone.getId() != milestoneId) {
+                return false;
+            }
+        } else if (issueMilestone != null) {
             return false;
         }
         GHPullRequest pullRequest = repo.getPullRequest(issue.getNumber());
