@@ -19,8 +19,6 @@ package com.hazelcast.qasonar.utils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import org.apache.commons.codec.binary.Base64;
-import org.kohsuke.github.GHContent;
-import org.kohsuke.github.GHRepository;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -39,9 +37,6 @@ import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
 
 public final class Utils {
-
-    private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
-    private static final int GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS = 200;
 
     private Utils() {
     }
@@ -191,24 +186,6 @@ public final class Utils {
             }
         }
         throw new IllegalArgumentException("Could not find module in file name: " + fileName);
-    }
-
-    public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
-        IOException exception = null;
-        for (int i = 0; i < GITHUB_FILE_DOWNLOAD_RETRIES; i++) {
-            try {
-                GHContent fileContent = repo.getFileContent(fileName);
-
-                StringWriter writer = new StringWriter();
-                copy(fileContent.read(), writer);
-
-                return writer.toString();
-            } catch (IOException e) {
-                exception = e;
-            }
-            sleepMillis(GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS * (i + 1));
-        }
-        throw exception;
     }
 
     public static JsonArray getJsonElementsFromQuery(String username, String password, String query) throws IOException {

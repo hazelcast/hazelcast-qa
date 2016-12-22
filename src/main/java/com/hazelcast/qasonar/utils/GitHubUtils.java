@@ -16,20 +16,27 @@
 
 package com.hazelcast.qasonar.utils;
 
+import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.hazelcast.qasonar.utils.Utils.sleepMillis;
+import static org.apache.commons.io.IOUtils.copy;
 
 public final class GitHubUtils {
 
     private static final int EXCEPTION_DELAY_MILLIS = 100;
+
+    private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
+    private static final int GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS = 200;
 
     private GitHubUtils() {
     }
@@ -91,5 +98,23 @@ public final class GitHubUtils {
                 sleepMillis(EXCEPTION_DELAY_MILLIS);
             }
         }
+    }
+
+    public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
+        IOException exception = null;
+        for (int i = 0; i < GITHUB_FILE_DOWNLOAD_RETRIES; i++) {
+            try {
+                GHContent fileContent = repo.getFileContent(fileName);
+
+                StringWriter writer = new StringWriter();
+                copy(fileContent.read(), writer);
+
+                return writer.toString();
+            } catch (IOException e) {
+                exception = e;
+            }
+            sleepMillis(GITHUB_FILE_DOWNLOAD_RETRY_DELAY_MILLIS * (i + 1));
+        }
+        throw exception;
     }
 }

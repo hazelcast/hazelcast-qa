@@ -29,11 +29,11 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
-import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
-import static com.hazelcast.qasonar.utils.Utils.getFileContentsFromGitHub;
+import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getFileContentsFromGitHub;
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
@@ -122,7 +122,7 @@ public class CodeCoverageAnalyzer {
         }
     }
 
-    private void checkFileWithoutCoverage(FileContainer fileContainer, String gitFileName) throws IOException {
+    private void checkFileWithoutCoverage(FileContainer fileContainer, String gitFileName) {
         if (fileContainer.coverage != null || fileContainer.ideaCoverage > COVERAGE_MARGIN) {
             return;
         }
