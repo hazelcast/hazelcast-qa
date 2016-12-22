@@ -54,13 +54,14 @@ class FileContainer {
 
     String comment;
     boolean qaCheck;
-    boolean qaCheckSet;
 
-    public boolean isForCoverageCalculation() {
+    private boolean qaCheckSet;
+
+    boolean isForCoverageCalculation() {
         return isForCoverageCalculation;
     }
 
-    public void useForCoverageCalculation(CoverageType coverageType) {
+    void useForCoverageCalculation(CoverageType coverageType) {
         this.isForCoverageCalculation = true;
         this.coverageType = coverageType;
     }
