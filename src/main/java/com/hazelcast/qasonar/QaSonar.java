@@ -39,6 +39,7 @@ import static com.hazelcast.qasonar.utils.DebugUtils.debugCommandLine;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.setDebug;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
+import static java.lang.String.format;
 
 public final class QaSonar {
 
@@ -91,12 +92,12 @@ public final class QaSonar {
                 GitHub github = GitHub.connect();
                 GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
 
-                debug("Reading code coverage data...");
+                debug(format("Reading code coverage data for %d PRs...", cliOptions.getPullRequests().size()));
                 JsonDownloader jsonDownloader = new JsonDownloader(propertyReader);
                 CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo, jsonDownloader);
                 reader.run(cliOptions.getPullRequests());
 
-                debug("Analyzing code coverage data...");
+                debug(format("Analyzing code coverage data of %d files...", reader.getFiles().size()));
                 CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getFiles(), propertyReader, repo, whiteList);
                 analyzer.run();
 
