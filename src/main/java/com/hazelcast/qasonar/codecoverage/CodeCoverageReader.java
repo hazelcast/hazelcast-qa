@@ -290,7 +290,6 @@ public class CodeCoverageReader {
             return 0;
         }
         String fullyQualifiedClassName = fileName.substring(beginIndex).replace('/', '.');
-        System.out.println(fullyQualifiedClassName);
 
         Double coverage = ideaCoverage.get(fullyQualifiedClassName);
         return (coverage == null) ? 0 : coverage;
