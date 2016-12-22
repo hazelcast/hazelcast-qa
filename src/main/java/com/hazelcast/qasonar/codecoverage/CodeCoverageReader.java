@@ -89,6 +89,11 @@ public class CodeCoverageReader {
         }
     }
 
+    // just for testing
+    void addIdeaCoverage(String fileName, double coverage) {
+        ideaCoverage.put(fileName, coverage);
+    }
+
     private void populateResourcesMap() throws IOException {
         for (String resourceId : props.getProjectResourceIds()) {
             String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1", props.getHost(), resourceId);

@@ -29,7 +29,12 @@ import static org.mockito.Mockito.when;
 
 public class CodeCoverageReaderTest {
 
+    private static final String HZ_PACKAGE = "com.hazelcast.";
     private static final String HZ_PREFIX = "hazelcast/src/main/java/com/hazelcast/";
+
+    private static final String JET_PACKAGE = "com.hazelcast.jet.cascading.";
+    private static final String JET_PREFIX = "hazelcast-jet-cascading/src/main/java/com/hazelcast/jet/cascading/";
+    private static final String JET_TEST_PREFIX = "hazelcast-jet-cascading/src/test/java/data/";
 
     private List<Integer> pullRequests = new ArrayList<>();
 
@@ -57,18 +62,42 @@ public class CodeCoverageReaderTest {
 
     @Test
     public void testRun() throws Exception {
+        reader.addIdeaCoverage(HZ_PACKAGE + "AddedFile.java", 23);
+        reader.addIdeaCoverage(HZ_PACKAGE + "AddedAndRemovedFile.java", 42);
+
         addPullRequest(
                 getGhPullRequestFileDetail("AddedAndRemovedFile.java", ADDED),
                 getGhPullRequestFileDetail("AddedFile.java", ADDED),
-                getGhPullRequestFileDetail("pom.xml", MODIFIED));
+                getGhPullRequestFileDetail("pom.xml", MODIFIED)
+        );
         addPullRequest(getGhPullRequestFileDetail("AddedAndRemovedFile.java", REMOVED));
 
         reader.run(pullRequests);
 
         Map<String, FileContainer> readerFiles = reader.getFiles();
         assertEquals(3, readerFiles.size());
-        assertTrue(readerFiles.containsKey(HZ_PREFIX + "AddedFile.java"));
-        assertTrue(readerFiles.containsKey(HZ_PREFIX + "AddedAndRemovedFile.java"));
+
+        assertIdeaCoverage(readerFiles, HZ_PREFIX + "AddedFile.java", 23);
+        assertIdeaCoverage(readerFiles, HZ_PREFIX + "AddedAndRemovedFile.java", 42);
+        assertIdeaCoverage(readerFiles, HZ_PREFIX + "pom.xml", 0);
+    }
+
+    @Test
+    public void testRun_withJetFiles() throws Exception {
+        reader.addIdeaCoverage(JET_PACKAGE + "JetFlow.java", 23);
+
+        addPullRequest(
+                getGhPullRequestFileDetail(JET_PREFIX, "JetFlow.java", ADDED),
+                getGhPullRequestFileDetail(JET_TEST_PREFIX, "InputData.java", ADDED)
+        );
+
+        reader.run(pullRequests);
+
+        Map<String, FileContainer> readerFiles = reader.getFiles();
+        assertEquals(2, readerFiles.size());
+
+        assertIdeaCoverage(readerFiles, JET_PREFIX + "JetFlow.java", 23);
+        assertIdeaCoverage(readerFiles, JET_TEST_PREFIX + "InputData.java", 0);
     }
 
     @Test(expected = IllegalStateException.class)
@@ -105,8 +134,12 @@ public class CodeCoverageReaderTest {
     }
 
     private static GHPullRequestFileDetail getGhPullRequestFileDetail(String fileName, GitHubStatus status) {
+        return getGhPullRequestFileDetail(HZ_PREFIX, fileName, status);
+    }
+
+    private static GHPullRequestFileDetail getGhPullRequestFileDetail(String prefix, String fileName, GitHubStatus status) {
         GHPullRequestFileDetail pullRequestFile = mock(GHPullRequestFileDetail.class);
-        when(pullRequestFile.getFilename()).thenReturn(HZ_PREFIX + fileName);
+        when(pullRequestFile.getFilename()).thenReturn(prefix + fileName);
         when(pullRequestFile.getStatus()).thenReturn(status.toString());
         when(pullRequestFile.getChanges()).thenReturn(0);
         when(pullRequestFile.getAdditions()).thenReturn(0);
@@ -139,5 +172,12 @@ public class CodeCoverageReaderTest {
         }
 
         return iterable;
+    }
+
+    private static void assertIdeaCoverage(Map<String, FileContainer> readerFiles, String fileName, double coverage) {
+        assertTrue(readerFiles.containsKey(fileName));
+
+        FileContainer container = readerFiles.get(fileName);
+        assertEquals(coverage, container.ideaCoverage, 0.0001);
     }
 }
