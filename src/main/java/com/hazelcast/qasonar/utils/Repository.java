@@ -19,6 +19,7 @@ package com.hazelcast.qasonar.utils;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public enum Repository {
 
@@ -45,6 +46,12 @@ public enum Repository {
             "hazelcast-jclouds",
             "hazelcast-jclouds",
             asList("jclouds", "jc")
+    ),
+    JET(
+            "Jet",
+            "hazelcast-jet",
+            null,
+            singletonList("jet")
     );
 
     private final String description;
