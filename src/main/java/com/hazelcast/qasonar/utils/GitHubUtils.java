@@ -41,16 +41,16 @@ import static org.kohsuke.github.GHIssueState.OPEN;
 
 public final class GitHubUtils {
 
+    static final GHMilestone MERGED_MILESTONE = new GHMilestone();
+    static final GHMilestone ALL_MILESTONE = new GHMilestone();
+    static final GHMilestone NO_MILESTONE = new GHMilestone();
+
     private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
     private static final int GITHUB_EXCEPTION_DELAY_MILLIS = 200;
 
     private static final String MERGED_MILESTONE_TITLE = "MERGED";
     private static final String ALL_MILESTONE_TITLE = "ALL";
     private static final String NO_MILESTONE_TITLE = "NONE";
-
-    private static final GHMilestone MERGED_MILESTONE = new GHMilestone();
-    private static final GHMilestone ALL_MILESTONE = new GHMilestone();
-    private static final GHMilestone NO_MILESTONE = new GHMilestone();
 
     private GitHubUtils() {
     }
@@ -155,7 +155,7 @@ public final class GitHubUtils {
         });
     }
 
-    private static boolean matchesMilestone(GHPullRequest pullRequest, GHMilestone milestone) {
+    static boolean matchesMilestone(GHPullRequest pullRequest, GHMilestone milestone) {
         if (milestone == MERGED_MILESTONE) {
             // we don't care if the PR has a milestone at all
             return isMerged(pullRequest);
