@@ -51,7 +51,6 @@ public class CommandLineOptions {
     private final OptionSpec<String> listPullRequestsSpec = parser.accepts("listPullRequests",
             "Lists pull requests of a specified GitHub milestone."
                     + " Either specify a milestone title from GitHub or use one of the following types:\n"
-                    + " * ANY: all PRs, regardless if they are merged or have a milestone set\n"
                     + " * MERGED: all merged PRs, regardless if they have a milestone set or not\n"
                     + " * ALL: all merged PRs which have a milestone set\n"
                     + " * NONE: all merged PRs which have no milestone set")

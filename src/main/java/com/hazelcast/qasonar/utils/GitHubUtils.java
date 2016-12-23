@@ -44,12 +44,10 @@ public final class GitHubUtils {
     private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
     private static final int GITHUB_EXCEPTION_DELAY_MILLIS = 200;
 
-    private static final String ANY_MILESTONE_TITLE = "ANY";
     private static final String MERGED_MILESTONE_TITLE = "MERGED";
     private static final String ALL_MILESTONE_TITLE = "ALL";
     private static final String NO_MILESTONE_TITLE = "NONE";
 
-    private static final GHMilestone ANY_MILESTONE = new GHMilestone();
     private static final GHMilestone MERGED_MILESTONE = new GHMilestone();
     private static final GHMilestone ALL_MILESTONE = new GHMilestone();
     private static final GHMilestone NO_MILESTONE = new GHMilestone();
@@ -89,8 +87,6 @@ public final class GitHubUtils {
     public static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
         return (GHMilestone) execute(() -> {
             switch (milestoneTitle) {
-                case ANY_MILESTONE_TITLE:
-                    return ANY_MILESTONE;
                 case MERGED_MILESTONE_TITLE:
                     return MERGED_MILESTONE;
                 case ALL_MILESTONE_TITLE:
@@ -160,10 +156,6 @@ public final class GitHubUtils {
     }
 
     private static boolean matchesMilestone(GHPullRequest pullRequest, GHMilestone milestone) {
-        if (milestone == ANY_MILESTONE) {
-            // we don't care if the PR has a milestone or if it's merged
-            return true;
-        }
         if (milestone == MERGED_MILESTONE) {
             // we don't care if the PR has a milestone at all
             return isMerged(pullRequest);
