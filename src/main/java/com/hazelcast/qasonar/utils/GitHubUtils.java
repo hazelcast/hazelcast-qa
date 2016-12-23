@@ -17,7 +17,6 @@
 package com.hazelcast.qasonar.utils;
 
 import org.kohsuke.github.GHContent;
-import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueState;
 import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHPullRequest;
@@ -122,16 +121,17 @@ public final class GitHubUtils {
     public static List<Integer> getPullRequests(GHRepository repo, GHMilestone milestone, Calendar calendar) {
         return (List<Integer>) execute(() -> {
             List<Integer> pullRequests = new ArrayList<>();
-            for (GHIssue issue : repo.listIssues(CLOSED)) {
-                if (!isMergedPullRequestOfMilestone(repo, issue, milestone)) {
+
+            for (GHPullRequest pullRequest : repo.getPullRequests(CLOSED)) {
+                if (!matchesMilestone(pullRequest, milestone)) {
                     continue;
                 }
                 if (isDebug()) {
-                    printDebugOutput(calendar, issue);
+                    printDebugOutput(calendar, pullRequest);
                 } else {
                     System.out.print('.');
                 }
-                pullRequests.add(issue.getNumber());
+                pullRequests.add(pullRequest.getNumber());
             }
             if (!isDebug()) {
                 System.out.println();
@@ -159,42 +159,34 @@ public final class GitHubUtils {
         });
     }
 
-    private static boolean isMergedPullRequestOfMilestone(GHRepository repo, GHIssue issue, GHMilestone milestone) {
-        if (!issue.isPullRequest()) {
-            return false;
-        }
+    private static boolean matchesMilestone(GHPullRequest pullRequest, GHMilestone milestone) {
         if (milestone == ANY_MILESTONE) {
             // we don't care if the PR has a milestone or if it's merged
             return true;
         }
         if (milestone == MERGED_MILESTONE) {
             // we don't care if the PR has a milestone at all
-            return isMerged(repo, issue);
+            return isMerged(pullRequest);
         }
-        GHMilestone prMilestone = issue.getMilestone();
+        GHMilestone prMilestone = pullRequest.getMilestone();
         if (milestone == ALL_MILESTONE) {
             // we don't care which milestone the PR has
-            return (prMilestone != null && isMerged(repo, issue));
+            return (prMilestone != null && isMerged(pullRequest));
         }
         if (milestone == NO_MILESTONE) {
             // the PR should not have a milestone
-            return (prMilestone == null && isMerged(repo, issue));
+            return (prMilestone == null && isMerged(pullRequest));
         }
         // the PR has to have the wanted milestone
-        return (prMilestone != null && prMilestone.getId() == milestone.getId() && isMerged(repo, issue));
+        return (prMilestone != null && prMilestone.getId() == milestone.getId() && isMerged(pullRequest));
     }
 
-    private static boolean isMerged(GHRepository repo, GHIssue issue) {
-        GHPullRequest pullRequest = getPullRequest(repo, issue.getNumber());
-        return isMerged(pullRequest);
-    }
-
-    private static void printDebugOutput(Calendar calendar, GHIssue issue) {
-        calendar.setTime(issue.getClosedAt());
+    private static void printDebugOutput(Calendar calendar, GHPullRequest pullRequest) {
+        calendar.setTime(pullRequest.getClosedAt());
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
         int day = calendar.get(Calendar.DAY_OF_MONTH);
-        debug(format("[%d-%02d-%02d] #%04d %s", year, month, day, issue.getNumber(), issue.getTitle()));
+        debug(format("[%d-%02d-%02d] #%04d %s", year, month, day, pullRequest.getNumber(), pullRequest.getTitle()));
     }
 
     private static Object execute(Callable callable) {
