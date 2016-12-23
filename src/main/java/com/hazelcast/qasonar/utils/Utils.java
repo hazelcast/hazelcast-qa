@@ -20,8 +20,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
 import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
@@ -213,20 +217,55 @@ public final class Utils {
         return uc.getInputStream();
     }
 
-    public static void writeToFile(String fileName, StringBuilder content) throws IOException {
-        File file = new File(fileName);
-        FileWriter fileWriter = new FileWriter(file);
-        BufferedWriter writer = new BufferedWriter(fileWriter);
-        writer.write(content.toString());
-        writer.flush();
-        writer.close();
+    public static String readFromFile(String fileName) throws IOException {
+        FileReader fileReader = null;
+        BufferedReader reader = null;
+        try {
+            StringBuilder content = new StringBuilder();
+            File file = new File(fileName);
+            fileReader = new FileReader(file);
+            reader = new BufferedReader(fileReader);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line);
+            }
+            return content.toString();
+        } finally {
+            closeQuietly(reader);
+            closeQuietly(fileReader);
+        }
     }
 
-    public static void sleepMillis(int millis) {
+    public static void writeToFile(String fileName, StringBuilder content) throws IOException {
+        FileWriter fileWriter = null;
+        BufferedWriter writer = null;
+        try {
+            File file = new File(fileName);
+            fileWriter = new FileWriter(file);
+            writer = new BufferedWriter(fileWriter);
+            writer.write(content.toString());
+            writer.flush();
+        } finally {
+            closeQuietly(writer);
+            closeQuietly(fileWriter);
+        }
+    }
+
+    static void sleepMillis(int millis) {
         try {
             TimeUnit.MILLISECONDS.sleep(millis);
         } catch (InterruptedException ignore) {
             Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void closeQuietly(Closeable closeable) {
+        try {
+            if (closeable != null) {
+                closeable.close();
+            }
+        } catch (IOException e) {
+            debugRed("Could not close resource! " + e.getMessage());
         }
     }
 }
