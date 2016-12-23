@@ -66,6 +66,10 @@ public enum Repository {
         this.suffixList = suffixList;
     }
 
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
     public boolean hasDefaultModule() {
         return (defaultModule != null);
     }

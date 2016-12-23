@@ -18,10 +18,12 @@ package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.Repository;
 import com.hazelcast.qasonar.utils.WhiteList;
 import com.hazelcast.qasonar.utils.WhiteListResult;
 import org.kohsuke.github.GHRepository;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
@@ -29,11 +31,14 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
+import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getFileContentsFromGitHub;
+import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
+import static com.hazelcast.qasonar.utils.Utils.readFromFile;
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
@@ -46,12 +51,28 @@ public class CodeCoverageAnalyzer {
     private final PropertyReader props;
     private final GHRepository repo;
     private final WhiteList whiteList;
+    private final String localGitRoot;
 
     public CodeCoverageAnalyzer(Map<String, FileContainer> files, PropertyReader props, GHRepository repo, WhiteList whiteList) {
         this.files = files;
         this.props = props;
         this.repo = repo;
         this.whiteList = whiteList;
+        this.localGitRoot = getLocalGitRoot(props, repo);
+    }
+
+    private String getLocalGitRoot(PropertyReader props, GHRepository repo) {
+        if (props.getLocalGitRoot() == null || props.getLocalGitRoot().isEmpty()) {
+            return null;
+        }
+        Repository repository = fromRepositoryName(repo.getName());
+        File localGitRoot = new File(props.getLocalGitRoot() + repository.getRepositoryName()).getAbsoluteFile();
+        if (!localGitRoot.isDirectory()) {
+            debugRed("Could not find local Git repository at: " + localGitRoot.getAbsolutePath());
+            return null;
+        }
+        debug("Using local Git repository at: " + localGitRoot);
+        return localGitRoot.getAbsolutePath() + File.separatorChar;
     }
 
     public Map<String, FileContainer> getFiles() {
@@ -129,7 +150,11 @@ public class CodeCoverageAnalyzer {
 
         String fileContents;
         try {
-            fileContents = getFileContentsFromGitHub(repo, gitFileName);
+            if (localGitRoot == null) {
+                fileContents = getFileContentsFromGitHub(repo, gitFileName);
+            } else {
+                fileContents = readFromFile(localGitRoot + gitFileName);
+            }
         } catch (FileNotFoundException ignored) {
             fileContainer.pass("deleted in newer PR");
             return;

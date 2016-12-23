@@ -60,6 +60,7 @@ public final class PropertyReaderBuilder {
 
             addProjectResourceIds(propertyReader, getProperty(props, "projectResourceIds"));
 
+            propertyReader.setLocalGitRoot(getProperty(props, "localGitRoot"));
             propertyReader.setGitHubRepository(getProperty(props, "gitHubRepository"));
 
             String minCodeCoverageString = getProperty(props, "minCodeCoverage");
