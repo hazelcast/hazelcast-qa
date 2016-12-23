@@ -18,31 +18,23 @@ package com.hazelcast.qasonar.listpullrequests;
 
 import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
-import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHMilestone;
-import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getMilestone;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequests;
 import static java.lang.String.format;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
-import static org.kohsuke.github.GHIssueState.CLOSED;
-import static org.kohsuke.github.GHIssueState.OPEN;
 
 public class ListPullRequests {
-
-    private static final String NO_MILESTONE_TITLE = "none";
-    private static final int NO_MILESTONE_ID = -1;
 
     private final Calendar calendar = Calendar.getInstance();
 
@@ -130,66 +122,5 @@ public class ListPullRequests {
             return null;
         }
         return scriptFile;
-    }
-
-    private static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
-        if (milestoneTitle.equals(NO_MILESTONE_TITLE)) {
-            return null;
-        }
-        for (GHMilestone milestoneEntry : repo.listMilestones(OPEN)) {
-            if (milestoneTitle.equals(milestoneEntry.getTitle())) {
-                return milestoneEntry;
-            }
-        }
-        for (GHMilestone milestoneEntry : repo.listMilestones(CLOSED)) {
-            if (milestoneTitle.equals(milestoneEntry.getTitle())) {
-                return milestoneEntry;
-            }
-        }
-        throw new IllegalStateException(format("Could not find milestone %s", milestoneTitle));
-    }
-
-    private static List<Integer> getPullRequests(GHRepository repo, GHMilestone milestone, Calendar calendar) throws IOException {
-        List<Integer> pullRequests = new ArrayList<>();
-        int milestoneId = (milestone == null) ? NO_MILESTONE_ID : milestone.getId();
-        for (GHIssue issue : repo.listIssues(CLOSED)) {
-            if (!isMergedPullRequestOfMilestone(issue, milestoneId, repo)) {
-                continue;
-            }
-            if (isDebug()) {
-                printDebugOutput(calendar, issue);
-            } else {
-                System.out.print('.');
-            }
-            pullRequests.add(issue.getNumber());
-        }
-        if (!isDebug()) {
-            System.out.println();
-        }
-        return pullRequests;
-    }
-
-    private static boolean isMergedPullRequestOfMilestone(GHIssue issue, int milestoneId, GHRepository repo) throws IOException {
-        if (!issue.isPullRequest()) {
-            return false;
-        }
-        GHMilestone issueMilestone = issue.getMilestone();
-        if (milestoneId > NO_MILESTONE_ID) {
-            if (issueMilestone == null || issueMilestone.getId() != milestoneId) {
-                return false;
-            }
-        } else if (issueMilestone != null) {
-            return false;
-        }
-        GHPullRequest pullRequest = repo.getPullRequest(issue.getNumber());
-        return pullRequest.isMerged();
-    }
-
-    private static void printDebugOutput(Calendar calendar, GHIssue issue) {
-        calendar.setTime(issue.getClosedAt());
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1;
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        debug(format("[%d-%02d-%02d] #%04d %s", year, month, day, issue.getNumber(), issue.getTitle()));
     }
 }
