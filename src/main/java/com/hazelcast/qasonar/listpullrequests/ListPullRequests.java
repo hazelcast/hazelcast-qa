@@ -28,6 +28,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
+import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getMilestone;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequests;
 import static java.lang.String.format;
@@ -61,13 +63,17 @@ public class ListPullRequests {
         GitHub github = GitHub.connect();
         GHRepository repo = github.getRepository(gitHubRepository);
 
-        System.out.println("Searching milestone...");
+        System.out.println(format("Searching milestone \"%s\"...", milestoneTitle));
         GHMilestone milestone = getMilestone(milestoneTitle, repo);
+        if (milestone == null) {
+            printRed("Could not find milestone \"%s\"!", milestoneTitle);
+            return;
+        }
 
-        System.out.println("Searching merged pull requests for milestone...");
+        System.out.println(format("Searching merged pull requests for milestone \"%s\"...", milestoneTitle));
         List<Integer> pullRequests = getPullRequests(repo, milestone, calendar);
 
-        System.out.println("Sorting result...");
+        System.out.println(format("Sorting %d PRs...", pullRequests.size()));
         pullRequests.sort(Integer::compareTo);
         String pullRequestString = pullRequests.stream()
                 .map(String::valueOf)
@@ -78,7 +84,7 @@ public class ListPullRequests {
                 optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile)
                 : format("No pull requests have been found for milestone %s in this repository!", milestone);
 
-        System.out.println("Done!");
+        printGreen("Done!");
         System.out.println();
         System.out.println(command);
 

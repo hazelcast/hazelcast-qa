@@ -45,12 +45,14 @@ public final class GitHubUtils {
     private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
     private static final int GITHUB_EXCEPTION_DELAY_MILLIS = 200;
 
-    private static final String ALL_MILESTONE_TITLE = "all";
-    private static final String MERGED_MILESTONE_TITLE = "merged";
-    private static final String NO_MILESTONE_TITLE = "none";
+    private static final String ANY_MILESTONE_TITLE = "ANY";
+    private static final String MERGED_MILESTONE_TITLE = "MERGED";
+    private static final String ALL_MILESTONE_TITLE = "ALL";
+    private static final String NO_MILESTONE_TITLE = "NONE";
 
-    private static final GHMilestone ALL_MILESTONE = new GHMilestone();
+    private static final GHMilestone ANY_MILESTONE = new GHMilestone();
     private static final GHMilestone MERGED_MILESTONE = new GHMilestone();
+    private static final GHMilestone ALL_MILESTONE = new GHMilestone();
     private static final GHMilestone NO_MILESTONE = new GHMilestone();
 
     private GitHubUtils() {
@@ -88,10 +90,12 @@ public final class GitHubUtils {
     public static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
         return (GHMilestone) execute(() -> {
             switch (milestoneTitle) {
-                case ALL_MILESTONE_TITLE:
-                    return ALL_MILESTONE;
+                case ANY_MILESTONE_TITLE:
+                    return ANY_MILESTONE;
                 case MERGED_MILESTONE_TITLE:
                     return MERGED_MILESTONE;
+                case ALL_MILESTONE_TITLE:
+                    return ALL_MILESTONE;
                 case NO_MILESTONE_TITLE:
                     return NO_MILESTONE;
                 default:
@@ -105,7 +109,7 @@ public final class GitHubUtils {
                             return milestoneEntry;
                         }
                     }
-                    throw new IllegalStateException(format("Could not find milestone %s", milestoneTitle));
+                    return null;
             }
         });
     }
@@ -119,7 +123,7 @@ public final class GitHubUtils {
         return (List<Integer>) execute(() -> {
             List<Integer> pullRequests = new ArrayList<>();
             for (GHIssue issue : repo.listIssues(CLOSED)) {
-                if (!isMergedPullRequestOfMilestone(issue, milestone, repo)) {
+                if (!isMergedPullRequestOfMilestone(repo, issue, milestone)) {
                     continue;
                 }
                 if (isDebug()) {
@@ -155,16 +159,20 @@ public final class GitHubUtils {
         });
     }
 
-    private static boolean isMergedPullRequestOfMilestone(GHIssue issue, GHMilestone milestone, GHRepository repo) {
+    private static boolean isMergedPullRequestOfMilestone(GHRepository repo, GHIssue issue, GHMilestone milestone) {
         if (!issue.isPullRequest()) {
             return false;
         }
-        if (milestone == ALL_MILESTONE) {
+        if (milestone == ANY_MILESTONE) {
+            // we don't care if the PR has a milestone or if it's merged
+            return true;
+        }
+        if (milestone == MERGED_MILESTONE) {
             // we don't care if the PR has a milestone at all
             return isMerged(repo, issue);
         }
         GHMilestone prMilestone = issue.getMilestone();
-        if (milestone == MERGED_MILESTONE) {
+        if (milestone == ALL_MILESTONE) {
             // we don't care which milestone the PR has
             return (prMilestone != null && isMerged(repo, issue));
         }
