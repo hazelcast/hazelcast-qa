@@ -70,7 +70,7 @@ public class ListPullRequests {
             return;
         }
 
-        System.out.println(format("Searching merged pull requests for milestone \"%s\"...", milestoneTitle));
+        System.out.println(format("Searching merged PRs for milestone \"%s\"...", milestoneTitle));
         List<Integer> pullRequests = getPullRequests(repo, milestone, calendar);
 
         System.out.println(format("Sorting %d PRs...", pullRequests.size()));
@@ -82,7 +82,7 @@ public class ListPullRequests {
         String command = (pullRequests.size() > 0)
                 ? format("qa-sonar%s%s%s --pullRequests %s --outputFile %s%n",
                 optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile)
-                : format("No pull requests have been found for milestone %s in this repository!", milestone);
+                : format("No PRs have been found for milestone %s in this repository!", milestone);
 
         printGreen("Done!");
         System.out.println();
