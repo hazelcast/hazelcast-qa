@@ -266,7 +266,7 @@ public class CodeCoverageReader {
         fileContainer.gitHubChanges = pullRequestFile.getChanges();
         fileContainer.gitHubAdditions = pullRequestFile.getAdditions();
         fileContainer.gitHubDeletions = pullRequestFile.getDeletions();
-        fileContainer.ideaCoverage = getIdeaCoverage(gitFileName);
+        fileContainer.ideaCoverage = getIdeaCoverage(gitFileName, status);
         return fileContainer;
     }
 
@@ -280,7 +280,7 @@ public class CodeCoverageReader {
         return (resources.get(module) == null);
     }
 
-    private double getIdeaCoverage(String fileName) {
+    private double getIdeaCoverage(String fileName, GitHubStatus status) {
         if (!fileName.endsWith(".java")) {
             return 0;
         }
@@ -288,7 +288,7 @@ public class CodeCoverageReader {
             return 0;
         }
 
-        int beginIndex = getIndexOfFullyQualifiedClassName(fileName);
+        int beginIndex = getIndexOfFullyQualifiedClassName(fileName, status);
         if (beginIndex == -1) {
             return 0;
         }
@@ -298,18 +298,19 @@ public class CodeCoverageReader {
         return (coverage == null) ? 0 : coverage;
     }
 
-    private int getIndexOfFullyQualifiedClassName(String fileName) {
+    private int getIndexOfFullyQualifiedClassName(String fileName, GitHubStatus status) {
         int beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "com/hazelcast");
         if (beginIndex == -1) {
             beginIndex = getBeginIndexFromPathOrDefaultModule(fileName, "com.hazelcast");
         }
         if (beginIndex == -1) {
             if (props.isDefaultModuleSet()) {
-                printRed("Filename doesn't contain com/hazelcast or %s: %s", props.getDefaultModule(), fileName);
+                printRed("Filename doesn't contain com/hazelcast or %s: %s (%s)", props.getDefaultModule(), fileName, status);
             } else if (repository.hasDefaultModule()) {
-                printRed("Filename doesn't contain com/hazelcast or %s: %s", repository.getDefaultModule(), fileName);
+                printRed("Filename doesn't contain com/hazelcast or %s: %s (%s)", repository.getDefaultModule(), fileName,
+                        status);
             } else {
-                printRed("Filename doesn't contain com/hazelcast: %s", fileName);
+                printRed("Filename doesn't contain com/hazelcast: %s (%s)", fileName, status);
             }
         }
         return beginIndex;
