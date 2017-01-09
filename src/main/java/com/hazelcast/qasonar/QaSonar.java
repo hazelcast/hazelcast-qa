@@ -57,7 +57,7 @@ public final class QaSonar {
                 break;
 
             case IDEA_CONVERTER:
-                IdeaConverter converter = new IdeaConverter();
+                IdeaConverter converter = new IdeaConverter(propertyReader);
                 converter.run();
                 break;
 

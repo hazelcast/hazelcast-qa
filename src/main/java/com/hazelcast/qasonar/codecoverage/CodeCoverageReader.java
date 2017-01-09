@@ -123,14 +123,17 @@ public class CodeCoverageReader {
         }
 
         List<String> lines = readAllLines(path);
-        debug("Adding %d classes from IDEA coverage report...", lines.size());
-
         for (String line : lines) {
             String[] lineArray = line.split(";");
-            String fileName = lineArray[0];
-            Double coverage = Double.valueOf(lineArray[1]);
-            ideaCoverage.put(fileName, coverage);
+            String repoName = lineArray[0];
+            if (repository.getRepositoryName().equals(repoName)) {
+                String fileName = lineArray[1];
+                Double coverage = Double.valueOf(lineArray[2]);
+                ideaCoverage.put(fileName, coverage);
+            }
         }
+
+        debug("Added %d/%d classes from IDEA coverage report...", ideaCoverage.size(), lines.size());
     }
 
     private void addPullRequest(int gitPullRequest) throws IOException {

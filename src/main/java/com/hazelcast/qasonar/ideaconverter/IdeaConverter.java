@@ -17,6 +17,8 @@
 package com.hazelcast.qasonar.ideaconverter;
 
 import com.hazelcast.qasonar.utils.FileFinder;
+import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.qasonar.utils.Repository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -30,6 +32,7 @@ import java.util.Collection;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
+import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.Files.write;
@@ -37,6 +40,13 @@ import static java.nio.file.Files.write;
 public class IdeaConverter {
 
     public static final String OUTPUT_FILENAME = "idea-coverage.csv";
+
+    private final String repositoryName;
+
+    public IdeaConverter(PropertyReader propertyReader) {
+        Repository repository = fromRepositoryName(propertyReader.getGitHubRepository());
+        this.repositoryName = repository.getRepositoryName();
+    }
 
     public void run() {
         try {
@@ -62,7 +72,7 @@ public class IdeaConverter {
                     String className = tableColumns.first().getElementsByTag("a").text();
                     String lineCoverageString = tableColumns.last().getElementsByClass("percent").text().trim();
                     double lineCoverage = Double.valueOf(lineCoverageString.substring(0, lineCoverageString.length() - 1));
-                    sb.append(format("%s.%s.java;%.1f%n", packageName, className, lineCoverage));
+                    sb.append(format("%s;%s.%s.java;%.1f%n", repositoryName, packageName, className, lineCoverage));
                     parsedClasses++;
                 }
             }

@@ -38,7 +38,8 @@ import static java.nio.file.Files.write;
 
 public class CsvMerge {
 
-    private final Map<String, Double> ideaCoverage = new HashMap<>();
+    // repository name -> filename -> idea coverage
+    private final Map<String, Map<String, Double>> coverageMap = new HashMap<>();
 
     public void run() throws IOException {
         FileFinder finder = new FileFinder("*.csv");
@@ -51,19 +52,23 @@ public class CsvMerge {
             List<String> lines = readAllLines(file);
             for (String line : lines) {
                 String[] lineArray = line.split(";");
-                String fileName = lineArray[0];
-                Double coverage = Double.valueOf(lineArray[1]);
-                Double oldCoverage = ideaCoverage.get(fileName);
+                String repoName = lineArray[0];
+                String fileName = lineArray[1];
+                Double coverage = Double.valueOf(lineArray[2]);
+
+                Map<String, Double> repoMap = coverageMap.computeIfAbsent(repoName, k -> new HashMap<>());
+
+                Double oldCoverage = repoMap.get(fileName);
                 if (oldCoverage == null) {
-                    ideaCoverage.put(fileName, coverage);
+                    repoMap.put(fileName, coverage);
                 } else if (coverage > oldCoverage) {
                     debug("Replaced coverage %.1f with %.1f for class %s", oldCoverage, coverage, fileName);
-                    ideaCoverage.put(fileName, coverage);
+                    repoMap.put(fileName, coverage);
                 }
             }
         }
 
-        int classCount = ideaCoverage.size();
+        int classCount = coverageMap.size();
         print("Merged coverage data for %d classes...", classCount);
         if (classCount == 0) {
             printYellow("Nothing to store, we're done!");
@@ -72,8 +77,11 @@ public class CsvMerge {
 
         print("Storing results...");
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Double> coverageEntry : ideaCoverage.entrySet()) {
-            sb.append(format("%s;%.1f%n", coverageEntry.getKey(), coverageEntry.getValue()));
+        for (Map.Entry<String, Map<String, Double>> repoMap : coverageMap.entrySet()) {
+            String repoName = repoMap.getKey();
+            for (Map.Entry<String, Double> coverageEntry : repoMap.getValue().entrySet()) {
+                sb.append(format("%s;%s;%.1f%n", repoName, coverageEntry.getKey(), coverageEntry.getValue()));
+            }
         }
         write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
 
