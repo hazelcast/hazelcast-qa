@@ -39,7 +39,7 @@ public final class DebugUtils {
 
     public static void debug(String msg, Object... parameters) {
         if (isDebug()) {
-            print(format(msg, parameters));
+            print(msg, parameters);
         }
     }
 
@@ -62,7 +62,7 @@ public final class DebugUtils {
     }
 
     public static void print(String msg, Object... parameters) {
-        System.out.println(format(msg, parameters));
+        printColor(null, msg, parameters);
     }
 
     public static void printGreen(String msg, Object... parameters) {
@@ -78,7 +78,13 @@ public final class DebugUtils {
     }
 
     private static void printColor(Color color, String msg, Object... parameters) {
-        System.out.println(ansi().fg(color).a(format(msg, parameters)).reset().toString());
+        if (parameters.length > 0) {
+            msg = format(msg, parameters);
+        }
+        if (color != null) {
+            msg = ansi().fg(color).a(msg).reset().toString();
+        }
+        System.out.println(msg);
     }
 
     public static void debugCommandLine(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
