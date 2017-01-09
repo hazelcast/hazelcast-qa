@@ -57,7 +57,7 @@ public class CsvMerge {
                 if (oldCoverage == null) {
                     ideaCoverage.put(fileName, coverage);
                 } else if (coverage > oldCoverage) {
-                    debug(format("Replaced coverage %.1f with %.1f for class %s", oldCoverage, coverage, fileName));
+                    debug("Replaced coverage %.1f with %.1f for class %s", oldCoverage, coverage, fileName);
                     ideaCoverage.put(fileName, coverage);
                 }
             }

@@ -84,7 +84,7 @@ public class CodeCoverageReader {
         populateIdeaCoverage();
 
         for (Integer pullRequest : pullRequests) {
-            debug(format("Adding pull request %d...", pullRequest));
+            debug("Adding pull request %d...", pullRequest);
             addPullRequest(pullRequest);
         }
     }
@@ -123,7 +123,7 @@ public class CodeCoverageReader {
         }
 
         List<String> lines = readAllLines(path);
-        debug(format("Adding %d classes from IDEA coverage report...", lines.size()));
+        debug("Adding %d classes from IDEA coverage report...", lines.size());
 
         for (String line : lines) {
             String[] lineArray = line.split(";");

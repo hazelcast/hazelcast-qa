@@ -34,7 +34,6 @@ import java.util.concurrent.Callable;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
 import static com.hazelcast.qasonar.utils.Utils.sleepMillis;
-import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.kohsuke.github.GHIssueState.CLOSED;
 import static org.kohsuke.github.GHIssueState.OPEN;
@@ -178,7 +177,7 @@ public final class GitHubUtils {
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
         int day = calendar.get(Calendar.DAY_OF_MONTH);
-        debug(format("[%d-%02d-%02d] #%04d %s", year, month, day, pullRequest.getNumber(), pullRequest.getTitle()));
+        debug("[%d-%02d-%02d] #%04d %s", year, month, day, pullRequest.getNumber(), pullRequest.getTitle());
     }
 
     private static Object execute(Callable callable) {
