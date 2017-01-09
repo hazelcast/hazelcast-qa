@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getMilestone;
@@ -59,21 +60,21 @@ public class ListPullRequests {
     }
 
     public void run() throws IOException {
-        System.out.println("Connecting to GitHub...");
+        print("Connecting to GitHub...");
         GitHub github = GitHub.connect();
         GHRepository repo = github.getRepository(gitHubRepository);
 
-        System.out.println(format("Searching milestone \"%s\"...", milestoneTitle));
+        print("Searching milestone \"%s\"...", milestoneTitle);
         GHMilestone milestone = getMilestone(milestoneTitle, repo);
         if (milestone == null) {
             printRed("Could not find milestone \"%s\"!", milestoneTitle);
             return;
         }
 
-        System.out.println(format("Searching merged PRs for milestone \"%s\"...", milestoneTitle));
+        print("Searching merged PRs for milestone \"%s\"...", milestoneTitle);
         List<Integer> pullRequests = getPullRequests(repo, milestone, calendar);
 
-        System.out.println(format("Sorting %d PRs...", pullRequests.size()));
+        print("Sorting %d PRs...", pullRequests.size());
         pullRequests.sort(Integer::compareTo);
         String pullRequestString = pullRequests.stream()
                 .map(String::valueOf)
@@ -84,9 +85,8 @@ public class ListPullRequests {
                 optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile)
                 : format("No PRs have been found for milestone %s in this repository!", milestone);
 
-        printGreen("Done!");
-        System.out.println();
-        System.out.println(command);
+        printGreen("Done!\n");
+        print(command);
 
         if (scriptFile != null && pullRequests.size() > 0) {
             File file = new File(scriptFile);

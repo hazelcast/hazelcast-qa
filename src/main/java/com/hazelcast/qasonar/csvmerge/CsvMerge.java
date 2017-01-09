@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
+import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.printYellow;
 import static java.lang.String.format;
@@ -44,7 +45,7 @@ public class CsvMerge {
         walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
         Collection<Path> matchedFiles = finder.getMatchedPaths();
-        System.out.println(format("Merging %d CSV files...", matchedFiles.size()));
+        print("Merging %d CSV files...", matchedFiles.size());
 
         for (Path file : matchedFiles) {
             List<String> lines = readAllLines(file);
@@ -63,13 +64,13 @@ public class CsvMerge {
         }
 
         int classCount = ideaCoverage.size();
-        System.out.println(format("Merged coverage data for %d classes...", classCount));
+        print("Merged coverage data for %d classes...", classCount);
         if (classCount == 0) {
             printYellow("Nothing to store, we're done!");
             return;
         }
 
-        System.out.println("Storing results...");
+        print("Storing results...");
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Double> coverageEntry : ideaCoverage.entrySet()) {
             sb.append(format("%s;%.1f%n", coverageEntry.getKey(), coverageEntry.getValue()));

@@ -23,6 +23,7 @@ import com.hazelcast.qasonar.utils.PropertyReader;
 
 import java.io.IOException;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
@@ -52,6 +53,6 @@ public class ListProjects {
             separator = "\n";
         }
 
-        System.out.println(sb.toString());
+        print(sb.toString());
     }
 }

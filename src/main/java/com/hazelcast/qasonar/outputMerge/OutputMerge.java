@@ -28,11 +28,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.DebugUtils.printYellow;
 import static com.hazelcast.qasonar.utils.Utils.writeToFile;
-import static java.lang.String.format;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
 
@@ -62,13 +62,13 @@ public class OutputMerge {
             printYellow("Found just a single file, are you sure you need to merge it?");
         }
 
-        System.out.println(format("Merging %d txt files...", matchedFilesNumber));
+        print("Merging %d txt files...", matchedFilesNumber);
         StringBuilder sb = mergeFiles(outputFile, matchedFiles);
         if (sb == null) {
             return;
         }
 
-        System.out.println("Creating new output file...");
+        print("Creating new output file...");
         writeMergedFile(outputFile, sb);
 
         printGreen("Done!\n");
@@ -85,7 +85,7 @@ public class OutputMerge {
                 continue;
             }
 
-            System.out.println("Parsing " + fileName + "...");
+            print("Parsing %s...", fileName);
 
             Repository repository = null;
             int suffixPos = baseName.lastIndexOf('-');

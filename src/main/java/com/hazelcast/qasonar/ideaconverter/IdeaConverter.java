@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
+import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
@@ -45,7 +46,7 @@ public class IdeaConverter {
             walkFileTree(Paths.get("").toAbsolutePath(), finder);
 
             Collection<Path> matchedFiles = finder.getMatchedPaths();
-            System.out.println(format("Parsing classes from %d report files...", matchedFiles.size()));
+            print("Parsing classes from %d report files...", matchedFiles.size());
 
             StringBuilder sb = new StringBuilder();
             for (Path file : matchedFiles) {
@@ -65,9 +66,9 @@ public class IdeaConverter {
                     parsedClasses++;
                 }
             }
-            System.out.println(format("Successfully parsed %d classes!", parsedClasses));
+            print("Successfully parsed %d classes!", parsedClasses);
 
-            System.out.println(format("Writing data to %s...", OUTPUT_FILENAME));
+            print("Writing data to %s...", OUTPUT_FILENAME);
             write(Paths.get(OUTPUT_FILENAME), sb.toString().getBytes());
 
             printGreen("Done!");

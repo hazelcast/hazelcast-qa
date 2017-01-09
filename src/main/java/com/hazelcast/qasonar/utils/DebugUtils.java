@@ -16,8 +16,9 @@
 
 package com.hazelcast.qasonar.utils;
 
-import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.Ansi.Color;
 
+import static com.hazelcast.qasonar.utils.Utils.appendCommandLine;
 import static java.lang.String.format;
 import static org.fusesource.jansi.Ansi.ansi;
 
@@ -36,50 +37,54 @@ public final class DebugUtils {
         DebugUtils.debug = debug;
     }
 
-    public static void debug(String msg) {
+    public static void debug(String msg, Object... parameters) {
         if (isDebug()) {
-            System.out.println(msg);
+            print(format(msg, parameters));
         }
     }
 
     public static void debugGreen(String msg, Object... parameters) {
-        debugColor(Ansi.Color.GREEN, msg, parameters);
+        debugColor(Color.GREEN, msg, parameters);
     }
 
     public static void debugYellow(String msg, Object... parameters) {
-        debugColor(Ansi.Color.YELLOW, msg, parameters);
+        debugColor(Color.YELLOW, msg, parameters);
     }
 
     public static void debugRed(String msg, Object... parameters) {
-        debugColor(Ansi.Color.RED, msg, parameters);
+        debugColor(Color.RED, msg, parameters);
     }
 
-    private static void debugColor(Ansi.Color color, String msg, Object... parameters) {
+    private static void debugColor(Color color, String msg, Object... parameters) {
         if (isDebug()) {
             printColor(color, msg, parameters);
         }
     }
 
+    public static void print(String msg, Object... parameters) {
+        System.out.println(format(msg, parameters));
+    }
+
     public static void printGreen(String msg, Object... parameters) {
-        printColor(Ansi.Color.GREEN, msg, parameters);
+        printColor(Color.GREEN, msg, parameters);
     }
 
     public static void printYellow(String msg, Object... parameters) {
-        printColor(Ansi.Color.YELLOW, msg, parameters);
+        printColor(Color.YELLOW, msg, parameters);
     }
 
     public static void printRed(String msg, Object... parameters) {
-        printColor(Ansi.Color.RED, msg, parameters);
+        printColor(Color.RED, msg, parameters);
     }
 
-    private static void printColor(Ansi.Color color, String msg, Object... parameters) {
+    private static void printColor(Color color, String msg, Object... parameters) {
         System.out.println(ansi().fg(color).a(format(msg, parameters)).reset().toString());
     }
 
     public static void debugCommandLine(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         if (isDebug()) {
             StringBuilder sb = new StringBuilder();
-            Utils.appendCommandLine(propertyReader, sb, commandLineOptions.getPullRequests(), true);
+            appendCommandLine(propertyReader, sb, commandLineOptions.getPullRequests(), true);
             debug(sb.toString());
         }
     }

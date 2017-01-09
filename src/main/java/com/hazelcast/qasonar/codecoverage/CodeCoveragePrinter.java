@@ -22,6 +22,7 @@ import com.hazelcast.qasonar.utils.PropertyReader;
 import java.io.IOException;
 import java.util.Map;
 
+import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.Utils.writeToFile;
 
 public class CodeCoveragePrinter {
@@ -42,7 +43,7 @@ public class CodeCoveragePrinter {
         if (outputFile != null) {
             writeToFile(outputFile, printer.run());
         } else {
-            System.out.println(printer.run().toString());
+            print(printer.run().toString());
         }
     }
 }
