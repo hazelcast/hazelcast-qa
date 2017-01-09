@@ -30,7 +30,6 @@ import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
 import com.hazelcast.qasonar.utils.WhiteList;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 
@@ -38,6 +37,7 @@ import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugCommandLine;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.setDebug;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getGitHubRepository;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
 
 public final class QaSonar {
@@ -88,8 +88,7 @@ public final class QaSonar {
                 WhiteList whiteList = fromJsonFile();
 
                 debug("Connecting to GitHub...");
-                GitHub github = GitHub.connect();
-                GHRepository repo = github.getRepository(propertyReader.getGitHubRepository());
+                GHRepository repo = getGitHubRepository(propertyReader);
 
                 debug("Reading code coverage data for %d PRs...", cliOptions.getPullRequests().size());
                 JsonDownloader jsonDownloader = new JsonDownloader(propertyReader);

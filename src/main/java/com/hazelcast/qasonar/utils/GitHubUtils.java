@@ -23,6 +23,7 @@ import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
+import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -52,6 +53,13 @@ public final class GitHubUtils {
     private static final String NO_MILESTONE_TITLE = "NONE";
 
     private GitHubUtils() {
+    }
+
+    public static GHRepository getGitHubRepository(PropertyReader propertyReader) {
+        return (GHRepository) execute(() -> {
+            GitHub github = GitHub.connect();
+            return github.getRepository(propertyReader.getGitHubRepository());
+        });
     }
 
     public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
