@@ -84,6 +84,10 @@ public enum Repository {
     }
 
     public static Repository fromRepositoryName(String name) {
+        int nameIndex = name.lastIndexOf('/');
+        if (nameIndex != -1) {
+            name = name.substring(nameIndex + 1);
+        }
         for (Repository repository : values()) {
             if (repository.repositoryName.equals(name)) {
                 return repository;
