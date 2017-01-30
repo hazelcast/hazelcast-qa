@@ -21,6 +21,7 @@ import com.hazelcast.qasonar.utils.FileFinder;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -51,19 +52,27 @@ public class CsvMerge {
         for (Path file : matchedFiles) {
             List<String> lines = readAllLines(file);
             for (String line : lines) {
-                String[] lineArray = line.split(";");
-                String repoName = lineArray[0];
-                String fileName = lineArray[1];
-                Double coverage = Double.valueOf(lineArray[2]);
+                String[] lineArray = null;
+                try {
+                    lineArray = line.split(";");
+                    String repoName = lineArray[0];
+                    String fileName = lineArray[1];
+                    Double coverage = Double.valueOf(lineArray[2]);
 
-                Map<String, Double> repoMap = coverageMap.computeIfAbsent(repoName, k -> new HashMap<>());
+                    Map<String, Double> repoMap = coverageMap.computeIfAbsent(repoName, k -> new HashMap<>());
 
-                Double oldCoverage = repoMap.get(fileName);
-                if (oldCoverage == null) {
-                    repoMap.put(fileName, coverage);
-                } else if (coverage > oldCoverage) {
-                    debug("Replaced coverage %.1f with %.1f for class %s", oldCoverage, coverage, fileName);
-                    repoMap.put(fileName, coverage);
+                    Double oldCoverage = repoMap.get(fileName);
+                    if (oldCoverage == null) {
+                        repoMap.put(fileName, coverage);
+                    } else if (coverage > oldCoverage) {
+                        debug("Replaced coverage %.1f with %.1f for class %s", oldCoverage, coverage, fileName);
+                        repoMap.put(fileName, coverage);
+                    }
+                } catch (Exception e) {
+                    System.err.println("File: " + file);
+                    System.err.println("Line: " + line);
+                    System.err.println("Array: " + Arrays.toString(lineArray));
+                    throw e;
                 }
             }
         }
