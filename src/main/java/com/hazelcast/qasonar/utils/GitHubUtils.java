@@ -25,6 +25,7 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -75,6 +76,8 @@ public final class GitHubUtils {
                 copy(fileContent.read(), writer);
 
                 return writer.toString();
+            } catch (FileNotFoundException e) {
+                throw e;
             } catch (IOException e) {
                 exception = e;
             }
