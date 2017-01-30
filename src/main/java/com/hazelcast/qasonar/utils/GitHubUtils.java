@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
@@ -51,6 +52,8 @@ public final class GitHubUtils {
     private static final String MERGED_MILESTONE_TITLE = "MERGED";
     private static final String ALL_MILESTONE_TITLE = "ALL";
     private static final String NO_MILESTONE_TITLE = "NONE";
+
+    private static final AtomicInteger EXCEPTION_COUNTER = new AtomicInteger();
 
     private GitHubUtils() {
     }
@@ -192,8 +195,14 @@ public final class GitHubUtils {
         while (true) {
             try {
                 return callable.call();
-            } catch (Throwable ignored) {
-                sleepMillis(GITHUB_EXCEPTION_DELAY_MILLIS);
+            } catch (Throwable t) {
+                int counter = EXCEPTION_COUNTER.incrementAndGet();
+                if (counter % 10 == 0) {
+                    counter = 0;
+                    EXCEPTION_COUNTER.set(0);
+                    t.printStackTrace();
+                }
+                sleepMillis(GITHUB_EXCEPTION_DELAY_MILLIS * counter);
             }
         }
     }
