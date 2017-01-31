@@ -49,6 +49,7 @@ public final class GitHubUtils {
 
     private static final int GITHUB_FILE_DOWNLOAD_RETRIES = 10;
     private static final int GITHUB_EXCEPTION_DELAY_MILLIS = 200;
+    private static final int GITHUB_EXCEPTION_LOG_FREQUENCY = 10;
 
     private static final String MERGED_MILESTONE_TITLE = "MERGED";
     private static final String ALL_MILESTONE_TITLE = "ALL";
@@ -200,7 +201,7 @@ public final class GitHubUtils {
                 return callable.call();
             } catch (Throwable t) {
                 int counter = EXCEPTION_COUNTER.incrementAndGet();
-                if (counter % 10 == 0) {
+                if (counter % GITHUB_EXCEPTION_LOG_FREQUENCY == 0) {
                     counter = 0;
                     EXCEPTION_COUNTER.set(0);
                     t.printStackTrace();
