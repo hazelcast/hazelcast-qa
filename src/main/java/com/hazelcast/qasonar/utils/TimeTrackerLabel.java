@@ -27,5 +27,6 @@ public enum TimeTrackerLabel {
     IS_MERGED,
     IS_CLOSED,
     GET_PULL_REQUEST_FILES,
-    GET_JSON_ARRAY_FROM_QUERY,
+    GET_RESOURCES,
+    GET_RESOURCE_METRICS,
 }

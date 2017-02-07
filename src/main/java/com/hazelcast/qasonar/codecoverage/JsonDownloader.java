@@ -34,10 +34,11 @@ class JsonDownloader {
         this.basicAuthString = getBasicAuthString(props.getUsername(), props.getPassword());
     }
 
-    JsonArray getJsonArrayFromQuery(String query) throws IOException {
+    JsonArray getJsonArrayFromQuery(TimeTrackerLabel label, String query) throws IOException {
         long started = System.nanoTime();
         JsonArray jsonArray = getJsonElementsFromQuery(basicAuthString, query);
-        record(TimeTrackerLabel.GET_JSON_ARRAY_FROM_QUERY, System.nanoTime() - started);
+        record(label, System.nanoTime() - started);
+
         return jsonArray;
     }
 }

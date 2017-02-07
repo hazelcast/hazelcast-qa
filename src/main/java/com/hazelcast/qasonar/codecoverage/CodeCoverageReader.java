@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.hazelcast.qasonar.utils.GitHubStatus;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.Repository;
+import com.hazelcast.qasonar.utils.TimeTrackerLabel;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -97,7 +98,7 @@ class CodeCoverageReader {
     private void populateResourcesMap() throws IOException {
         for (String resourceId : props.getProjectResourceIds()) {
             String query = format("https://%s/api/resources?format=json&resource=%s&depth=-1", props.getHost(), resourceId);
-            JsonArray array = jsonDownloader.getJsonArrayFromQuery(query);
+            JsonArray array = jsonDownloader.getJsonArrayFromQuery(TimeTrackerLabel.GET_RESOURCES, query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
                 if (!"FIL".equals(resource.get("scope").getAsString())) {
@@ -171,7 +172,7 @@ class CodeCoverageReader {
             }
 
             String query = format("https://%s/api/resources?resource=%s&metrics=%s", props.getHost(), resourceId, METRICS_LIST);
-            JsonArray array = jsonDownloader.getJsonArrayFromQuery(query);
+            JsonArray array = jsonDownloader.getJsonArrayFromQuery(TimeTrackerLabel.GET_RESOURCE_METRICS, query);
             for (JsonElement jsonElement : array) {
                 JsonObject resource = jsonElement.getAsJsonObject();
 
