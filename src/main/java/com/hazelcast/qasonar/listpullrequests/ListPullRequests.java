@@ -33,6 +33,7 @@ import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getMilestone;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequests;
+import static com.hazelcast.qasonar.utils.TimeTracker.printTimeTracks;
 import static java.lang.String.format;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;
@@ -93,6 +94,8 @@ public class ListPullRequests {
             String script = readFileToString(file);
             writeStringToFile(file, format("%s%s%n", script, command));
         }
+
+        printTimeTracks();
     }
 
     private static String getOptionalParameters(String optionalParameters) {

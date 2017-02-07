@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
+import static com.hazelcast.qasonar.utils.TimeTracker.record;
 import static com.hazelcast.qasonar.utils.Utils.sleepMillis;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.kohsuke.github.GHIssueState.CLOSED;
@@ -61,34 +62,39 @@ public final class GitHubUtils {
     }
 
     public static GHRepository getGitHubRepository(PropertyReader propertyReader) {
-        return (GHRepository) execute(() -> {
+        return (GHRepository) execute(TimeTrackerLabel.GET_GITHUB_REPOSITORY, () -> {
             GitHub github = GitHub.connect();
             return github.getRepository(propertyReader.getGitHubRepository());
         });
     }
 
     public static String getFileContentsFromGitHub(GHRepository repo, String fileName) throws IOException {
-        IOException exception = null;
-        for (int i = 0; i < GITHUB_FILE_DOWNLOAD_RETRIES; i++) {
-            try {
-                GHContent fileContent = repo.getFileContent(fileName);
+        long started = System.nanoTime();
+        try {
+            IOException exception = null;
+            for (int i = 0; i < GITHUB_FILE_DOWNLOAD_RETRIES; i++) {
+                try {
+                    GHContent fileContent = repo.getFileContent(fileName);
 
-                StringWriter writer = new StringWriter();
-                copy(fileContent.read(), writer);
+                    StringWriter writer = new StringWriter();
+                    copy(fileContent.read(), writer);
 
-                return writer.toString();
-            } catch (FileNotFoundException e) {
-                throw e;
-            } catch (IOException e) {
-                exception = e;
+                    return writer.toString();
+                } catch (FileNotFoundException e) {
+                    throw e;
+                } catch (IOException e) {
+                    exception = e;
+                }
+                sleepMillis(GITHUB_EXCEPTION_DELAY_MILLIS * (i + 1));
             }
-            sleepMillis(GITHUB_EXCEPTION_DELAY_MILLIS * (i + 1));
+            throw exception;
+        } finally {
+            record(TimeTrackerLabel.GET_FILE_CONTENTS_FROM_GITHUB, System.nanoTime() - started);
         }
-        throw exception;
     }
 
     public static String getAuthor(GHRepository repo, int gitPullRequest) {
-        return (String) execute(() -> {
+        return (String) execute(TimeTrackerLabel.GET_AUTHOR, () -> {
             GHUser user = repo.getIssue(gitPullRequest).getUser();
             String author = user.getName();
             if (author != null) {
@@ -99,7 +105,7 @@ public final class GitHubUtils {
     }
 
     public static GHMilestone getMilestone(String milestoneTitle, GHRepository repo) {
-        return (GHMilestone) execute(() -> {
+        return (GHMilestone) execute(TimeTrackerLabel.GET_MILESTONE, () -> {
             switch (milestoneTitle) {
                 case MERGED_MILESTONE_TITLE:
                     return MERGED_MILESTONE;
@@ -124,12 +130,12 @@ public final class GitHubUtils {
     }
 
     public static GHPullRequest getPullRequest(GHRepository repo, int gitPullRequest) {
-        return (GHPullRequest) execute(() -> repo.getPullRequest(gitPullRequest));
+        return (GHPullRequest) execute(TimeTrackerLabel.GET_PULL_REQUEST, () -> repo.getPullRequest(gitPullRequest));
     }
 
     @SuppressWarnings("unchecked")
     public static List<Integer> getPullRequests(GHRepository repo, GHMilestone milestone, Calendar calendar) {
-        return (List<Integer>) execute(() -> {
+        return (List<Integer>) execute(TimeTrackerLabel.GET_PULL_REQUESTS, () -> {
             List<Integer> pullRequests = new ArrayList<>();
 
             for (GHPullRequest pullRequest : repo.getPullRequests(CLOSED)) {
@@ -151,16 +157,16 @@ public final class GitHubUtils {
     }
 
     public static boolean isMerged(GHPullRequest pullRequest) {
-        return (boolean) execute(pullRequest::isMerged);
+        return (boolean) execute(TimeTrackerLabel.IS_MERGED, pullRequest::isMerged);
     }
 
     public static boolean isClosed(GHPullRequest pullRequest) {
-        return (boolean) execute(() -> pullRequest.getState().equals(GHIssueState.CLOSED));
+        return (boolean) execute(TimeTrackerLabel.IS_CLOSED, () -> pullRequest.getState().equals(GHIssueState.CLOSED));
     }
 
     @SuppressWarnings("unchecked")
     public static List<GHPullRequestFileDetail> getPullRequestFiles(GHPullRequest pullRequest) {
-        return (List<GHPullRequestFileDetail>) execute(() -> {
+        return (List<GHPullRequestFileDetail>) execute(TimeTrackerLabel.GET_PULL_REQUEST_FILES, () -> {
             List<GHPullRequestFileDetail> files = new ArrayList<>();
             for (GHPullRequestFileDetail pullRequestFile : pullRequest.listFiles()) {
                 files.add(pullRequestFile);
@@ -195,19 +201,24 @@ public final class GitHubUtils {
         debug("[%d-%02d-%02d] #%04d %s", year, month, day, pullRequest.getNumber(), pullRequest.getTitle());
     }
 
-    private static Object execute(Callable callable) {
-        while (true) {
-            try {
-                return callable.call();
-            } catch (Throwable t) {
-                int counter = EXCEPTION_COUNTER.incrementAndGet();
-                if (counter % GITHUB_EXCEPTION_LOG_FREQUENCY == 0) {
-                    counter = 0;
-                    EXCEPTION_COUNTER.set(0);
-                    t.printStackTrace();
+    private static Object execute(TimeTrackerLabel label, Callable callable) {
+        long started = System.nanoTime();
+        try {
+            while (true) {
+                try {
+                    return callable.call();
+                } catch (Throwable t) {
+                    int counter = EXCEPTION_COUNTER.incrementAndGet();
+                    if (counter % GITHUB_EXCEPTION_LOG_FREQUENCY == 0) {
+                        counter = 0;
+                        EXCEPTION_COUNTER.set(0);
+                        t.printStackTrace();
+                    }
+                    sleepMillis(GITHUB_EXCEPTION_DELAY_MILLIS * counter);
                 }
-                sleepMillis(GITHUB_EXCEPTION_DELAY_MILLIS * counter);
             }
+        } finally {
+            record(label, System.nanoTime() - started);
         }
     }
 }

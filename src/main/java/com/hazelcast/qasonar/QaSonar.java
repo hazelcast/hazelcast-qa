@@ -38,6 +38,7 @@ import static com.hazelcast.qasonar.utils.DebugUtils.debugCommandLine;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.setDebug;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getGitHubRepository;
+import static com.hazelcast.qasonar.utils.TimeTracker.printTimeTracks;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
 
 public final class QaSonar {
@@ -105,6 +106,7 @@ public final class QaSonar {
                 printer.run();
 
                 debugGreen("Done!\n");
+                printTimeTracks();
                 break;
 
             default:
