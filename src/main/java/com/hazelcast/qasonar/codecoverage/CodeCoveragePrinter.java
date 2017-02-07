@@ -25,11 +25,11 @@ import java.util.Map;
 import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.Utils.writeToFile;
 
-public class CodeCoveragePrinter {
+class CodeCoveragePrinter {
 
     private final AbstractPrinter printer;
 
-    public CodeCoveragePrinter(Map<Integer, PullRequestStatus> pullRequests, Map<String, FileContainer> files,
+    CodeCoveragePrinter(Map<Integer, PullRequestStatus> pullRequests, Map<String, FileContainer> files,
                                PropertyReader props, CommandLineOptions cliOptions) {
         if (cliOptions.isPlainOutput()) {
             printer = new PlainPrinter(pullRequests, files, props, cliOptions);

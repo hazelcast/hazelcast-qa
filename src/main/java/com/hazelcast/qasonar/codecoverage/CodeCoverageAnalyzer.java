@@ -42,7 +42,7 @@ import static com.hazelcast.qasonar.utils.Utils.readFromFile;
 import static java.lang.String.format;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
-public class CodeCoverageAnalyzer {
+class CodeCoverageAnalyzer {
 
     private static final double MIN_IDEA_COVERAGE_DIFF = 0.5;
     private static final double COVERAGE_MARGIN = 0.01;
@@ -53,7 +53,7 @@ public class CodeCoverageAnalyzer {
     private final WhiteList whiteList;
     private final String localGitRoot;
 
-    public CodeCoverageAnalyzer(Map<String, FileContainer> files, PropertyReader props, GHRepository repo, WhiteList whiteList) {
+    CodeCoverageAnalyzer(Map<String, FileContainer> files, PropertyReader props, GHRepository repo, WhiteList whiteList) {
         this.files = files;
         this.props = props;
         this.repo = repo;

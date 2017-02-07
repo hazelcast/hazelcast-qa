@@ -25,11 +25,11 @@ import java.io.IOException;
 
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 
-public class JsonDownloader {
+class JsonDownloader {
 
     private final PropertyReader props;
 
-    public JsonDownloader(PropertyReader props) {
+    JsonDownloader(PropertyReader props) {
         this.props = props;
     }
 

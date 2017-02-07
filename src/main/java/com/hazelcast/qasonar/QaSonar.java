@@ -16,10 +16,7 @@
 
 package com.hazelcast.qasonar;
 
-import com.hazelcast.qasonar.codecoverage.CodeCoverageAnalyzer;
-import com.hazelcast.qasonar.codecoverage.CodeCoveragePrinter;
-import com.hazelcast.qasonar.codecoverage.CodeCoverageReader;
-import com.hazelcast.qasonar.codecoverage.JsonDownloader;
+import com.hazelcast.qasonar.codecoverage.PullRequests;
 import com.hazelcast.qasonar.csvmerge.CsvMerge;
 import com.hazelcast.qasonar.ideaconverter.IdeaConverter;
 import com.hazelcast.qasonar.listprojects.ListProjects;
@@ -28,18 +25,10 @@ import com.hazelcast.qasonar.outputMerge.OutputMerge;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
-import com.hazelcast.qasonar.utils.WhiteList;
-import org.kohsuke.github.GHRepository;
 
 import java.io.IOException;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugCommandLine;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.setDebug;
-import static com.hazelcast.qasonar.utils.GitHubUtils.getGitHubRepository;
-import static com.hazelcast.qasonar.utils.TimeTracker.printTimeTracks;
-import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
 
 public final class QaSonar {
 
@@ -49,12 +38,12 @@ public final class QaSonar {
     public static void main(String[] args) throws IOException {
         PropertyReader propertyReader = PropertyReaderBuilder.fromPropertyFile();
 
-        CommandLineOptions cliOptions = new CommandLineOptions(args, propertyReader);
-        setDebug(cliOptions.isVerbose());
+        CommandLineOptions commandLineOptions = new CommandLineOptions(args, propertyReader);
+        setDebug(commandLineOptions.isVerbose());
 
-        switch (cliOptions.getAction()) {
+        switch (commandLineOptions.getAction()) {
             case PRINT_HELP:
-                cliOptions.printHelp();
+                commandLineOptions.printHelp();
                 break;
 
             case IDEA_CONVERTER:
@@ -78,39 +67,17 @@ public final class QaSonar {
                 break;
 
             case LIST_PULL_REQUESTS:
-                ListPullRequests listPullRequests = new ListPullRequests(propertyReader, cliOptions);
+                ListPullRequests listPullRequests = new ListPullRequests(propertyReader, commandLineOptions);
                 listPullRequests.run();
                 break;
 
             case PULL_REQUESTS:
-                debugCommandLine(propertyReader, cliOptions);
-
-                debug("Parsing whitelist...");
-                WhiteList whiteList = fromJsonFile();
-
-                debug("Connecting to GitHub...");
-                GHRepository repo = getGitHubRepository(propertyReader);
-
-                debug("Reading code coverage data for %d PRs...", cliOptions.getPullRequests().size());
-                JsonDownloader jsonDownloader = new JsonDownloader(propertyReader);
-                CodeCoverageReader reader = new CodeCoverageReader(propertyReader, repo, jsonDownloader);
-                reader.run(cliOptions.getPullRequests());
-
-                debug("Analyzing code coverage data of %d files...", reader.getFiles().size());
-                CodeCoverageAnalyzer analyzer = new CodeCoverageAnalyzer(reader.getFiles(), propertyReader, repo, whiteList);
-                analyzer.run();
-
-                debug("Printing code coverage data...");
-                CodeCoveragePrinter printer = new CodeCoveragePrinter(reader.getPullRequests(), analyzer.getFiles(),
-                        propertyReader, cliOptions);
-                printer.run();
-
-                debugGreen("Done!\n");
-                printTimeTracks();
+                PullRequests pullRequests = new PullRequests(propertyReader, commandLineOptions);
+                pullRequests.run();
                 break;
 
             default:
-                throw new IllegalStateException("Unwanted command line action: " + cliOptions.getAction());
+                throw new IllegalStateException("Unwanted command line action: " + commandLineOptions.getAction());
         }
     }
 }

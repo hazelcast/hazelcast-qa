@@ -50,7 +50,7 @@ import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllLines;
 import static java.util.Collections.unmodifiableMap;
 
-public class CodeCoverageReader {
+class CodeCoverageReader {
 
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
 
@@ -64,7 +64,7 @@ public class CodeCoverageReader {
     private final Repository repository;
     private final JsonDownloader jsonDownloader;
 
-    public CodeCoverageReader(PropertyReader propertyReader, GHRepository repo, JsonDownloader jsonDownloader) {
+    CodeCoverageReader(PropertyReader propertyReader, GHRepository repo, JsonDownloader jsonDownloader) {
         this.props = propertyReader;
         this.repo = repo;
         this.repository = fromRepositoryName(repo.getName());
