@@ -24,6 +24,7 @@ import com.hazelcast.qasonar.utils.PropertyReader;
 import java.io.IOException;
 
 import static com.hazelcast.qasonar.utils.DebugUtils.print;
+import static com.hazelcast.qasonar.utils.Utils.getBasicAuthString;
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
@@ -39,8 +40,9 @@ public class ListProjects {
         StringBuilder sb = new StringBuilder();
         String separator = "";
 
+        String basicAuthString = getBasicAuthString(props.getUsername(), props.getPassword());
         String query = format("https://%s/api/resources?format=json", props.getHost());
-        JsonArray array = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
+        JsonArray array = getJsonElementsFromQuery(basicAuthString, query);
         for (JsonElement jsonElement : array) {
             JsonObject resource = jsonElement.getAsJsonObject();
 

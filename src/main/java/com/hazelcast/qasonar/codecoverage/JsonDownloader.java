@@ -18,25 +18,26 @@ package com.hazelcast.qasonar.codecoverage;
 
 import com.google.gson.JsonArray;
 import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.TimeTracker;
 import com.hazelcast.qasonar.utils.TimeTrackerLabel;
 
 import java.io.IOException;
 
+import static com.hazelcast.qasonar.utils.TimeTracker.record;
+import static com.hazelcast.qasonar.utils.Utils.getBasicAuthString;
 import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
 
 class JsonDownloader {
 
-    private final PropertyReader props;
+    private final String basicAuthString;
 
     JsonDownloader(PropertyReader props) {
-        this.props = props;
+        this.basicAuthString = getBasicAuthString(props.getUsername(), props.getPassword());
     }
 
     JsonArray getJsonArrayFromQuery(String query) throws IOException {
         long started = System.nanoTime();
-        JsonArray jsonArray = getJsonElementsFromQuery(props.getUsername(), props.getPassword(), query);
-        TimeTracker.record(TimeTrackerLabel.GET_JSON_ARRAY_FROM_QUERY, System.nanoTime() - started);
+        JsonArray jsonArray = getJsonElementsFromQuery(basicAuthString, query);
+        record(TimeTrackerLabel.GET_JSON_ARRAY_FROM_QUERY, System.nanoTime() - started);
         return jsonArray;
     }
 }

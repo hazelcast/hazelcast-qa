@@ -192,27 +192,30 @@ public final class Utils {
         throw new IllegalArgumentException("Could not find module in file name: " + fileName);
     }
 
-    public static JsonArray getJsonElementsFromQuery(String username, String password, String query) throws IOException {
-        String result = getStringFromQuery(query, username, password);
+    public static String getBasicAuthString(String username, String password) {
+        String authString = username + ":" + password;
+        return "Basic " + new String(new Base64().encode(authString.getBytes()));
+    }
+
+    public static JsonArray getJsonElementsFromQuery(String basicAuthString, String query) throws IOException {
+        String result = getStringFromQuery(query, basicAuthString);
 
         Gson gson = new Gson();
         return gson.fromJson(result, JsonArray.class);
     }
 
-    private static String getStringFromQuery(String query, String username, String password) throws IOException {
+    private static String getStringFromQuery(String query, String basicAuthString) throws IOException {
         StringWriter writer = new StringWriter();
-        copy(getBaseAuthInputStreamFromURL(query, username, password), writer);
+        copy(getBaseAuthInputStreamFromURL(query, basicAuthString), writer);
 
         return writer.toString();
     }
 
-    private static InputStream getBaseAuthInputStreamFromURL(String query, String username, String password) throws IOException {
+    private static InputStream getBaseAuthInputStreamFromURL(String query, String basicAuthString) throws IOException {
         URL url = new URL(query);
 
         URLConnection uc = url.openConnection();
-        String authString = username + ":" + password;
-        String basicAuth = "Basic " + new String(new Base64().encode(authString.getBytes()));
-        uc.setRequestProperty("Authorization", basicAuth);
+        uc.setRequestProperty("Authorization", basicAuthString);
 
         return uc.getInputStream();
     }
