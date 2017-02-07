@@ -47,13 +47,13 @@ public final class TimeTracker {
             return;
         }
 
-        print("TimeTracker statistics");
+        print("\nTimeTracker statistics");
         for (Map.Entry<TimeTrackerLabel, Long> entry : sortByValue(TIME_MAP).entrySet()) {
             long duration = entry.getValue();
             float percentage = PERCENTAGE * duration / totalTime;
             print("%s: %d ms (%.2f%%)", entry.getKey(), NANOSECONDS.toMillis(duration), percentage);
         }
-        print("Total time: %d ms (%.2f%%)", NANOSECONDS.toMillis(totalTime), PERCENTAGE);
+        print("Total time: %d ms (%.2f%%)%n", NANOSECONDS.toMillis(totalTime), PERCENTAGE);
     }
 
     private static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {

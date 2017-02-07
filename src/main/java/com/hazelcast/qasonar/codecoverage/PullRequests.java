@@ -63,7 +63,7 @@ public class PullRequests {
                 propertyReader, commandLineOptions);
         printer.run();
 
-        debugGreen("Done!\n");
         printTimeTracks();
+        debugGreen("Done!\n");
     }
 }

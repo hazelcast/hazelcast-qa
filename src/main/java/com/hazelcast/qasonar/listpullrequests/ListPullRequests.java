@@ -86,9 +86,6 @@ public class ListPullRequests {
                 optionalParameters, outputGithubRepository, outputDefaultModule, pullRequestString, outputFile)
                 : format("No PRs have been found for milestone %s in this repository!", milestone);
 
-        printGreen("Done!\n");
-        print(command);
-
         if (scriptFile != null && pullRequests.size() > 0) {
             File file = new File(scriptFile);
             String script = readFileToString(file);
@@ -96,6 +93,8 @@ public class ListPullRequests {
         }
 
         printTimeTracks();
+        printGreen("Done!\n");
+        print(command);
     }
 
     private static String getOptionalParameters(String optionalParameters) {
