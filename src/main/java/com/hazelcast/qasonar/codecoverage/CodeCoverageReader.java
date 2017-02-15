@@ -233,9 +233,13 @@ class CodeCoverageReader {
             return;
         }
         // this is a hacky way to retrieve the old filename by parsing the diff patch
-        String[] lines = pullRequestFile.getPatch().split("\n");
-        int startIndex = -1;
+        String patch = pullRequestFile.getPatch();
+        if (patch == null) {
+            return;
+        }
+        String[] lines = patch.split("\n");
         Pattern pattern = compile(".* class " + getBaseName(fileContainer.fileName) + " .*");
+        int startIndex = -1;
         for (int i = 0; i < lines.length; i++) {
             if (pattern.matcher(lines[i]).matches()) {
                 // we found the actual class name
