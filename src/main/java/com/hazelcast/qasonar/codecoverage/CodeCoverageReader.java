@@ -72,15 +72,15 @@ class CodeCoverageReader {
         this.jsonDownloader = jsonDownloader;
     }
 
-    public Map<String, FileContainer> getFiles() {
+    Map<String, FileContainer> getFiles() {
         return unmodifiableMap(files);
     }
 
-    public Map<Integer, PullRequestStatus> getPullRequests() {
+    Map<Integer, PullRequestStatus> getPullRequests() {
         return unmodifiableMap(pullRequests);
     }
 
-    public void run(List<Integer> pullRequests) throws IOException {
+    void run(List<Integer> pullRequests) throws IOException {
         populateResourcesMap();
         populateIdeaCoverage();
 

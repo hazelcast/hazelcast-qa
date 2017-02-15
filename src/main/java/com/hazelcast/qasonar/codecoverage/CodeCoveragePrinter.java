@@ -38,7 +38,7 @@ class CodeCoveragePrinter {
         }
     }
 
-    public void run() throws IOException {
+    void run() throws IOException {
         String outputFile = printer.getProps().getOutputFile();
         if (outputFile != null) {
             writeToFile(outputFile, printer.run());

@@ -26,7 +26,6 @@ import org.kohsuke.github.GHRepository;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
@@ -40,6 +39,7 @@ import static com.hazelcast.qasonar.utils.GitHubUtils.getFileContentsFromGitHub;
 import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
 import static com.hazelcast.qasonar.utils.Utils.readFromFile;
 import static java.lang.String.format;
+import static java.util.Collections.unmodifiableMap;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 class CodeCoverageAnalyzer {
@@ -75,11 +75,11 @@ class CodeCoverageAnalyzer {
         return localGitRoot.getAbsolutePath() + File.separatorChar;
     }
 
-    public Map<String, FileContainer> getFiles() {
-        return Collections.unmodifiableMap(files);
+    Map<String, FileContainer> getFiles() {
+        return unmodifiableMap(files);
     }
 
-    public void run() throws IOException {
+    void run() throws IOException {
         for (FileContainer fileContainer : files.values()) {
             String gitFileName = fileContainer.fileName;
 
