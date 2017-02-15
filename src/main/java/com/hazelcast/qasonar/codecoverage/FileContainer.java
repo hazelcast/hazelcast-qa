@@ -31,6 +31,7 @@ class FileContainer {
     String author;
     String pullRequests;
     String fileName;
+    String oldFileName;
     GitHubStatus status;
 
     boolean isModuleDeleted;

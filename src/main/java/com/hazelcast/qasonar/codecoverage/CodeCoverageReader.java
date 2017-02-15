@@ -33,12 +33,16 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
 import static com.hazelcast.qasonar.utils.DebugUtils.debug;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
 import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
+import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED_RENAMED;
+import static com.hazelcast.qasonar.utils.GitHubStatus.RENAMED;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getAuthor;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequest;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequestFiles;
@@ -50,10 +54,13 @@ import static java.lang.String.format;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.readAllLines;
 import static java.util.Collections.unmodifiableMap;
+import static java.util.regex.Pattern.compile;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
 
 class CodeCoverageReader {
 
     private static final String METRICS_LIST = "coverage,line_coverage,branch_coverage";
+    private static final Pattern CLASS_PATTERN = compile(".* class ([^< ]+) .*");
 
     private final Map<String, Map<String, String>> resources = new HashMap<>();
     private final Map<String, Double> ideaCoverage = new HashMap<>();
@@ -88,6 +95,8 @@ class CodeCoverageReader {
             debug("Adding pull request %d...", pullRequest);
             addPullRequest(pullRequest);
         }
+
+        checkOldFilenames();
     }
 
     // just for testing
@@ -165,6 +174,7 @@ class CodeCoverageReader {
 
             FileContainer fileContainer = createFileContainer(gitPullRequest, author, pullRequestFile, gitFileName, resourceId,
                     status);
+            saveOldFileName(fileContainer, pullRequestFile);
 
             if (resourceId == null) {
                 files.put(gitFileName, fileContainer);
@@ -216,6 +226,34 @@ class CodeCoverageReader {
             return "/" + fileName;
         }
         return fileName;
+    }
+
+    private void saveOldFileName(FileContainer fileContainer, GHPullRequestFileDetail pullRequestFile) {
+        if (fileContainer.status != GitHubStatus.RENAMED) {
+            return;
+        }
+        // this is a hacky way to retrieve the old filename by parsing the diff patch
+        String[] lines = pullRequestFile.getPatch().split("\n");
+        int startIndex = -1;
+        Pattern pattern = compile(".* class " + getBaseName(fileContainer.fileName) + " .*");
+        for (int i = 0; i < lines.length; i++) {
+            if (pattern.matcher(lines[i]).matches()) {
+                // we found the actual class name
+                startIndex = i;
+                break;
+            }
+        }
+        if (startIndex < 1) {
+            return;
+        }
+        // search backwards for the next class name
+        for (int i = startIndex - 1; i >= 0; i--) {
+            Matcher matcher = CLASS_PATTERN.matcher(lines[i]);
+            if (matcher.matches()) {
+                fileContainer.oldFileName = "/" + matcher.group(1) + ".java";
+                return;
+            }
+        }
     }
 
     private String getResourceIdOrNull(String fileName) {
@@ -348,6 +386,16 @@ class CodeCoverageReader {
                 fileContainer.numericBranchCoverage = metric.get("val").getAsDouble();
             } else {
                 throw new IllegalStateException("unknown metric key: " + key);
+            }
+        }
+    }
+
+    private void checkOldFilenames() {
+        for (FileContainer fileContainer : files.values()) {
+            if (fileContainer.status == RENAMED && fileContainer.oldFileName != null) {
+                if (files.keySet().stream().filter(fileName -> fileName.endsWith(fileContainer.oldFileName)).count() > 0) {
+                    fileContainer.status = ADDED_RENAMED;
+                }
             }
         }
     }

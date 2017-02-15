@@ -19,6 +19,7 @@ package com.hazelcast.qasonar.utils;
 public enum GitHubStatus {
 
     ADDED("added", false),
+    ADDED_RENAMED("added / renamed", false),
     MODIFIED("modified", true),
     CHANGED("changed", true),
     RENAMED("renamed", true),
