@@ -234,7 +234,7 @@ class CodeCoverageReader {
         }
         // this is a hacky way to retrieve the old filename by parsing the diff patch
         String patch = pullRequestFile.getPatch();
-        if (patch == null) {
+        if (patch == null || patch.isEmpty()) {
             return;
         }
         String[] lines = patch.split("\n");
