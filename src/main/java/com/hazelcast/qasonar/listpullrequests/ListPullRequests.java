@@ -20,7 +20,6 @@ import com.hazelcast.qasonar.utils.CommandLineOptions;
 import com.hazelcast.qasonar.utils.PropertyReader;
 import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 import static com.hazelcast.qasonar.utils.DebugUtils.print;
 import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
 import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
+import static com.hazelcast.qasonar.utils.GitHubUtils.getGitHubRepository;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getMilestone;
 import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequests;
 import static com.hazelcast.qasonar.utils.TimeTracker.printTimeTracks;
@@ -42,7 +42,7 @@ public class ListPullRequests {
 
     private final Calendar calendar = Calendar.getInstance();
 
-    private final String gitHubRepository;
+    private final PropertyReader propertyReader;
     private final String milestoneTitle;
     private final String optionalParameters;
     private final String outputGithubRepository;
@@ -51,10 +51,11 @@ public class ListPullRequests {
     private final String scriptFile;
 
     public ListPullRequests(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
-        this.gitHubRepository = propertyReader.getGitHubRepository();
+        this.propertyReader = propertyReader;
         this.milestoneTitle = propertyReader.getMilestone();
         this.optionalParameters = getOptionalParameters(commandLineOptions.getOptionalParameters());
-        this.outputGithubRepository = getGithubRepository(propertyReader.isGitHubRepositoryOverwritten(), gitHubRepository);
+        this.outputGithubRepository = getGithubRepository(propertyReader.isGitHubRepositoryOverwritten(),
+                propertyReader.getGitHubRepository());
         this.outputDefaultModule = getDefaultModule(propertyReader.getDefaultModule());
         this.outputFile = getOutputFile(propertyReader.getOutputFile(), milestoneTitle);
         this.scriptFile = getScriptFile(commandLineOptions.getScriptFile());
@@ -62,8 +63,7 @@ public class ListPullRequests {
 
     public void run() throws IOException {
         print("Connecting to GitHub...");
-        GitHub github = GitHub.connect();
-        GHRepository repo = github.getRepository(gitHubRepository);
+        GHRepository repo = getGitHubRepository(propertyReader);
 
         print("Searching milestone \"%s\"...", milestoneTitle);
         GHMilestone milestone = getMilestone(milestoneTitle, repo);

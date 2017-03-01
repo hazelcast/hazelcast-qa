@@ -32,6 +32,8 @@ public class PropertyReader {
     private final String password;
 
     private String localGitRoot;
+    private String gitHubLogin;
+    private String gitHubToken;
     private String gitHubRepository;
     private boolean gitHubRepositoryOverwritten;
 
@@ -74,6 +76,22 @@ public class PropertyReader {
 
     public void setLocalGitRoot(String localGitRoot) {
         this.localGitRoot = localGitRoot;
+    }
+
+    public String getGitHubLogin() {
+        return gitHubLogin;
+    }
+
+    public void setGitHubLogin(String gitHubLogin) {
+        this.gitHubLogin = gitHubLogin;
+    }
+
+    public String getGitHubToken() {
+        return gitHubToken;
+    }
+
+    public void setGitHubToken(String gitHubToken) {
+        this.gitHubToken = gitHubToken;
     }
 
     public String getGitHubRepository() {

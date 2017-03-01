@@ -63,7 +63,7 @@ public final class GitHubUtils {
 
     public static GHRepository getGitHubRepository(PropertyReader propertyReader) {
         return (GHRepository) execute(TimeTrackerLabel.GET_GITHUB_REPOSITORY, () -> {
-            GitHub github = GitHub.connect();
+            GitHub github = GitHub.connect(propertyReader.getGitHubLogin(), propertyReader.getGitHubToken());
             return github.getRepository(propertyReader.getGitHubRepository());
         });
     }
