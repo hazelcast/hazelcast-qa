@@ -178,6 +178,13 @@ class CodeCoverageAnalyzer {
             return;
         }
 
+        if (isBelowMinThresholdModified(fileContainer)) {
+            fileContainer.pass(format("under threshold with %d changed lines", fileContainer.gitHubChanges));
+            debugGreen("Passed with code coverage %5.1f%% %s (%d lines changed below threshold)", 0f, fileContainer.fileName,
+                    fileContainer.gitHubChanges);
+            return;
+        }
+
         fileContainer.fail("code coverage not found");
         debugRed("Failed with code coverage not found %s", gitFileName);
     }
