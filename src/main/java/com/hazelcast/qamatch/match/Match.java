@@ -166,9 +166,12 @@ public class Match {
                         storeCompatibleCommits(lastCommitOS, commitEE);
                         failedCommitsIterator.remove();
                     } else {
-                        for (RevCommit failedCommit : failedCommitsEE) {
-                            System.out.println("Found no matching version for " + toString(failedCommit));
-                            reverseCompatibilityMap.put(failedCommit, null);
+                        System.out.println("Found no matching version for " + toString(commitEE));
+                        reverseCompatibilityMap.put(commitEE, null);
+                        while (failedCommitsIterator.hasNext()) {
+                            commitEE = failedCommitsIterator.next();
+                            System.out.println("Found no matching version for " + toString(commitEE));
+                            reverseCompatibilityMap.put(commitEE, null);
                         }
                         System.out.println();
                         failedCommitsEE.clear();
@@ -280,11 +283,13 @@ public class Match {
         System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
         String formatString = isReverseMap ? "EES: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
         for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
-            System.out.printf(formatString, toString(entry.getKey()), toString(entry.getValue()));
+            RevCommit firstCommit = entry.getKey();
+            RevCommit secondsCommit = entry.getValue();
+            System.out.printf(formatString, toString(firstCommit), toString(secondsCommit));
             try (BufferedWriter writer = newBufferedWriter(path)) {
-                writer.write(entry.getKey().getName());
+                writer.write(firstCommit == null ? "n/a" : firstCommit.getName());
                 writer.write(";");
-                writer.write(entry.getValue().getName());
+                writer.write(secondsCommit == null ? "n/a" : secondsCommit.getName());
                 writer.write("\n");
             }
         }
