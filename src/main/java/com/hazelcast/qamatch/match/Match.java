@@ -206,61 +206,17 @@ public class Match {
         return list;
     }
 
-    private static String toString(RevCommit commit) {
-        if (commit == null) {
-            return "null";
-        }
-        String sha = commit.getName().substring(0, SHA_LENGTH);
-        String shortMessage = commit.getShortMessage();
-        if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
-            shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "...";
-        }
-        String author = commit.getAuthorIdent().getName();
-        return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
-    }
-
-    private static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, String label,
-                                   Git gitEE, RevCommit commitEE) throws MavenInvocationException {
-        System.out.print("Compiling " + label + ": " + toString(commitEE) + "... ");
-        int exitCode = compile(isVerbose, invoker, outputHandler, gitEE);
-        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
-        return exitCode == 0;
-    }
-
-    private static int compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, Git git)
-            throws MavenInvocationException {
-        InvocationRequest request = getInvocationRequest(git);
-        InvocationResult result = invoker.execute(request);
-
-        if (isVerbose) {
-            outputHandler.printErrors();
-        }
-        outputHandler.clear();
-
-        return result.getExitCode();
-    }
-
-    private static InvocationRequest getInvocationRequest(Git git) {
-        File projectRoot = git.getRepository().getDirectory().getParentFile();
-        return new DefaultInvocationRequest()
-                .setBatchMode(true)
-                .setBaseDirectory(projectRoot)
-                .setPomFile(new File(projectRoot, "pom.xml"))
-                .setGoals(asList("clean", "install", "-DskipTests"));
-    }
-
     private static void cleanupBranches(String branchName, Git git) throws GitAPIException {
         git.checkout()
                 .setName("master")
                 .call();
 
-        if (branchName == null) {
-            return;
+        if (branchName != null) {
+            git.branchDelete()
+                    .setBranchNames(branchName)
+                    .setForce(true)
+                    .call();
         }
-        git.branchDelete()
-                .setBranchNames(branchName)
-                .setForce(true)
-                .call();
     }
 
     private static void createBranch(String branchName, Git git, RevCommit commit) throws GitAPIException {
@@ -276,6 +232,41 @@ public class Match {
         RevCommit commit = iterator.next();
         createBranch(branchName, git, commit);
         return commit;
+    }
+
+    private static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, String label,
+                                   Git git, RevCommit commit) throws MavenInvocationException {
+        System.out.print("Compiling " + label + ": " + toString(commit) + "... ");
+        File projectRoot = git.getRepository().getDirectory().getParentFile();
+
+        InvocationRequest request = new DefaultInvocationRequest()
+                .setBatchMode(true)
+                .setBaseDirectory(projectRoot)
+                .setPomFile(new File(projectRoot, "pom.xml"))
+                .setGoals(asList("clean", "install", "-DskipTests"));
+        InvocationResult result = invoker.execute(request);
+
+        if (isVerbose) {
+            outputHandler.printErrors();
+        }
+        outputHandler.clear();
+
+        int exitCode = result.getExitCode();
+        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
+        return exitCode == 0;
+    }
+
+    private static String toString(RevCommit commit) {
+        if (commit == null) {
+            return "null";
+        }
+        String sha = commit.getName().substring(0, SHA_LENGTH);
+        String shortMessage = commit.getShortMessage();
+        if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
+            shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "...";
+        }
+        String author = commit.getAuthorIdent().getName();
+        return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
     }
 
     private static class BufferingOutputHandler implements InvocationOutputHandler {
