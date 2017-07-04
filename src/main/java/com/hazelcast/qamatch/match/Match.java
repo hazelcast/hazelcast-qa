@@ -16,7 +16,6 @@
 
 package com.hazelcast.qamatch.match;
 
-import com.google.gson.Gson;
 import com.hazelcast.qamatch.utils.CommandLineOptions;
 import com.hazelcast.utils.PropertyReader;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
@@ -32,8 +31,11 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -45,6 +47,7 @@ import java.util.UUID;
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
 import static java.lang.String.format;
+import static java.nio.file.Files.newBufferedWriter;
 import static java.util.Arrays.asList;
 import static java.util.Collections.reverseOrder;
 
@@ -55,6 +58,9 @@ public class Match {
 
     private final Map<RevCommit, RevCommit> compatibilityMap = new TreeMap<>(reverseOrder());
     private final Map<RevCommit, RevCommit> reverseCompatibilityMap = new TreeMap<>(reverseOrder());
+
+    private final Path compatibilityPath = Paths.get("os-ee.csv");
+    private final Path reverseCompatibilityPath = Paths.get("ee-os.csv");
 
     private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
@@ -178,8 +184,8 @@ public class Match {
             cleanupBranches(branchName, gitEE);
 
             System.out.println("\n\n===== Results =====\n");
-            printCompatibleVersions(compatibilityMap, false);
-            printCompatibleVersions(reverseCompatibilityMap, true);
+            printAndStoreCompatibleVersions(compatibilityMap, compatibilityPath, false);
+            printAndStoreCompatibleVersions(reverseCompatibilityMap, reverseCompatibilityPath, true);
         }
     }
 
@@ -269,17 +275,19 @@ public class Match {
         return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
     }
 
-    private static void printCompatibleVersions(Map<RevCommit, RevCommit> map, boolean isReverseMap) {
+    private static void printAndStoreCompatibleVersions(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap)
+            throws IOException {
         System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
         String formatString = isReverseMap ? "EES: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
-        Map<String, String> shaMap = new TreeMap<>();
         for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
             System.out.printf(formatString, toString(entry.getKey()), toString(entry.getValue()));
-            shaMap.put(entry.getKey().getName(), entry.getValue().getName());
+            try (BufferedWriter writer = newBufferedWriter(path)) {
+                writer.write(entry.getKey().getName());
+                writer.write(";");
+                writer.write(entry.getValue().getName());
+                writer.write("\n");
+            }
         }
-        Gson gson = new Gson();
-        gson.toJson(shaMap);
-        System.out.println(gson.toString());
     }
 
     private static class BufferingOutputHandler implements InvocationOutputHandler {
