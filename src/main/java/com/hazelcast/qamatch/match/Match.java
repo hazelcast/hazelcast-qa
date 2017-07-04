@@ -259,6 +259,7 @@ public class Match {
         }
         git.branchDelete()
                 .setBranchNames(branchName)
+                .setForce(true)
                 .call();
     }
 
