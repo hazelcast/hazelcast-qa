@@ -170,7 +170,6 @@ public class Match {
                 // jump to OS forward search
                 cleanupBranches(branchName, gitOS);
                 createBranch(branchName, gitOS, commitOS);
-                compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS);
             }
         } finally {
             cleanupBranches(branchName, gitOS);
