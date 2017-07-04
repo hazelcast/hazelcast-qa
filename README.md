@@ -5,20 +5,11 @@ A collection of tools for the QA process.
 
 # Configuration
 
-To get this tools working you have to create two config files:
-
-## ~/.github
-
-In this configuration file you have to put in your GitHub credentials.
-
-```bash
-login = username
-password = password
-```
+To get this tools working you have to create a single config file:
 
 ## ~/.hazelcast-qa
 
-In this configuration file you have to put in your SonarQube credentials as well as additional configuration parameters.
+In this configuration file you have to put in your SonarQube and GitHub credentials as well as additional configuration parameters.
 
 ```bash
 # SonarQube domain and credentials
@@ -29,7 +20,12 @@ password = password
 # SonarQube Resource Id of the project
 projectResourceIds = 12345
 
+# Git configuration
+localGitRoot = /home/username/IdeaProjects/
+
 # GitHub configuration
+gitHubLogin = username
+gitHubToken = token
 gitHubRepository = organization/repository
 
 # Default value for minimum code coverage
@@ -93,7 +89,7 @@ Usage:
 ```bash
 #!/bin/bash
 
-MILESTONE=3.8
+MILESTONE=3.9
 
 printf "#!/bin/bash\n\n" > failures.sh
 
