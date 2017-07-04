@@ -161,8 +161,10 @@ public class Match {
                         failedCommitsIterator.remove();
                     } else {
                         for (RevCommit failedCommit : failedCommitsEE) {
+                            System.out.println("Found no matching version for " + toString(failedCommit));
                             reverseCompatibilityMap.put(failedCommit, null);
                         }
+                        System.out.println();
                         failedCommitsEE.clear();
                         break;
                     }
