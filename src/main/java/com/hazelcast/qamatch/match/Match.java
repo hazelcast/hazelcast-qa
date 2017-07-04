@@ -46,6 +46,9 @@ import static java.util.Arrays.asList;
 
 public class Match {
 
+    private static final int SHA_LENGTH = 7;
+    private static final int SHORT_MESSAGE_LENGTH = 80;
+
     private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
 
@@ -84,6 +87,9 @@ public class Match {
         RevCommit commitOS = iteratorOS.next();
         RevCommit commitEE = iteratorEE.next();
 
+        RevCommit lastCommitOS = commitOS;
+        List<RevCommit> failedCommitsEE = new LinkedList<>();
+
         System.out.println(format("Total commits in Hazelcast %s: %d", OS, commitsOS.size()));
         System.out.println(format("Total commits in Hazelcast %s: %d", EE, commitsEE.size()));
         System.out.println();
@@ -94,28 +100,63 @@ public class Match {
         int counter = 0;
         int limit = commandLineOptions.getCommitLimit();
         while (counter++ < limit) {
+            // OS forward search
             while (counter++ < limit) {
                 if (compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS)) {
                     if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                         System.out.println("Found matching versions!\n");
                     } else {
+                        // jump to EE forward search
                         break;
                     }
                 }
+                lastCommitOS = commitOS;
                 commitOS = createBranch(branchName, gitOS, iteratorOS);
             }
             if (counter >= limit) {
                 break;
             }
 
+            // EE forward search
             while (counter++ < limit) {
                 commitEE = createBranch(branchName, gitEE, iteratorEE);
                 if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                     System.out.println("Found matching versions!\n");
-                    commitOS = createBranch(branchName, gitOS, iteratorOS);
+                    // jump to EE backward search
+                    break;
+                } else {
+                    failedCommitsEE.add(commitEE);
+                }
+            }
+            if (counter >= limit) {
+                break;
+            }
+            if (failedCommitsEE.isEmpty()) {
+                // jump to OS forward search
+                lastCommitOS = commitOS;
+                commitOS = createBranch(branchName, gitOS, iteratorOS);
+                continue;
+            }
+
+            // EE backward search
+            cleanupBranches(branchName, gitOS);
+            createBranch(branchName, gitOS, lastCommitOS);
+            compile(isVerbose, invoker, outputHandler, "OS", gitOS, lastCommitOS);
+            Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
+            while (failedCommitsIterator.hasNext()) {
+                commitEE = createBranch(branchName, gitEE, failedCommitsIterator);
+                if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
+                    System.out.println("Found matching versions!\n");
+                } else {
+                    // TODO: mark remaining versions as uncompilable
+                    failedCommitsEE.clear();
                     break;
                 }
             }
+            // jump to OS forward search
+            cleanupBranches(branchName, gitOS);
+            createBranch(branchName, gitOS, commitOS);
+            compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS);
         }
 
         cleanupBranches(branchName, gitOS);
@@ -141,10 +182,10 @@ public class Match {
     }
 
     private static String toString(RevCommit commit) {
-        String sha = commit.getName().substring(0, 7);
+        String sha = commit.getName().substring(0, SHA_LENGTH);
         String shortMessage = commit.getShortMessage();
-        if (shortMessage.length() > 60) {
-            shortMessage = shortMessage.substring(0, 60) + "...";
+        if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
+            shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "...";
         }
         String author = commit.getAuthorIdent().getName();
         return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
