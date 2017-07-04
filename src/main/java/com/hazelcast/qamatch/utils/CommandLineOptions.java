@@ -26,6 +26,8 @@ import java.io.IOException;
 
 public class CommandLineOptions {
 
+    private static final int COMMIT_LIMIT = 100;
+
     private static final int HELP_WIDTH = 160;
     private static final int HELP_INDENTATION = 2;
 
@@ -33,6 +35,14 @@ public class CommandLineOptions {
 
     private final OptionSpec verboseSpec = parser.accepts("verbose",
             "Prints debug output.");
+
+    private final OptionSpec<String> localGitRootSpec = parser.accepts("localGitRoot",
+            "Sets the local Git root directory.")
+            .withOptionalArg().ofType(String.class);
+
+    private final OptionSpec<Integer> commitLimitSpec = parser.accepts("commitLimit",
+            "Sets the limit how many commits should be iterated (OS + EE in total)")
+            .withOptionalArg().ofType(Integer.class);
 
     private final PropertyReader propertyReader;
     private final OptionSet options;
@@ -57,13 +67,28 @@ public class CommandLineOptions {
         return options.has(verboseSpec);
     }
 
+    public int getCommitLimit() {
+        if (options.has(commitLimitSpec)) {
+            return options.valueOf(commitLimitSpec);
+        }
+        return COMMIT_LIMIT;
+    }
+
     private OptionSet initOptions(String[] args) {
         parser.accepts("help", "Show help.").forHelp();
         return parser.parse(args);
     }
 
     private CommandLineAction initCommandLineAction() {
+        initLocalGitRoot();
+
         return getCommandLineAction();
+    }
+
+    private void initLocalGitRoot() {
+        if (options.has(localGitRootSpec)) {
+            propertyReader.setLocalGitRoot(options.valueOf(localGitRootSpec));
+        }
     }
 
     private CommandLineAction getCommandLineAction() {

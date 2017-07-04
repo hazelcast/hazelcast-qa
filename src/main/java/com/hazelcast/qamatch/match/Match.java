@@ -20,6 +20,7 @@ import com.hazelcast.qamatch.utils.CommandLineOptions;
 import com.hazelcast.utils.PropertyReader;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
+import org.apache.maven.shared.invoker.InvocationOutputHandler;
 import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
@@ -33,7 +34,10 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
@@ -45,13 +49,22 @@ public class Match {
     private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
 
+    private final boolean isVerbose;
+
+    private final String branchName;
+    private final BufferingOutputHandler outputHandler;
     private final Invoker invoker;
 
     public Match(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         this.propertyReader = propertyReader;
         this.commandLineOptions = commandLineOptions;
 
+        this.isVerbose = commandLineOptions.isVerbose();
+
+        this.branchName = "matcher-" + UUID.randomUUID();
+        this.outputHandler = new BufferingOutputHandler();
         this.invoker = new DefaultInvoker()
+                .setOutputHandler(outputHandler)
                 .setMavenHome(new File("/usr/share/maven"));
     }
 
@@ -59,29 +72,54 @@ public class Match {
         Git gitOS = getGit(propertyReader, OS.getRepositoryName());
         Git gitEE = getGit(propertyReader, EE.getRepositoryName());
 
+        cleanupBranches(null, gitOS);
+        cleanupBranches(null, gitEE);
+
         List<RevCommit> commitsOS = getCommits(gitOS);
         List<RevCommit> commitsEE = getCommits(gitEE);
 
+        Iterator<RevCommit> iteratorOS = commitsOS.iterator();
+        Iterator<RevCommit> iteratorEE = commitsEE.iterator();
+
+        RevCommit commitOS = iteratorOS.next();
+        RevCommit commitEE = iteratorEE.next();
+
         System.out.println(format("Total commits in Hazelcast %s: %d", OS, commitsOS.size()));
-        System.out.println("Last commit: " + toString(commitsOS.get(0)));
-        System.out.println();
-
         System.out.println(format("Total commits in Hazelcast %s: %d", EE, commitsEE.size()));
-        System.out.println("Last commit: " + toString(commitsEE.get(0)));
         System.out.println();
 
-        InvocationRequest requestOS = getInvocationRequest(gitOS);
-        InvocationRequest requestEE = getInvocationRequest(gitEE);
+        createBranch(branchName, gitOS, commitOS);
+        createBranch(branchName, gitEE, commitEE);
 
-        int exitCodeOS = compile(invoker, requestOS);
-        int exitCodeEE = compile(invoker, requestEE);
+        int counter = 0;
+        int limit = commandLineOptions.getCommitLimit();
+        while (counter++ < limit) {
+            while (counter++ < limit) {
+                if (compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS)) {
+                    if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
+                        System.out.println("Found matching versions!\n");
+                    } else {
+                        break;
+                    }
+                }
+                commitOS = createBranch(branchName, gitOS, iteratorOS);
+            }
+            if (counter >= limit) {
+                break;
+            }
 
-        if (exitCodeOS != 0) {
-            System.err.println("Compilation error in Hazelcast OS!");
+            while (counter++ < limit) {
+                commitEE = createBranch(branchName, gitEE, iteratorEE);
+                if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
+                    System.out.println("Found matching versions!\n");
+                    commitOS = createBranch(branchName, gitOS, iteratorOS);
+                    break;
+                }
+            }
         }
-        if (exitCodeEE != 0) {
-            System.err.println("Compilation error in Hazelcast EE!");
-        }
+
+        cleanupBranches(branchName, gitOS);
+        cleanupBranches(branchName, gitEE);
     }
 
     private static Git getGit(PropertyReader propertyReader, String repositoryName) throws IOException {
@@ -104,24 +142,91 @@ public class Match {
 
     private static String toString(RevCommit commit) {
         String sha = commit.getName().substring(0, 7);
+        String shortMessage = commit.getShortMessage();
+        if (shortMessage.length() > 60) {
+            shortMessage = shortMessage.substring(0, 60) + "...";
+        }
         String author = commit.getAuthorIdent().getName();
-        return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), commit.getShortMessage(), author);
+        return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
+    }
+
+    private static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, String label,
+                                   Git gitEE, RevCommit commitEE) throws MavenInvocationException {
+        System.out.print("Compiling " + label + ": " + toString(commitEE) + "... ");
+        int exitCode = compile(isVerbose, invoker, outputHandler, gitEE);
+        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
+        return exitCode == 0;
+    }
+
+    private static int compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, Git git)
+            throws MavenInvocationException {
+        InvocationRequest request = getInvocationRequest(git);
+        InvocationResult result = invoker.execute(request);
+
+        if (isVerbose) {
+            outputHandler.printErrors();
+        }
+        outputHandler.clear();
+
+        return result.getExitCode();
     }
 
     private static InvocationRequest getInvocationRequest(Git git) {
         File projectRoot = git.getRepository().getDirectory().getParentFile();
         return new DefaultInvocationRequest()
+                .setBatchMode(true)
+                .setBaseDirectory(projectRoot)
                 .setPomFile(new File(projectRoot, "pom.xml"))
                 .setGoals(asList("clean", "install", "-DskipTests"));
     }
 
-    private static int compile(Invoker invoker, InvocationRequest request) throws MavenInvocationException {
-        InvocationResult result = invoker.execute(request);
-        int exitCode = result.getExitCode();
+    private static void cleanupBranches(String branchName, Git git) throws GitAPIException {
+        git.checkout()
+                .setName("master")
+                .call();
 
-        System.out.println();
-        System.out.println("Return code: " + exitCode);
+        if (branchName == null) {
+            return;
+        }
+        git.branchDelete()
+                .setBranchNames(branchName)
+                .call();
+    }
 
-        return exitCode;
+    private static void createBranch(String branchName, Git git, RevCommit commit) throws GitAPIException {
+        git.checkout()
+                .setCreateBranch(true)
+                .setName(branchName)
+                .setStartPoint(commit)
+                .call();
+    }
+
+    private static RevCommit createBranch(String branchName, Git git, Iterator<RevCommit> iterator) throws GitAPIException {
+        cleanupBranches(branchName, git);
+        RevCommit commit = iterator.next();
+        createBranch(branchName, git, commit);
+        return commit;
+    }
+
+    private static class BufferingOutputHandler implements InvocationOutputHandler {
+
+        private final List<String> lines = new LinkedList<>();
+
+        @Override
+        public void consumeLine(String line) {
+            lines.add(line);
+        }
+
+        void printErrors() {
+            for (String line : lines) {
+                if (line.contains("ERROR")) {
+                    System.err.println(line);
+                }
+            }
+        }
+
+        void clear() {
+            lines.clear();
+        }
     }
 }
