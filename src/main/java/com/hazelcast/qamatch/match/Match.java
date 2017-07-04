@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import static com.hazelcast.utils.Repository.EE;
@@ -48,6 +50,9 @@ public class Match {
 
     private static final int SHA_LENGTH = 7;
     private static final int SHORT_MESSAGE_LENGTH = 80;
+
+    private final Map<RevCommit, RevCommit> compatibilityMap = new TreeMap<>();
+    private final Map<RevCommit, RevCommit> reverseCompatibilityMap = new TreeMap<>();
 
     private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
@@ -105,6 +110,7 @@ public class Match {
                 if (compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS)) {
                     if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                         System.out.println("Found matching versions!\n");
+                        storeCompatibleCommits(commitOS, commitEE);
                     } else {
                         // jump to EE forward search
                         break;
@@ -122,6 +128,7 @@ public class Match {
                 commitEE = createBranch(branchName, gitEE, iteratorEE);
                 if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                     System.out.println("Found matching versions!\n");
+                    storeCompatibleCommits(commitOS, commitEE);
                     // jump to EE backward search
                     break;
                 } else {
@@ -147,8 +154,12 @@ public class Match {
                 commitEE = createBranch(branchName, gitEE, failedCommitsIterator);
                 if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                     System.out.println("Found matching versions!\n");
+                    storeCompatibleCommits(lastCommitOS, commitEE);
+                    failedCommitsIterator.remove();
                 } else {
-                    // TODO: mark remaining versions as uncompilable
+                    for (RevCommit failedCommit : failedCommitsEE) {
+                        reverseCompatibilityMap.put(failedCommit, null);
+                    }
                     failedCommitsEE.clear();
                     break;
                 }
@@ -161,6 +172,20 @@ public class Match {
 
         cleanupBranches(branchName, gitOS);
         cleanupBranches(branchName, gitEE);
+
+        System.out.println("OS -> EE");
+        for (Map.Entry<RevCommit, RevCommit> entry : compatibilityMap.entrySet()) {
+            System.out.printf("OS: %s%nEE: %s%n%n", toString(entry.getKey()), toString(entry.getValue()));
+        }
+        System.out.println("EE -> OS");
+        for (Map.Entry<RevCommit, RevCommit> entry : reverseCompatibilityMap.entrySet()) {
+            System.out.printf("EE: %s%nOS: %s%n%n", toString(entry.getKey()), toString(entry.getValue()));
+        }
+    }
+
+    private void storeCompatibleCommits(RevCommit commitOS, RevCommit commitEE) {
+        compatibilityMap.put(commitOS, commitEE);
+        reverseCompatibilityMap.put(commitEE, commitOS);
     }
 
     private static Git getGit(PropertyReader propertyReader, String repositoryName) throws IOException {
@@ -182,6 +207,9 @@ public class Match {
     }
 
     private static String toString(RevCommit commit) {
+        if (commit == null) {
+            return "null";
+        }
         String sha = commit.getName().substring(0, SHA_LENGTH);
         String shortMessage = commit.getShortMessage();
         if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
