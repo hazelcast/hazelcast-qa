@@ -177,6 +177,7 @@ public class Match {
             cleanupBranches(branchName, gitOS);
             cleanupBranches(branchName, gitEE);
 
+            System.out.println("\n\n===== Results =====\n");
             printCompatibleVersions(compatibilityMap, false);
             printCompatibleVersions(reverseCompatibilityMap, true);
         }
