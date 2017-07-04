@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -35,8 +35,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
-import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
+import static com.hazelcast.utils.DebugUtils.debugRed;
+import static com.hazelcast.utils.DebugUtils.isDebug;
 import static java.lang.String.format;
 import static org.apache.commons.io.IOUtils.copy;
 

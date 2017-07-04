@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import org.fusesource.jansi.Ansi.Color;
 
-import static com.hazelcast.qasonar.utils.Utils.appendCommandLine;
+import java.util.List;
+
+import static com.hazelcast.utils.Utils.appendCommandLine;
 import static java.lang.String.format;
 import static org.fusesource.jansi.Ansi.ansi;
 
@@ -87,10 +89,10 @@ public final class DebugUtils {
         System.out.println(msg);
     }
 
-    public static void debugCommandLine(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
+    public static void debugCommandLine(PropertyReader propertyReader, List<Integer> pullRequests) {
         if (isDebug()) {
             StringBuilder sb = new StringBuilder();
-            appendCommandLine(propertyReader, sb, commandLineOptions.getPullRequests(), true);
+            appendCommandLine(propertyReader, sb, pullRequests, true);
             debug(sb.toString());
         }
     }

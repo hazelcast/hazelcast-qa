@@ -19,13 +19,13 @@ package com.hazelcast.qasonar.listprojects;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.utils.PropertyReader;
 
 import java.io.IOException;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
-import static com.hazelcast.qasonar.utils.Utils.getBasicAuthString;
-import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.Utils.getBasicAuthString;
+import static com.hazelcast.utils.Utils.getJsonElementsFromQuery;
 import static java.lang.String.format;
 
 public class ListProjects {

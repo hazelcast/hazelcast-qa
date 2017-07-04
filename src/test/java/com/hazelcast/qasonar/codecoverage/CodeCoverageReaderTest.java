@@ -1,7 +1,7 @@
 package com.hazelcast.qasonar.codecoverage;
 
-import com.hazelcast.qasonar.utils.GitHubStatus;
-import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.utils.GitHubStatus;
+import com.hazelcast.utils.PropertyReader;
 import org.junit.Before;
 import org.junit.Test;
 import org.kohsuke.github.GHPullRequest;
@@ -17,9 +17,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
-import static com.hazelcast.qasonar.utils.GitHubStatus.MODIFIED;
-import static com.hazelcast.qasonar.utils.GitHubStatus.REMOVED;
+import static com.hazelcast.utils.GitHubStatus.ADDED;
+import static com.hazelcast.utils.GitHubStatus.MODIFIED;
+import static com.hazelcast.utils.GitHubStatus.REMOVED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;

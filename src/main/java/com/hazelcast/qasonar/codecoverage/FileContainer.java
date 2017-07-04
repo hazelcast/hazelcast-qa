@@ -16,7 +16,7 @@
 
 package com.hazelcast.qasonar.codecoverage;
 
-import com.hazelcast.qasonar.utils.GitHubStatus;
+import com.hazelcast.utils.GitHubStatus;
 
 class FileContainer {
 

@@ -16,6 +16,7 @@
 
 package com.hazelcast.qasonar.utils;
 
+import com.hazelcast.utils.PropertyReader;
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -24,8 +25,9 @@ import joptsimple.OptionSpec;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 public class CommandLineOptions {
 
@@ -146,7 +148,7 @@ public class CommandLineOptions {
     }
 
     public List<Integer> getPullRequests() {
-        return Collections.unmodifiableList(pullRequests);
+        return unmodifiableList(pullRequests);
     }
 
     private OptionSet initOptions(String[] args) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.print;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 public final class TimeTracker {

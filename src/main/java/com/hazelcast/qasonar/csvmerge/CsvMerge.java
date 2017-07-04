@@ -16,7 +16,7 @@
 
 package com.hazelcast.qasonar.csvmerge;
 
-import com.hazelcast.qasonar.utils.FileFinder;
+import com.hazelcast.utils.FileFinder;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 import static com.hazelcast.qasonar.ideaconverter.IdeaConverter.OUTPUT_FILENAME;
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
-import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
-import static com.hazelcast.qasonar.utils.DebugUtils.printYellow;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.printGreen;
+import static com.hazelcast.utils.DebugUtils.printYellow;
 import static java.lang.String.format;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;

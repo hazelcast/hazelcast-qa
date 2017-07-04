@@ -17,21 +17,21 @@
 package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.CommandLineOptions;
-import com.hazelcast.qasonar.utils.GitHubStatus;
-import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.utils.GitHubStatus;
+import com.hazelcast.utils.PropertyReader;
 
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.Utils.formatCoverage;
-import static com.hazelcast.qasonar.utils.Utils.formatFileName;
-import static com.hazelcast.qasonar.utils.Utils.formatGitHubChanges;
-import static com.hazelcast.qasonar.utils.Utils.formatGitHubStatus;
-import static com.hazelcast.qasonar.utils.Utils.formatNullable;
-import static com.hazelcast.qasonar.utils.Utils.formatPullRequestLinks;
-import static com.hazelcast.qasonar.utils.Utils.formatSonarQubeLink;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.Utils.formatCoverage;
+import static com.hazelcast.utils.Utils.formatFileName;
+import static com.hazelcast.utils.Utils.formatGitHubChanges;
+import static com.hazelcast.utils.Utils.formatGitHubStatus;
+import static com.hazelcast.utils.Utils.formatNullable;
+import static com.hazelcast.utils.Utils.formatPullRequestLinks;
+import static com.hazelcast.utils.Utils.formatSonarQubeLink;
 import static java.lang.Double.compare;
 import static java.lang.String.format;
 

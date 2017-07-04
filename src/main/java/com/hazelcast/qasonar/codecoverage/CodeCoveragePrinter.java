@@ -17,13 +17,13 @@
 package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.CommandLineOptions;
-import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.utils.PropertyReader;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
-import static com.hazelcast.qasonar.utils.Utils.writeToFile;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.Utils.writeToFile;
 
 class CodeCoveragePrinter {
 

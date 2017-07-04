@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;

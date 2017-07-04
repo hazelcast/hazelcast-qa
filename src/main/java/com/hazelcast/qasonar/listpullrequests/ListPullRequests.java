@@ -17,7 +17,7 @@
 package com.hazelcast.qasonar.listpullrequests;
 
 import com.hazelcast.qasonar.utils.CommandLineOptions;
-import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.utils.PropertyReader;
 import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHRepository;
 
@@ -27,13 +27,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
-import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
-import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
-import static com.hazelcast.qasonar.utils.GitHubUtils.getGitHubRepository;
-import static com.hazelcast.qasonar.utils.GitHubUtils.getMilestone;
-import static com.hazelcast.qasonar.utils.GitHubUtils.getPullRequests;
-import static com.hazelcast.qasonar.utils.TimeTracker.printTimeTracks;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.printGreen;
+import static com.hazelcast.utils.DebugUtils.printRed;
+import static com.hazelcast.utils.GitHubUtils.getGitHubRepository;
+import static com.hazelcast.utils.GitHubUtils.getMilestone;
+import static com.hazelcast.utils.GitHubUtils.getPullRequests;
+import static com.hazelcast.utils.TimeTracker.printTimeTracks;
 import static java.lang.String.format;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.apache.commons.io.FileUtils.writeStringToFile;

@@ -17,14 +17,14 @@
 package com.hazelcast.qasonar.codecoverage;
 
 import com.google.gson.JsonArray;
-import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.TimeTrackerLabel;
+import com.hazelcast.utils.PropertyReader;
+import com.hazelcast.utils.TimeTrackerLabel;
 
 import java.io.IOException;
 
-import static com.hazelcast.qasonar.utils.TimeTracker.record;
-import static com.hazelcast.qasonar.utils.Utils.getBasicAuthString;
-import static com.hazelcast.qasonar.utils.Utils.getJsonElementsFromQuery;
+import static com.hazelcast.utils.TimeTracker.record;
+import static com.hazelcast.utils.Utils.getBasicAuthString;
+import static com.hazelcast.utils.Utils.getJsonElementsFromQuery;
 
 class JsonDownloader {
 

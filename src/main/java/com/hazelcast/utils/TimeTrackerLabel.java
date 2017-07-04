@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 public enum TimeTrackerLabel {
 

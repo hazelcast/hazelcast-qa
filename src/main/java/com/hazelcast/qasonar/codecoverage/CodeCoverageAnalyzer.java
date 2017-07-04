@@ -16,11 +16,11 @@
 
 package com.hazelcast.qasonar.codecoverage;
 
-import com.hazelcast.qasonar.utils.GitHubStatus;
-import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.Repository;
 import com.hazelcast.qasonar.utils.WhiteList;
 import com.hazelcast.qasonar.utils.WhiteListResult;
+import com.hazelcast.utils.GitHubStatus;
+import com.hazelcast.utils.PropertyReader;
+import com.hazelcast.utils.Repository;
 import org.kohsuke.github.GHRepository;
 
 import java.io.File;
@@ -30,14 +30,14 @@ import java.util.Map;
 
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.IDEA;
 import static com.hazelcast.qasonar.codecoverage.FileContainer.CoverageType.SONAR;
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugRed;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
-import static com.hazelcast.qasonar.utils.GitHubStatus.ADDED;
-import static com.hazelcast.qasonar.utils.GitHubUtils.getFileContentsFromGitHub;
-import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
-import static com.hazelcast.qasonar.utils.Utils.readFromFile;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.DebugUtils.debugGreen;
+import static com.hazelcast.utils.DebugUtils.debugRed;
+import static com.hazelcast.utils.DebugUtils.debugYellow;
+import static com.hazelcast.utils.GitHubStatus.ADDED;
+import static com.hazelcast.utils.GitHubUtils.getFileContentsFromGitHub;
+import static com.hazelcast.utils.Repository.fromRepositoryName;
+import static com.hazelcast.utils.Utils.readFromFile;
 import static java.lang.String.format;
 import static java.util.Collections.unmodifiableMap;
 import static org.apache.commons.io.FilenameUtils.getBaseName;

@@ -16,9 +16,9 @@
 
 package com.hazelcast.qasonar.ideaconverter;
 
-import com.hazelcast.qasonar.utils.FileFinder;
-import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.Repository;
+import com.hazelcast.utils.FileFinder;
+import com.hazelcast.utils.PropertyReader;
+import com.hazelcast.utils.Repository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,10 +29,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debugYellow;
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
-import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
-import static com.hazelcast.qasonar.utils.Repository.fromRepositoryName;
+import static com.hazelcast.utils.DebugUtils.debugYellow;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.printGreen;
+import static com.hazelcast.utils.Repository.fromRepositoryName;
 import static java.lang.String.format;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.Files.write;

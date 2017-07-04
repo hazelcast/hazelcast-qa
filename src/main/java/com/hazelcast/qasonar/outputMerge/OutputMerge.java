@@ -16,9 +16,9 @@
 
 package com.hazelcast.qasonar.outputMerge;
 
-import com.hazelcast.qasonar.utils.FileFinder;
-import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.Repository;
+import com.hazelcast.utils.FileFinder;
+import com.hazelcast.utils.PropertyReader;
+import com.hazelcast.utils.Repository;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -28,11 +28,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.print;
-import static com.hazelcast.qasonar.utils.DebugUtils.printGreen;
-import static com.hazelcast.qasonar.utils.DebugUtils.printRed;
-import static com.hazelcast.qasonar.utils.DebugUtils.printYellow;
-import static com.hazelcast.qasonar.utils.Utils.writeToFile;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.printGreen;
+import static com.hazelcast.utils.DebugUtils.printRed;
+import static com.hazelcast.utils.DebugUtils.printYellow;
+import static com.hazelcast.utils.Utils.writeToFile;
 import static java.nio.file.Files.readAllLines;
 import static java.nio.file.Files.walkFileTree;
 

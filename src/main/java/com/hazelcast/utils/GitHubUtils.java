@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import org.kohsuke.github.GHContent;
 import org.kohsuke.github.GHIssueState;
@@ -34,10 +34,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.DebugUtils.isDebug;
-import static com.hazelcast.qasonar.utils.TimeTracker.record;
-import static com.hazelcast.qasonar.utils.Utils.sleepMillis;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.DebugUtils.isDebug;
+import static com.hazelcast.utils.TimeTracker.record;
+import static com.hazelcast.utils.Utils.sleepMillis;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.kohsuke.github.GHIssueState.CLOSED;
 import static org.kohsuke.github.GHIssueState.OPEN;

@@ -17,18 +17,18 @@
 package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.CommandLineOptions;
-import com.hazelcast.qasonar.utils.PropertyReader;
 import com.hazelcast.qasonar.utils.WhiteList;
+import com.hazelcast.utils.PropertyReader;
 import org.kohsuke.github.GHRepository;
 
 import java.io.IOException;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.debug;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugCommandLine;
-import static com.hazelcast.qasonar.utils.DebugUtils.debugGreen;
-import static com.hazelcast.qasonar.utils.GitHubUtils.getGitHubRepository;
-import static com.hazelcast.qasonar.utils.TimeTracker.printTimeTracks;
 import static com.hazelcast.qasonar.utils.WhiteListBuilder.fromJsonFile;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.DebugUtils.debugCommandLine;
+import static com.hazelcast.utils.DebugUtils.debugGreen;
+import static com.hazelcast.utils.GitHubUtils.getGitHubRepository;
+import static com.hazelcast.utils.TimeTracker.printTimeTracks;
 
 public class PullRequests {
 
@@ -41,7 +41,7 @@ public class PullRequests {
     }
 
     public void run() throws IOException {
-        debugCommandLine(propertyReader, commandLineOptions);
+        debugCommandLine(propertyReader, commandLineOptions.getPullRequests());
 
         debug("Parsing whitelist...");
         WhiteList whiteList = fromJsonFile();

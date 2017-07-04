@@ -17,11 +17,11 @@
 package com.hazelcast.qasonar.codecoverage;
 
 import com.hazelcast.qasonar.utils.CommandLineOptions;
-import com.hazelcast.qasonar.utils.PropertyReader;
+import com.hazelcast.utils.PropertyReader;
 
 import java.util.Map;
 
-import static com.hazelcast.qasonar.utils.Utils.appendCommandLine;
+import static com.hazelcast.utils.Utils.appendCommandLine;
 
 class MarkupPrinter extends AbstractPrinter {
 

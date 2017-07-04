@@ -1,14 +1,14 @@
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.kohsuke.github.GHMilestone;
 import org.kohsuke.github.GHPullRequest;
 
-import static com.hazelcast.qasonar.utils.GitHubUtils.ALL_MILESTONE;
-import static com.hazelcast.qasonar.utils.GitHubUtils.MERGED_MILESTONE;
-import static com.hazelcast.qasonar.utils.GitHubUtils.NO_MILESTONE;
-import static com.hazelcast.qasonar.utils.GitHubUtils.matchesMilestone;
+import static com.hazelcast.utils.GitHubUtils.ALL_MILESTONE;
+import static com.hazelcast.utils.GitHubUtils.MERGED_MILESTONE;
+import static com.hazelcast.utils.GitHubUtils.NO_MILESTONE;
+import static com.hazelcast.utils.GitHubUtils.matchesMilestone;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;

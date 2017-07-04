@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qasonar.utils;
+package com.hazelcast.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,6 +97,7 @@ public class PropertyReader {
     public String getGitHubRepository() {
         return gitHubRepository;
     }
+
 
     public void setGitHubRepository(String gitHubRepository) {
         if (this.gitHubRepository != null) {

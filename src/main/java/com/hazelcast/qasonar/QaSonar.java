@@ -23,12 +23,12 @@ import com.hazelcast.qasonar.listprojects.ListProjects;
 import com.hazelcast.qasonar.listpullrequests.ListPullRequests;
 import com.hazelcast.qasonar.outputMerge.OutputMerge;
 import com.hazelcast.qasonar.utils.CommandLineOptions;
-import com.hazelcast.qasonar.utils.PropertyReader;
-import com.hazelcast.qasonar.utils.PropertyReaderBuilder;
+import com.hazelcast.utils.PropertyReader;
+import com.hazelcast.utils.PropertyReaderBuilder;
 
 import java.io.IOException;
 
-import static com.hazelcast.qasonar.utils.DebugUtils.setDebug;
+import static com.hazelcast.utils.DebugUtils.setDebug;
 
 public final class QaSonar {
 
