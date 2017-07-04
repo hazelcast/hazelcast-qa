@@ -103,19 +103,19 @@ public class Match {
         RevCommit lastCommitOS = commitOS;
         List<RevCommit> failedCommitsEE = new LinkedList<>();
 
+        createBranch(branchName, gitOS, commitOS);
+        createBranch(branchName, gitEE, commitEE);
+
         System.out.println(format("Total commits in Hazelcast %s: %d", OS, commitsOS.size()));
         System.out.println(format("Total commits in Hazelcast %s: %d", EE, commitsEE.size()));
         System.out.println();
 
-        createBranch(branchName, gitOS, commitOS);
-        createBranch(branchName, gitEE, commitEE);
-
         try {
-            int counter = 0;
+            int compilations = 0;
             int limit = commandLineOptions.getCommitLimit();
-            while (counter++ < limit) {
+            while (compilations++ < limit) {
                 // OS forward search
-                while (counter++ < limit) {
+                while (compilations++ < limit) {
                     if (compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS)) {
                         if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                             System.out.println("Found matching versions!\n");
@@ -128,12 +128,12 @@ public class Match {
                     lastCommitOS = commitOS;
                     commitOS = createBranch(branchName, gitOS, iteratorOS);
                 }
-                if (counter >= limit) {
+                if (compilations >= limit) {
                     break;
                 }
 
                 // EE forward search
-                while (counter++ < limit) {
+                while (compilations++ < limit) {
                     commitEE = createBranch(branchName, gitEE, iteratorEE);
                     if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
                         System.out.println("Found matching versions!\n");
@@ -144,7 +144,7 @@ public class Match {
                         failedCommitsEE.add(commitEE);
                     }
                 }
-                if (counter >= limit) {
+                if (compilations >= limit) {
                     break;
                 }
                 if (failedCommitsEE.isEmpty()) {
