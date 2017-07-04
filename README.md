@@ -41,8 +41,8 @@ minCodeCoverageModified = 60.0
 mvn clean install
 ```
 
-Use the created JAR file to execute the tool.
-There is an example bash script in the root directory of the project.
+Use the created JAR file to execute the tools.
+There are example bash scripts in the root directory of the project.
 
 # QA Sonar
 
@@ -99,3 +99,7 @@ qa-sonar --listPullRequests ${MILESTONE} --scriptFile failures.sh --optionalPara
 
 printf "qa-sonar --outputMerge --outputFile ${MILESTONE}-failures\n" >> failures.sh
 ```
+
+# QA Match
+
+A tool to create a map of matching Hazelcast OS and EE commits, to build older versions of Hazelcast Enterprise.
