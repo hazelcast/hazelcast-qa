@@ -143,6 +143,7 @@ class CodeCoverageAnalyzer {
         }
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private void checkFileWithoutCoverage(FileContainer fileContainer, String gitFileName) {
         if (fileContainer.coverage != null || fileContainer.ideaCoverage > COVERAGE_MARGIN) {
             return;

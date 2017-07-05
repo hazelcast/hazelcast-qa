@@ -228,6 +228,7 @@ class CodeCoverageReader {
         return fileName;
     }
 
+    @SuppressWarnings("checkstyle:npathcomplexity")
     private void saveOldFileName(FileContainer fileContainer, GHPullRequestFileDetail pullRequestFile) {
         if (fileContainer.status != GitHubStatus.RENAMED) {
             return;
