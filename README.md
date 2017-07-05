@@ -103,3 +103,7 @@ printf "qa-sonar --outputMerge --outputFile ${MILESTONE}-failures\n" >> failures
 # QA Match
 
 A tool to create a map of matching Hazelcast OS and EE commits, to build older versions of Hazelcast Enterprise.
+
+# HZ Blame
+
+A tool to find a guilty commit via a failing reproducer.
