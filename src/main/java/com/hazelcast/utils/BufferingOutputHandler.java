@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qamatch.match;
+package com.hazelcast.utils;
 
 import org.apache.maven.shared.invoker.InvocationOutputHandler;
 
 import java.util.LinkedList;
 import java.util.List;
 
-class BufferingOutputHandler implements InvocationOutputHandler {
+@SuppressWarnings("WeakerAccess")
+public class BufferingOutputHandler implements InvocationOutputHandler {
 
     private final List<String> lines = new LinkedList<>();
 
@@ -30,7 +31,7 @@ class BufferingOutputHandler implements InvocationOutputHandler {
         lines.add(line);
     }
 
-    void printErrors() {
+    public void printErrors() {
         for (String line : lines) {
             if (line.contains("ERROR")) {
                 System.err.println(line);
@@ -38,7 +39,7 @@ class BufferingOutputHandler implements InvocationOutputHandler {
         }
     }
 
-    void clear() {
+    public void clear() {
         lines.clear();
     }
 }

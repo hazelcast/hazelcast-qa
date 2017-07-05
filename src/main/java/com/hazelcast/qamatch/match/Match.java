@@ -16,48 +16,42 @@
 
 package com.hazelcast.qamatch.match;
 
+import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.qamatch.utils.CommandLineOptions;
 import com.hazelcast.utils.PropertyReader;
-import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationRequest;
-import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.hazelcast.utils.GitUtils.asString;
+import static com.hazelcast.utils.GitUtils.cleanupBranches;
+import static com.hazelcast.utils.GitUtils.compile;
+import static com.hazelcast.utils.GitUtils.createBranch;
+import static com.hazelcast.utils.GitUtils.getCommits;
+import static com.hazelcast.utils.GitUtils.getGit;
+import static com.hazelcast.utils.GitUtils.resetCompileCounters;
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
 import static java.lang.String.format;
 import static java.nio.file.Files.newBufferedWriter;
-import static java.util.Arrays.asList;
 import static java.util.Collections.reverseOrder;
 
 public class Match {
-
-    private static final int SHA_LENGTH = 7;
-    private static final int SHORT_MESSAGE_LENGTH = 80;
-
-    private static final AtomicInteger COMPILE_COUNTER_OS = new AtomicInteger();
-    private static final AtomicInteger COMPILE_COUNTER_EE = new AtomicInteger();
 
     private final Map<RevCommit, RevCommit> compatibilityMap = new TreeMap<>(reverseOrder());
     private final Map<RevCommit, RevCommit> reverseCompatibilityMap = new TreeMap<>(reverseOrder());
@@ -137,8 +131,7 @@ public class Match {
     }
 
     private void initRepositories() throws IOException, GitAPIException {
-        COMPILE_COUNTER_OS.set(0);
-        COMPILE_COUNTER_EE.set(0);
+        resetCompileCounters();
 
         gitOS = getGit(propertyReader, OS.getRepositoryName());
         gitEE = getGit(propertyReader, EE.getRepositoryName());
@@ -209,11 +202,11 @@ public class Match {
                 storeCompatibleCommits(lastCommitOS, failedCommit, limit);
                 failedCommitsIterator.remove();
             } else {
-                System.out.println("Found no matching version for " + toString(failedCommit));
+                System.out.println("Found no matching version for " + asString(failedCommit));
                 reverseCompatibilityMap.put(failedCommit, null);
                 while (failedCommitsIterator.hasNext()) {
                     failedCommit = failedCommitsIterator.next();
-                    System.out.println("Found no matching version for " + toString(failedCommit));
+                    System.out.println("Found no matching version for " + asString(failedCommit));
                     reverseCompatibilityMap.put(failedCommit, null);
                 }
                 System.out.println();
@@ -233,97 +226,14 @@ public class Match {
         System.out.printf("Found matching versions (%d/%d)%n%n", reverseCompatibilityMap.size(), limit);
     }
 
-    private static Git getGit(PropertyReader propertyReader, String repositoryName) throws IOException {
-        Repository repoOS = new FileRepositoryBuilder()
-                .setGitDir(new File(propertyReader.getLocalGitRoot() + repositoryName + File.separator + ".git"))
-                .readEnvironment()
-                .setMustExist(true)
-                .build();
-
-        return new Git(repoOS);
-    }
-
-    private static List<RevCommit> getCommits(Git git) throws GitAPIException {
-        List<RevCommit> list = new ArrayList<>();
-        for (RevCommit commit : git.log().call()) {
-            list.add(commit);
-        }
-        return list;
-    }
-
-    private static void cleanupBranches(String branchName, Git git) throws GitAPIException {
-        git.checkout()
-                .setName("master")
-                .call();
-
-        if (branchName != null) {
-            git.branchDelete()
-                    .setBranchNames(branchName)
-                    .setForce(true)
-                    .call();
-        }
-    }
-
-    private static void createBranch(String branchName, Git git, RevCommit commit) throws GitAPIException {
-        git.checkout()
-                .setCreateBranch(true)
-                .setName(branchName)
-                .setStartPoint(commit)
-                .call();
-    }
-
-    private static RevCommit createBranch(String branchName, Git git, Iterator<RevCommit> iterator) throws GitAPIException {
-        cleanupBranches(branchName, git);
-        RevCommit commit = iterator.next();
-        createBranch(branchName, git, commit);
-        return commit;
-    }
-
-    private static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, Git git,
-                                   RevCommit commit, boolean isEE) throws MavenInvocationException {
-        String label = isEE ? "EE" : "OS";
-        int counter = isEE ? COMPILE_COUNTER_EE.incrementAndGet() : COMPILE_COUNTER_OS.incrementAndGet();
-        System.out.printf("[%s] [%3d] Compiling %s... ", label, counter, toString(commit));
-        File projectRoot = git.getRepository().getDirectory().getParentFile();
-
-        InvocationRequest request = new DefaultInvocationRequest()
-                .setBatchMode(true)
-                .setBaseDirectory(projectRoot)
-                .setPomFile(new File(projectRoot, "pom.xml"))
-                .setGoals(asList("clean", "install", "-DskipTests"));
-        InvocationResult result = invoker.execute(request);
-
-        if (isVerbose) {
-            outputHandler.printErrors();
-        }
-        outputHandler.clear();
-
-        int exitCode = result.getExitCode();
-        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
-        return exitCode == 0;
-    }
-
-    private static String toString(RevCommit commit) {
-        if (commit == null) {
-            return "null";
-        }
-        String sha = commit.getName().substring(0, SHA_LENGTH);
-        String shortMessage = commit.getShortMessage();
-        if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
-            shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "...";
-        }
-        String author = commit.getAuthorIdent().getName();
-        return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
-    }
-
-    private static void printAndStoreCompatibleVersions(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap)
+    private void printAndStoreCompatibleVersions(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap)
             throws IOException {
         System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
         String formatString = isReverseMap ? "EE: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
         for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
             RevCommit firstCommit = entry.getKey();
             RevCommit secondsCommit = entry.getValue();
-            System.out.printf(formatString, toString(firstCommit), toString(secondsCommit));
+            System.out.printf(formatString, asString(firstCommit), asString(secondsCommit));
             try (BufferedWriter writer = newBufferedWriter(path)) {
                 writer.write(firstCommit == null ? "n/a" : firstCommit.getName());
                 writer.write(";");
