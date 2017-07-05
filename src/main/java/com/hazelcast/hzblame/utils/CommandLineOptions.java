@@ -34,9 +34,28 @@ public class CommandLineOptions {
     private final OptionSpec verboseSpec = parser.accepts("verbose",
             "Prints debug output.");
 
+    private final OptionSpec eeSpec = parser.accepts("ee",
+            "Specifies if OS or EE will be used.");
+
     private final OptionSpec<String> localGitRootSpec = parser.accepts("localGitRoot",
             "Sets the local Git root directory.")
             .withOptionalArg().ofType(String.class);
+
+    private final OptionSpec<String> mavenProfileSpec = parser.accepts("mavenProfile",
+            "Specifies the maven profile to run with.")
+            .withRequiredArg().ofType(String.class);
+
+    private final OptionSpec<String> testModuleSpec = parser.accepts("testModule",
+            "Specifies the test module to build.")
+            .withRequiredArg().ofType(String.class);
+
+    private final OptionSpec<String> testClassSpec = parser.accepts("testClass",
+            "Specifies the test class to execute.")
+            .withRequiredArg().ofType(String.class);
+
+    private final OptionSpec<String> testMethodSpec = parser.accepts("testMethod",
+            "Specifies the test method to execute.")
+            .withRequiredArg().ofType(String.class);
 
     private final PropertyReader propertyReader;
     private final OptionSet options;
@@ -61,6 +80,38 @@ public class CommandLineOptions {
         return options.has(verboseSpec);
     }
 
+    public boolean isEE() {
+        return options.has(eeSpec);
+    }
+
+    public boolean hasMavenProfile() {
+        return options.has(mavenProfileSpec);
+    }
+
+    public String getMavenProfile() {
+        return options.valueOf(mavenProfileSpec);
+    }
+
+    public boolean hasTestModule() {
+        return options.has(testModuleSpec);
+    }
+
+    public String getTestModule() {
+        return options.valueOf(testModuleSpec);
+    }
+
+    public String getTestClass() {
+        return options.valueOf(testClassSpec);
+    }
+
+    public boolean hasTestMethod() {
+        return options.has(testMethodSpec);
+    }
+
+    public String getTestMethod() {
+        return options.valueOf(testMethodSpec);
+    }
+
     private OptionSet initOptions(String[] args) {
         parser.accepts("help", "Show help.").forHelp();
         return parser.parse(args);
@@ -81,6 +132,10 @@ public class CommandLineOptions {
     private CommandLineAction getCommandLineAction() {
         if (options.has("help")) {
             return CommandLineAction.PRINT_HELP;
+        }
+        if (!options.has(testClassSpec)) {
+            System.err.println("You need to provide --testClass");
+            System.exit(1);
         }
         return CommandLineAction.BLAME;
     }

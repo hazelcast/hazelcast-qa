@@ -31,11 +31,26 @@ public class BufferingOutputHandler implements InvocationOutputHandler {
         lines.add(line);
     }
 
+    public boolean contains(String pattern) {
+        for (String line : lines) {
+            if (line.contains(pattern)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void printErrors() {
         for (String line : lines) {
             if (line.contains("ERROR")) {
                 System.err.println(line);
             }
+        }
+    }
+
+    public void printAll() {
+        for (String line : lines) {
+            System.out.println(line);
         }
     }
 

@@ -17,43 +17,153 @@
 package com.hazelcast.hzblame.blame;
 
 import com.hazelcast.hzblame.utils.CommandLineOptions;
+import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.utils.PropertyReader;
+import org.apache.maven.shared.invoker.DefaultInvocationRequest;
+import org.apache.maven.shared.invoker.DefaultInvoker;
+import org.apache.maven.shared.invoker.InvocationRequest;
+import org.apache.maven.shared.invoker.InvocationResult;
+import org.apache.maven.shared.invoker.Invoker;
+import org.apache.maven.shared.invoker.MavenInvocationException;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.UUID;
 
-import static java.nio.file.Files.lines;
+import static com.hazelcast.utils.CsvUtils.readCSV;
+import static com.hazelcast.utils.GitUtils.cleanupBranches;
+import static com.hazelcast.utils.GitUtils.compile;
+import static com.hazelcast.utils.GitUtils.createBranch;
+import static com.hazelcast.utils.GitUtils.getCommits;
+import static com.hazelcast.utils.GitUtils.getGit;
+import static com.hazelcast.utils.Repository.EE;
+import static com.hazelcast.utils.Repository.OS;
 
 public class Blame {
 
     private final Path commitPath = Paths.get("ee-os.csv");
     private final Map<String, String> commits = new HashMap<>();
 
+    private final String branchName;
+    private final BufferingOutputHandler outputHandler;
+    private final Invoker invoker;
+
     private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
+
+    private final boolean isVerbose;
+    private final boolean isEE;
+
+    private Git gitOS;
+    private Git gitEE;
+
+    private List<RevCommit> commitsOS;
+    private List<RevCommit> commitsEE;
+
+    private RevCommit currentCommitOS;
+    private RevCommit currentCommitEE;
 
     public Blame(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         this.propertyReader = propertyReader;
         this.commandLineOptions = commandLineOptions;
+
+        this.isVerbose = commandLineOptions.isVerbose();
+        this.isEE = commandLineOptions.isEE();
+
+        this.branchName = "blame-" + UUID.randomUUID();
+        this.outputHandler = new BufferingOutputHandler();
+        this.invoker = new DefaultInvoker()
+                .setOutputHandler(outputHandler)
+                .setMavenHome(new File("/usr/share/maven"));
     }
 
-    public void run() {
-        readCSV();
-    }
-
-    private void readCSV() {
-        try (Stream<String> stream = lines(commitPath)) {
-            stream.forEach(line -> {
-                String[] split = line.split(";");
-                commits.put(split[0], split[1]);
-            });
-        } catch (IOException e) {
-            System.err.println("Could not read commits! " + e.getMessage());
+    public void run() throws Exception {
+        initRepositories();
+        File projectRoot = getProjectRoot();
+        List<String> goals = getTestRunGoals();
+        if (isVerbose) {
+            System.out.println("Goals: " + goals);
         }
-        System.out.printf("Found %d commits!\n", commits.size());
+
+        if (isEE) {
+            readCSV(commitPath, commits);
+            compile(isVerbose, invoker, outputHandler, gitOS, currentCommitOS, false);
+        }
+
+        runTest(projectRoot, goals);
+
+        cleanupBranches(branchName, gitOS);
+        cleanupBranches(branchName, gitEE);
+    }
+
+    private void initRepositories() throws IOException, GitAPIException {
+        gitOS = getGit(propertyReader, OS.getRepositoryName());
+        gitEE = getGit(propertyReader, EE.getRepositoryName());
+
+        cleanupBranches(null, gitOS);
+        cleanupBranches(null, gitEE);
+
+        commitsOS = getCommits(gitOS);
+        commitsEE = getCommits(gitEE);
+
+        currentCommitOS = commitsOS.get(0);
+        currentCommitEE = commitsEE.get(0);
+
+        createBranch(branchName, gitOS, currentCommitOS);
+        createBranch(branchName, gitEE, currentCommitEE);
+    }
+
+    private File getProjectRoot() {
+        Git git = isEE ? gitEE : gitOS;
+        return git.getRepository().getDirectory().getParentFile();
+    }
+
+    private List<String> getTestRunGoals() {
+        String testModule = isEE ? "hazelcast-enterprise" : "hazelcast";
+        if (commandLineOptions.hasTestModule()) {
+            testModule = commandLineOptions.getTestModule();
+        }
+        String testMethod = commandLineOptions.hasTestMethod() ? "#" + commandLineOptions.getTestMethod() : "";
+
+        List<String> goals = new LinkedList<>();
+        goals.add("clean");
+        goals.add("test");
+        if (commandLineOptions.hasMavenProfile()) {
+            goals.add("-P" + commandLineOptions.getMavenProfile());
+        }
+        goals.add("-pl " + testModule);
+        goals.add("-Dtest=" + commandLineOptions.getTestClass() + testMethod);
+        return goals;
+    }
+
+    private boolean runTest(File projectRoot, List<String> goals) throws MavenInvocationException {
+        InvocationRequest request = new DefaultInvocationRequest()
+                .setBatchMode(true)
+                .setBaseDirectory(projectRoot)
+                .setPomFile(new File(projectRoot, "pom.xml"))
+                .setGoals(goals);
+        InvocationResult result = invoker.execute(request);
+
+        if (isVerbose) {
+            outputHandler.printAll();
+        }
+        if (outputHandler.contains("No tests were executed!")) {
+            System.err.println("Test could not be found, please check if you have specified the correct module and profile!");
+            return false;
+        }
+        outputHandler.clear();
+
+        int exitCode = result.getExitCode();
+        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
+        return exitCode == 0;
     }
 }

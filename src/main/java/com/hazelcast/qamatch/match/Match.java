@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
+import static com.hazelcast.utils.CsvUtils.NOT_AVAILABLE;
 import static com.hazelcast.utils.GitUtils.asString;
 import static com.hazelcast.utils.GitUtils.cleanupBranches;
 import static com.hazelcast.utils.GitUtils.compile;
@@ -244,9 +245,9 @@ public class Match {
                     RevCommit firstCommit = entry.getKey();
                     RevCommit secondsCommit = entry.getValue();
                     System.out.printf(formatString, asString(firstCommit), asString(secondsCommit));
-                    writer.write(firstCommit == null ? "n/a" : firstCommit.getName());
+                    writer.write(firstCommit == null ? NOT_AVAILABLE : firstCommit.getName());
                     writer.write(";");
-                    writer.write(secondsCommit == null ? "n/a" : secondsCommit.getName());
+                    writer.write(secondsCommit == null ? NOT_AVAILABLE : secondsCommit.getName());
                     writer.write("\n");
                 }
             }
