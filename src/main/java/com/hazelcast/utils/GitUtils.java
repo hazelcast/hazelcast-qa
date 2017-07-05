@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2008-2017, Hazelcast, Inc. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.hazelcast.utils;
 
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
@@ -21,13 +37,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
-public class GitUtils {
+public final class GitUtils {
 
     private static final int SHA_LENGTH = 7;
     private static final int SHORT_MESSAGE_LENGTH = 80;
 
     private static final AtomicInteger COMPILE_COUNTER_OS = new AtomicInteger();
     private static final AtomicInteger COMPILE_COUNTER_EE = new AtomicInteger();
+
+    private GitUtils() {
+    }
 
     public static void resetCompileCounters() {
         COMPILE_COUNTER_OS.set(0);
