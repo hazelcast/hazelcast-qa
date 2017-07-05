@@ -26,7 +26,7 @@ import java.io.IOException;
 
 public class CommandLineOptions {
 
-    private static final int COMMIT_LIMIT = 100;
+    private static final int DEFAULT_LIMIT = 100;
 
     private static final int HELP_WIDTH = 160;
     private static final int HELP_INDENTATION = 2;
@@ -40,8 +40,8 @@ public class CommandLineOptions {
             "Sets the local Git root directory.")
             .withOptionalArg().ofType(String.class);
 
-    private final OptionSpec<Integer> commitLimitSpec = parser.accepts("commitLimit",
-            "Sets the limit how many commits should be iterated (OS + EE in total)")
+    private final OptionSpec<Integer> limitSpec = parser.accepts("limit",
+            "Specifies how many EE commits should be iterated.")
             .withOptionalArg().ofType(Integer.class);
 
     private final PropertyReader propertyReader;
@@ -67,11 +67,11 @@ public class CommandLineOptions {
         return options.has(verboseSpec);
     }
 
-    public int getCommitLimit() {
-        if (options.has(commitLimitSpec)) {
-            return options.valueOf(commitLimitSpec);
+    public int getLimit() {
+        if (options.has(limitSpec)) {
+            return options.valueOf(limitSpec);
         }
-        return COMMIT_LIMIT;
+        return DEFAULT_LIMIT;
     }
 
     private OptionSet initOptions(String[] args) {

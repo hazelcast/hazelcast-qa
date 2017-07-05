@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
@@ -55,6 +56,9 @@ public class Match {
 
     private static final int SHA_LENGTH = 7;
     private static final int SHORT_MESSAGE_LENGTH = 80;
+
+    private static final AtomicInteger COMPILE_COUNTER_OS = new AtomicInteger();
+    private static final AtomicInteger COMPILE_COUNTER_EE = new AtomicInteger();
 
     private final Map<RevCommit, RevCommit> compatibilityMap = new TreeMap<>(reverseOrder());
     private final Map<RevCommit, RevCommit> reverseCompatibilityMap = new TreeMap<>(reverseOrder());
@@ -85,6 +89,9 @@ public class Match {
     }
 
     public void run() throws Exception {
+        COMPILE_COUNTER_OS.set(0);
+        COMPILE_COUNTER_EE.set(0);
+
         Git gitOS = getGit(propertyReader, OS.getRepositoryName());
         Git gitEE = getGit(propertyReader, EE.getRepositoryName());
 
@@ -111,15 +118,13 @@ public class Match {
         System.out.println();
 
         try {
-            int compilations = 0;
-            int limit = commandLineOptions.getCommitLimit();
-            while (compilations++ < limit) {
+            int limit = commandLineOptions.getLimit();
+            while (reverseCompatibilityMap.size() < limit) {
                 // OS forward search
-                while (compilations++ < limit) {
-                    if (compile(isVerbose, invoker, outputHandler, "OS", gitOS, commitOS)) {
-                        if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
-                            System.out.println("Found matching versions!\n");
-                            storeCompatibleCommits(commitOS, commitEE);
+                while (reverseCompatibilityMap.size() < limit) {
+                    if (compile(isVerbose, invoker, outputHandler, gitOS, commitOS, false)) {
+                        if (compile(isVerbose, invoker, outputHandler, gitEE, commitEE, true)) {
+                            storeCompatibleCommits(commitOS, commitEE, limit);
                         } else {
                             // jump to EE forward search
                             break;
@@ -128,23 +133,22 @@ public class Match {
                     lastCommitOS = commitOS;
                     commitOS = createBranch(branchName, gitOS, iteratorOS);
                 }
-                if (compilations >= limit) {
+                if (reverseCompatibilityMap.size() >= limit) {
                     break;
                 }
 
                 // EE forward search
-                while (compilations++ < limit) {
+                while (reverseCompatibilityMap.size() < limit) {
                     commitEE = createBranch(branchName, gitEE, iteratorEE);
-                    if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
-                        System.out.println("Found matching versions!\n");
-                        storeCompatibleCommits(commitOS, commitEE);
+                    if (compile(isVerbose, invoker, outputHandler, gitEE, commitEE, true)) {
+                        storeCompatibleCommits(commitOS, commitEE, limit);
                         // jump to EE backward search
                         break;
                     } else {
                         failedCommitsEE.add(commitEE);
                     }
                 }
-                if (compilations >= limit) {
+                if (reverseCompatibilityMap.size() >= limit) {
                     break;
                 }
                 if (failedCommitsEE.isEmpty()) {
@@ -157,13 +161,12 @@ public class Match {
                 // EE backward search
                 cleanupBranches(branchName, gitOS);
                 createBranch(branchName, gitOS, lastCommitOS);
-                compile(isVerbose, invoker, outputHandler, "OS", gitOS, lastCommitOS);
+                compile(isVerbose, invoker, outputHandler, gitOS, lastCommitOS, false);
                 Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
                 while (failedCommitsIterator.hasNext()) {
                     commitEE = createBranch(branchName, gitEE, failedCommitsIterator);
-                    if (compile(isVerbose, invoker, outputHandler, "EE", gitEE, commitEE)) {
-                        System.out.println("Found matching versions!\n");
-                        storeCompatibleCommits(lastCommitOS, commitEE);
+                    if (compile(isVerbose, invoker, outputHandler, gitEE, commitEE, true)) {
+                        storeCompatibleCommits(lastCommitOS, commitEE, limit);
                         failedCommitsIterator.remove();
                     } else {
                         System.out.println("Found no matching version for " + toString(commitEE));
@@ -192,9 +195,10 @@ public class Match {
         }
     }
 
-    private void storeCompatibleCommits(RevCommit commitOS, RevCommit commitEE) {
+    private void storeCompatibleCommits(RevCommit commitOS, RevCommit commitEE, int limit) {
         compatibilityMap.put(commitOS, commitEE);
         reverseCompatibilityMap.put(commitEE, commitOS);
+        System.out.printf("Found matching versions (%d/%d)%n%n", reverseCompatibilityMap.size(), limit);
     }
 
     private static Git getGit(PropertyReader propertyReader, String repositoryName) throws IOException {
@@ -243,9 +247,11 @@ public class Match {
         return commit;
     }
 
-    private static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, String label,
-                                   Git git, RevCommit commit) throws MavenInvocationException {
-        System.out.print("Compiling " + label + ": " + toString(commit) + "... ");
+    private static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, Git git,
+                                   RevCommit commit, boolean isEE) throws MavenInvocationException {
+        String label = isEE ? "EE" : "OS";
+        int counter = isEE ? COMPILE_COUNTER_EE.incrementAndGet() : COMPILE_COUNTER_OS.incrementAndGet();
+        System.out.printf("[%s] [%3d] Compiling %s... ", label, counter, toString(commit));
         File projectRoot = git.getRepository().getDirectory().getParentFile();
 
         InvocationRequest request = new DefaultInvocationRequest()
@@ -281,7 +287,7 @@ public class Match {
     private static void printAndStoreCompatibleVersions(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap)
             throws IOException {
         System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
-        String formatString = isReverseMap ? "EES: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
+        String formatString = isReverseMap ? "EE: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
         for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
             RevCommit firstCommit = entry.getKey();
             RevCommit secondsCommit = entry.getValue();
