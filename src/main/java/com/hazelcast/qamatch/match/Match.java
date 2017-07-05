@@ -20,7 +20,6 @@ import com.hazelcast.qamatch.utils.CommandLineOptions;
 import com.hazelcast.utils.PropertyReader;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
-import org.apache.maven.shared.invoker.InvocationOutputHandler;
 import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
@@ -331,28 +330,6 @@ public class Match {
                 writer.write(secondsCommit == null ? "n/a" : secondsCommit.getName());
                 writer.write("\n");
             }
-        }
-    }
-
-    private static class BufferingOutputHandler implements InvocationOutputHandler {
-
-        private final List<String> lines = new LinkedList<>();
-
-        @Override
-        public void consumeLine(String line) {
-            lines.add(line);
-        }
-
-        void printErrors() {
-            for (String line : lines) {
-                if (line.contains("ERROR")) {
-                    System.err.println(line);
-                }
-            }
-        }
-
-        void clear() {
-            lines.clear();
         }
     }
 }
