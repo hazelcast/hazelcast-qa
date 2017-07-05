@@ -53,6 +53,8 @@ import static java.util.Collections.reverseOrder;
 
 public class Match {
 
+    private static final int MAX_EE_FAILURES_BEFORE_OS_COMMIT_IS_IGNORED = 10;
+
     private final Map<RevCommit, RevCommit> compatibilityMap = new TreeMap<>(reverseOrder());
     private final Map<RevCommit, RevCommit> reverseCompatibilityMap = new TreeMap<>(reverseOrder());
     private final List<RevCommit> failedCommitsEE = new LinkedList<>();
@@ -105,20 +107,14 @@ public class Match {
         try {
             int limit = commandLineOptions.getLimit();
             while (reverseCompatibilityMap.size() < limit) {
-                // OS forward search
+                // forward search OS
                 forwardSearchOS(limit);
                 if (reverseCompatibilityMap.size() >= limit) {
                     break;
                 }
 
-                // EE forward search
+                // forward search EE
                 forwardSearchEE(limit);
-                if (reverseCompatibilityMap.size() >= limit) {
-                    break;
-                }
-
-                // EE backward search
-                backwardSearchEE(limit);
             }
         } finally {
             cleanupBranches(branchName, gitOS);
@@ -161,7 +157,7 @@ public class Match {
                 if (compile(isVerbose, invoker, outputHandler, gitEE, currentCommitEE, true)) {
                     storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
                 } else {
-                    // jump to EE forward search
+                    // jump to forward search EE
                     break;
                 }
             }
@@ -175,23 +171,29 @@ public class Match {
             currentCommitEE = createBranch(branchName, gitEE, iteratorEE);
             if (compile(isVerbose, invoker, outputHandler, gitEE, currentCommitEE, true)) {
                 storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
-                // jump to EE backward search
+                // we found a passing EE commit, we can stop here
                 break;
             } else {
                 failedCommitsEE.add(currentCommitEE);
+                if (failedCommitsEE.size() == MAX_EE_FAILURES_BEFORE_OS_COMMIT_IS_IGNORED) {
+                    // after too many failures, we ignore this OS commit
+                    System.err.printf("Too many failures, ignoring OS %s%n%n", asString(currentCommitOS));
+                    failedCommitsEE.clear();
+                    compatibilityMap.put(currentCommitOS, null);
+                }
             }
         }
         if (failedCommitsEE.isEmpty()) {
-            // jump to OS forward search
+            // jump to forward search OS
             lastCommitOS = currentCommitOS;
             currentCommitOS = createBranch(branchName, gitOS, iteratorOS);
+        } else {
+            // jump to backward search EE
+            backwardSearchEE(limit);
         }
     }
 
     private void backwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
-        if (failedCommitsEE.isEmpty()) {
-            return;
-        }
         cleanupBranches(branchName, gitOS);
         createBranch(branchName, gitOS, lastCommitOS);
         compile(isVerbose, invoker, outputHandler, gitOS, lastCommitOS, false);
@@ -214,7 +216,7 @@ public class Match {
                 break;
             }
         }
-        // jump to OS forward search
+        // jump to forward search OS
         cleanupBranches(branchName, gitOS);
         createBranch(branchName, gitOS, currentCommitOS);
         currentCommitEE = createBranch(branchName, gitEE, iteratorEE);
