@@ -16,8 +16,8 @@
 
 package com.hazelcast.qamatch.match;
 
-import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.qamatch.utils.CommandLineOptions;
+import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.utils.PropertyReader;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.Invoker;
@@ -125,8 +125,8 @@ public class Match {
             cleanupBranches(branchName, gitEE);
 
             System.out.println("\n\n===== Results =====\n");
-            printAndStoreCompatibleVersions(compatibilityMap, compatibilityPath, false);
-            printAndStoreCompatibleVersions(reverseCompatibilityMap, reverseCompatibilityPath, true);
+            printAndStoreCompatibleCommits(compatibilityMap, compatibilityPath, false);
+            printAndStoreCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
         }
     }
 
@@ -226,20 +226,23 @@ public class Match {
         System.out.printf("Found matching versions (%d/%d)%n%n", reverseCompatibilityMap.size(), limit);
     }
 
-    private void printAndStoreCompatibleVersions(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap)
-            throws IOException {
+    private void printAndStoreCompatibleCommits(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap) {
         System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
         String formatString = isReverseMap ? "EE: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
-        for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
-            RevCommit firstCommit = entry.getKey();
-            RevCommit secondsCommit = entry.getValue();
-            System.out.printf(formatString, asString(firstCommit), asString(secondsCommit));
+        try {
             try (BufferedWriter writer = newBufferedWriter(path)) {
-                writer.write(firstCommit == null ? "n/a" : firstCommit.getName());
-                writer.write(";");
-                writer.write(secondsCommit == null ? "n/a" : secondsCommit.getName());
-                writer.write("\n");
+                for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
+                    RevCommit firstCommit = entry.getKey();
+                    RevCommit secondsCommit = entry.getValue();
+                    System.out.printf(formatString, asString(firstCommit), asString(secondsCommit));
+                    writer.write(firstCommit == null ? "n/a" : firstCommit.getName());
+                    writer.write(";");
+                    writer.write(secondsCommit == null ? "n/a" : secondsCommit.getName());
+                    writer.write("\n");
+                }
             }
+        } catch (IOException e) {
+            System.err.println("Could not store results! " + e.getMessage());
         }
     }
 }
