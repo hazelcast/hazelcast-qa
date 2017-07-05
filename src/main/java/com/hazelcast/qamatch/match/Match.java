@@ -164,17 +164,17 @@ public class Match {
                 compile(isVerbose, invoker, outputHandler, gitOS, lastCommitOS, false);
                 Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
                 while (failedCommitsIterator.hasNext()) {
-                    commitEE = createBranch(branchName, gitEE, failedCommitsIterator);
-                    if (compile(isVerbose, invoker, outputHandler, gitEE, commitEE, true)) {
-                        storeCompatibleCommits(lastCommitOS, commitEE, limit);
+                    RevCommit failedCommit = createBranch(branchName, gitEE, failedCommitsIterator);
+                    if (compile(isVerbose, invoker, outputHandler, gitEE, failedCommit, true)) {
+                        storeCompatibleCommits(lastCommitOS, failedCommit, limit);
                         failedCommitsIterator.remove();
                     } else {
-                        System.out.println("Found no matching version for " + toString(commitEE));
-                        reverseCompatibilityMap.put(commitEE, null);
+                        System.out.println("Found no matching version for " + toString(failedCommit));
+                        reverseCompatibilityMap.put(failedCommit, null);
                         while (failedCommitsIterator.hasNext()) {
-                            commitEE = failedCommitsIterator.next();
-                            System.out.println("Found no matching version for " + toString(commitEE));
-                            reverseCompatibilityMap.put(commitEE, null);
+                            failedCommit = failedCommitsIterator.next();
+                            System.out.println("Found no matching version for " + toString(failedCommit));
+                            reverseCompatibilityMap.put(failedCommit, null);
                         }
                         System.out.println();
                         failedCommitsEE.clear();
@@ -184,6 +184,7 @@ public class Match {
                 // jump to OS forward search
                 cleanupBranches(branchName, gitOS);
                 createBranch(branchName, gitOS, commitOS);
+                commitEE = createBranch(branchName, gitEE, iteratorEE);
             }
         } finally {
             cleanupBranches(branchName, gitOS);
