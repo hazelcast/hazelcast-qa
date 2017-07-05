@@ -47,8 +47,8 @@ public class Blame {
 
     private void readCSV() {
         try (Stream<String> stream = lines(commitPath)) {
-            stream.forEach(s -> {
-                String[] split = s.split(";");
+            stream.forEach(line -> {
+                String[] split = line.split(";");
                 commits.put(split[0], split[1]);
             });
         } catch (IOException e) {
