@@ -167,6 +167,7 @@ public class Match {
     }
 
     private void forwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
+        RevCommit lastCommitEE = currentCommitEE;
         while (reverseCompatibilityMap.size() < limit) {
             currentCommitEE = createBranch(branchName, gitEE, iteratorEE);
             if (compile(isVerbose, invoker, outputHandler, gitEE, currentCommitEE, true)) {
@@ -177,9 +178,15 @@ public class Match {
                 failedCommitsEE.add(currentCommitEE);
                 if (failedCommitsEE.size() == MAX_EE_FAILURES_BEFORE_OS_COMMIT_IS_IGNORED) {
                     // after too many failures, we ignore this OS commit
-                    System.err.printf("Too many failures, ignoring OS %s%n%n", asString(currentCommitOS));
-                    failedCommitsEE.clear();
                     compatibilityMap.put(currentCommitOS, null);
+                    // we have to reset the EE iterator, since we skipped a lot of commits here
+                    iteratorEE = commitsEE.iterator();
+                    while (currentCommitEE != lastCommitEE) {
+                        currentCommitEE = iteratorEE.next();
+                    }
+                    System.err.printf("Got %d failures, ignore OS %s%nContinue with EE %s%n%n",
+                            failedCommitsEE.size(), asString(currentCommitOS), asString(currentCommitEE));
+                    failedCommitsEE.clear();
                 }
             }
         }
