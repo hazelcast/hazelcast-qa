@@ -53,6 +53,9 @@ public abstract class AbstractGitClass {
         gitOS = getGit(propertyReader, OS.getRepositoryName());
         gitEE = getGit(propertyReader, EE.getRepositoryName());
 
+        cleanupBranch(null, gitOS);
+        cleanupBranch(null, gitEE);
+
         Repository repoOS = gitOS.getRepository();
         Repository repoEE = gitEE.getRepository();
 
@@ -66,9 +69,6 @@ public abstract class AbstractGitClass {
         currentCommitEE = walkEE.parseCommit(headEE.getObjectId());
 
         lastCommitOS = currentCommitOS;
-
-        cleanupBranch(null, gitOS);
-        cleanupBranch(null, gitEE);
 
         createBranch(branchName, gitOS, currentCommitOS);
         createBranch(branchName, gitEE, currentCommitEE);
