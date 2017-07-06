@@ -158,7 +158,6 @@ public class Match extends AbstractGitClass {
     }
 
     private void backwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
-        cleanupBranch(branchName, gitOS);
         checkout(branchName, gitOS, lastCommitOS);
         compile(isVerbose, invoker, outputHandler, gitOS, lastCommitOS, false);
         Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
@@ -182,7 +181,6 @@ public class Match extends AbstractGitClass {
             }
         }
         // jump to forward search OS
-        cleanupBranch(branchName, gitOS);
         checkout(branchName, gitOS, currentCommitOS);
         currentCommitEE = getFirstParent(currentCommitEE, walkEE);
         checkout(branchName, gitEE, currentCommitEE);
