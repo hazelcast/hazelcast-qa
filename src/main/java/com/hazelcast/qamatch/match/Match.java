@@ -143,6 +143,7 @@ public class Match extends AbstractGitClass {
                     System.err.printf("Got %d failures, ignore OS %s%nContinue with EE %s%n%n",
                             failedCommitsEE.size(), asString(currentCommitOS), asString(currentCommitEE));
                     failedCommitsEE.clear();
+                    break;
                 }
             }
         }
