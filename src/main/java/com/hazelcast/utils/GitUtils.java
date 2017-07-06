@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.File;
@@ -32,9 +33,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,15 +69,7 @@ public final class GitUtils {
         return new Git(repoOS);
     }
 
-    public static List<RevCommit> getCommits(Git git) throws GitAPIException {
-        List<RevCommit> list = new ArrayList<>();
-        for (RevCommit commit : git.log().call()) {
-            list.add(commit);
-        }
-        return list;
-    }
-
-    public static void cleanupBranches(String branchName, Git git) throws GitAPIException {
+    public static void cleanupBranch(String branchName, Git git) throws GitAPIException {
         git.checkout()
                 .setName("master")
                 .call();
@@ -100,11 +90,20 @@ public final class GitUtils {
                 .call();
     }
 
-    public static RevCommit createBranch(String branchName, Git git, Iterator<RevCommit> iterator) throws GitAPIException {
-        cleanupBranches(branchName, git);
-        RevCommit commit = iterator.next();
+    public static void checkout(String branchName, Git git, RevCommit commit) throws GitAPIException {
+        cleanupBranch(branchName, git);
         createBranch(branchName, git, commit);
-        return commit;
+    }
+
+    public static RevCommit getFirstParent(RevCommit commit, RevWalk walk) {
+        try {
+            RevCommit[] parents = commit.getParents();
+            if (parents.length > 0) {
+                return walk.parseCommit(parents[0]);
+            }
+        } catch (IOException ignored) {
+        }
+        return null;
     }
 
     public static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, Git git,

@@ -24,7 +24,11 @@ import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,15 +44,15 @@ import java.util.UUID;
 
 import static com.hazelcast.utils.CsvUtils.NOT_AVAILABLE;
 import static com.hazelcast.utils.GitUtils.asString;
-import static com.hazelcast.utils.GitUtils.cleanupBranches;
+import static com.hazelcast.utils.GitUtils.checkout;
+import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.createBranch;
-import static com.hazelcast.utils.GitUtils.getCommits;
+import static com.hazelcast.utils.GitUtils.getFirstParent;
 import static com.hazelcast.utils.GitUtils.getGit;
 import static com.hazelcast.utils.GitUtils.resetCompileCounters;
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
-import static java.lang.String.format;
 import static java.nio.file.Files.newBufferedWriter;
 import static java.util.Collections.reverseOrder;
 
@@ -75,11 +79,8 @@ public class Match {
     private Git gitOS;
     private Git gitEE;
 
-    private List<RevCommit> commitsOS;
-    private List<RevCommit> commitsEE;
-
-    private Iterator<RevCommit> iteratorOS;
-    private Iterator<RevCommit> iteratorEE;
+    private RevWalk walkOS;
+    private RevWalk walkEE;
 
     private RevCommit currentCommitOS;
     private RevCommit currentCommitEE;
@@ -101,10 +102,6 @@ public class Match {
     public void run() throws Exception {
         initRepositories();
 
-        System.out.println(format("Total commits in Hazelcast %s: %d", OS, commitsOS.size()));
-        System.out.println(format("Total commits in Hazelcast %s: %d", EE, commitsEE.size()));
-        System.out.println();
-
         try {
             int limit = commandLineOptions.getLimit();
             while (reverseCompatibilityMap.size() < limit) {
@@ -118,8 +115,11 @@ public class Match {
                 forwardSearchEE(limit);
             }
         } finally {
-            cleanupBranches(branchName, gitOS);
-            cleanupBranches(branchName, gitEE);
+            cleanupBranch(branchName, gitOS);
+            cleanupBranch(branchName, gitEE);
+
+            walkOS.close();
+            walkEE.close();
 
             System.out.println("\n\n===== Results =====\n");
             printAndStoreCompatibleCommits(compatibilityMap, compatibilityPath, false);
@@ -128,28 +128,31 @@ public class Match {
     }
 
     private void initRepositories() throws IOException, GitAPIException {
-        resetCompileCounters();
-
         gitOS = getGit(propertyReader, OS.getRepositoryName());
         gitEE = getGit(propertyReader, EE.getRepositoryName());
 
-        cleanupBranches(null, gitOS);
-        cleanupBranches(null, gitEE);
+        Repository repoOS = gitOS.getRepository();
+        Repository repoEE = gitEE.getRepository();
 
-        commitsOS = getCommits(gitOS);
-        commitsEE = getCommits(gitEE);
+        walkOS = new RevWalk(repoOS);
+        walkEE = new RevWalk(repoEE);
 
-        iteratorOS = commitsOS.iterator();
-        iteratorEE = commitsEE.iterator();
+        Ref headOS = repoOS.exactRef(Constants.HEAD);
+        Ref headEE = repoEE.exactRef(Constants.HEAD);
 
-        currentCommitOS = iteratorOS.next();
-        currentCommitEE = iteratorEE.next();
+        currentCommitOS = walkOS.parseCommit(headOS.getObjectId());
+        currentCommitEE = walkEE.parseCommit(headEE.getObjectId());
 
         lastCommitOS = currentCommitOS;
         failedCommitsEE.clear();
 
+        cleanupBranch(null, gitOS);
+        cleanupBranch(null, gitEE);
+
         createBranch(branchName, gitOS, currentCommitOS);
         createBranch(branchName, gitEE, currentCommitEE);
+
+        resetCompileCounters();
     }
 
     private void forwardSearchOS(int limit) throws MavenInvocationException, GitAPIException {
@@ -163,14 +166,16 @@ public class Match {
                 }
             }
             lastCommitOS = currentCommitOS;
-            currentCommitOS = createBranch(branchName, gitOS, iteratorOS);
+            currentCommitOS = getFirstParent(currentCommitOS, walkOS);
+            checkout(branchName, gitOS, currentCommitOS);
         }
     }
 
     private void forwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
         RevCommit lastCommitEE = currentCommitEE;
         while (reverseCompatibilityMap.size() < limit) {
-            currentCommitEE = createBranch(branchName, gitEE, iteratorEE);
+            currentCommitEE = getFirstParent(currentCommitEE, walkEE);
+            checkout(branchName, gitEE, currentCommitEE);
             if (compile(isVerbose, invoker, outputHandler, gitEE, currentCommitEE, true)) {
                 storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
                 // we found a passing EE commit, we can stop here
@@ -180,11 +185,8 @@ public class Match {
                 if (failedCommitsEE.size() == MAX_EE_FAILURES_BEFORE_OS_COMMIT_IS_IGNORED) {
                     // after too many failures, we ignore this OS commit
                     compatibilityMap.put(currentCommitOS, null);
-                    // we have to reset the EE iterator, since we skipped a lot of commits here
-                    iteratorEE = commitsEE.iterator();
-                    while (currentCommitEE != lastCommitEE) {
-                        currentCommitEE = iteratorEE.next();
-                    }
+                    // we have to reset the currentCommitEE, since we skipped a lot of commits here
+                    currentCommitEE = lastCommitEE;
                     System.err.printf("Got %d failures, ignore OS %s%nContinue with EE %s%n%n",
                             failedCommitsEE.size(), asString(currentCommitOS), asString(currentCommitEE));
                     failedCommitsEE.clear();
@@ -194,7 +196,8 @@ public class Match {
         if (failedCommitsEE.isEmpty()) {
             // jump to forward search OS
             lastCommitOS = currentCommitOS;
-            currentCommitOS = createBranch(branchName, gitOS, iteratorOS);
+            currentCommitOS = getFirstParent(currentCommitOS, walkOS);
+            checkout(branchName, gitOS, currentCommitOS);
         } else {
             // jump to backward search EE
             backwardSearchEE(limit);
@@ -202,12 +205,13 @@ public class Match {
     }
 
     private void backwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
-        cleanupBranches(branchName, gitOS);
-        createBranch(branchName, gitOS, lastCommitOS);
+        cleanupBranch(branchName, gitOS);
+        checkout(branchName, gitOS, lastCommitOS);
         compile(isVerbose, invoker, outputHandler, gitOS, lastCommitOS, false);
         Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
         while (failedCommitsIterator.hasNext()) {
-            RevCommit failedCommit = createBranch(branchName, gitEE, failedCommitsIterator);
+            RevCommit failedCommit = failedCommitsIterator.next();
+            checkout(branchName, gitEE, failedCommit);
             if (compile(isVerbose, invoker, outputHandler, gitEE, failedCommit, true)) {
                 storeCompatibleCommits(lastCommitOS, failedCommit, limit);
                 failedCommitsIterator.remove();
@@ -225,9 +229,10 @@ public class Match {
             }
         }
         // jump to forward search OS
-        cleanupBranches(branchName, gitOS);
-        createBranch(branchName, gitOS, currentCommitOS);
-        currentCommitEE = createBranch(branchName, gitEE, iteratorEE);
+        cleanupBranch(branchName, gitOS);
+        checkout(branchName, gitOS, currentCommitOS);
+        currentCommitEE = getFirstParent(currentCommitEE, walkEE);
+        checkout(branchName, gitEE, currentCommitEE);
     }
 
     private void storeCompatibleCommits(RevCommit commitOS, RevCommit commitEE, int limit) {

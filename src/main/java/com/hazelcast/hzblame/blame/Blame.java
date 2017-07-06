@@ -27,7 +27,11 @@ import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,11 +44,11 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.hazelcast.utils.CsvUtils.readCSV;
-import static com.hazelcast.utils.GitUtils.cleanupBranches;
+import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.createBranch;
-import static com.hazelcast.utils.GitUtils.getCommits;
 import static com.hazelcast.utils.GitUtils.getGit;
+import static com.hazelcast.utils.GitUtils.resetCompileCounters;
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
 
@@ -66,8 +70,8 @@ public class Blame {
     private Git gitOS;
     private Git gitEE;
 
-    private List<RevCommit> commitsOS;
-    private List<RevCommit> commitsEE;
+    private RevWalk walkOS;
+    private RevWalk walkEE;
 
     private RevCommit currentCommitOS;
     private RevCommit currentCommitEE;
@@ -101,25 +105,33 @@ public class Blame {
 
         runTest(projectRoot, goals);
 
-        cleanupBranches(branchName, gitOS);
-        cleanupBranches(branchName, gitEE);
+        cleanupBranch(branchName, gitOS);
+        cleanupBranch(branchName, gitEE);
     }
 
     private void initRepositories() throws IOException, GitAPIException {
         gitOS = getGit(propertyReader, OS.getRepositoryName());
         gitEE = getGit(propertyReader, EE.getRepositoryName());
 
-        cleanupBranches(null, gitOS);
-        cleanupBranches(null, gitEE);
+        Repository repoOS = gitOS.getRepository();
+        Repository repoEE = gitEE.getRepository();
 
-        commitsOS = getCommits(gitOS);
-        commitsEE = getCommits(gitEE);
+        walkOS = new RevWalk(repoOS);
+        walkEE = new RevWalk(repoEE);
 
-        currentCommitOS = commitsOS.get(0);
-        currentCommitEE = commitsEE.get(0);
+        Ref headOS = repoOS.exactRef(Constants.HEAD);
+        Ref headEE = repoEE.exactRef(Constants.HEAD);
+
+        currentCommitOS = walkOS.parseCommit(headOS.getObjectId());
+        currentCommitEE = walkEE.parseCommit(headEE.getObjectId());
+
+        cleanupBranch(null, gitOS);
+        cleanupBranch(null, gitEE);
 
         createBranch(branchName, gitOS, currentCommitOS);
         createBranch(branchName, gitEE, currentCommitEE);
+
+        resetCompileCounters();
     }
 
     private File getProjectRoot() {
