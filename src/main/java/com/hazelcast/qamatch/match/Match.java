@@ -28,7 +28,6 @@ import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -102,9 +101,11 @@ public class Match extends AbstractGitClass {
             walkOS.close();
             walkEE.close();
 
-            System.out.println("\n\n===== Results =====\n");
-            printAndStoreCompatibleCommits(compatibilityMap, compatibilityPath, false);
-            printAndStoreCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
+            if (isVerbose) {
+                System.out.println("\n\n===== Results =====\n");
+            }
+            storeCompatibleCommits(compatibilityMap, compatibilityPath, false);
+            storeCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
         }
     }
 
@@ -193,23 +194,23 @@ public class Match extends AbstractGitClass {
         System.out.printf("Found matching versions (%d/%d)%n%n", reverseCompatibilityMap.size(), limit);
     }
 
-    private void printAndStoreCompatibleCommits(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap) {
-        System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
+    private void storeCompatibleCommits(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap) throws Exception {
+        if (isVerbose) {
+            System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
+        }
         String formatString = isReverseMap ? "EE: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
-        try {
-            try (BufferedWriter writer = newBufferedWriter(path)) {
-                for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
-                    RevCommit firstCommit = entry.getKey();
-                    RevCommit secondsCommit = entry.getValue();
+        try (BufferedWriter writer = newBufferedWriter(path)) {
+            for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
+                RevCommit firstCommit = entry.getKey();
+                RevCommit secondsCommit = entry.getValue();
+                writer.write(firstCommit == null ? NOT_AVAILABLE : firstCommit.getName());
+                writer.write(";");
+                writer.write(secondsCommit == null ? NOT_AVAILABLE : secondsCommit.getName());
+                writer.write("\n");
+                if (isVerbose) {
                     System.out.printf(formatString, asString(firstCommit), asString(secondsCommit));
-                    writer.write(firstCommit == null ? NOT_AVAILABLE : firstCommit.getName());
-                    writer.write(";");
-                    writer.write(secondsCommit == null ? NOT_AVAILABLE : secondsCommit.getName());
-                    writer.write("\n");
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Could not store results! " + e.getMessage());
         }
     }
 }
