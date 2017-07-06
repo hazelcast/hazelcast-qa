@@ -29,9 +29,13 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
@@ -44,6 +48,10 @@ public final class GitUtils {
 
     private static final AtomicInteger COMPILE_COUNTER_OS = new AtomicInteger();
     private static final AtomicInteger COMPILE_COUNTER_EE = new AtomicInteger();
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH)
+            .withZone(ZoneId.systemDefault());
 
     private GitUtils() {
     }
@@ -128,11 +136,12 @@ public final class GitUtils {
             return "null";
         }
         String sha = commit.getName().substring(0, SHA_LENGTH);
+        String time = DATE_FORMATTER.format(Instant.ofEpochSecond(commit.getCommitTime()));
         String shortMessage = commit.getShortMessage();
         if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
             shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "...";
         }
         String author = commit.getAuthorIdent().getName();
-        return format("%s (%s): %s [%s]", sha, commit.getCommitTime(), shortMessage, author);
+        return format("%s (%s): %s [%s]", sha, time, shortMessage, author);
     }
 }
