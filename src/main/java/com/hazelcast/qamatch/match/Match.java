@@ -16,19 +16,15 @@
 
 package com.hazelcast.qamatch.match;
 
+import com.hazelcast.common.AbstractGitClass;
 import com.hazelcast.qamatch.utils.CommandLineOptions;
 import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.utils.PropertyReader;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -47,16 +43,11 @@ import static com.hazelcast.utils.GitUtils.asString;
 import static com.hazelcast.utils.GitUtils.checkout;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
-import static com.hazelcast.utils.GitUtils.createBranch;
 import static com.hazelcast.utils.GitUtils.getFirstParent;
-import static com.hazelcast.utils.GitUtils.getGit;
-import static com.hazelcast.utils.GitUtils.resetCompileCounters;
-import static com.hazelcast.utils.Repository.EE;
-import static com.hazelcast.utils.Repository.OS;
 import static java.nio.file.Files.newBufferedWriter;
 import static java.util.Collections.reverseOrder;
 
-public class Match {
+public class Match extends AbstractGitClass {
 
     private static final int MAX_EE_FAILURES_BEFORE_OS_COMMIT_IS_IGNORED = 10;
 
@@ -67,7 +58,6 @@ public class Match {
     private final Path compatibilityPath = Paths.get("os-ee.csv");
     private final Path reverseCompatibilityPath = Paths.get("ee-os.csv");
 
-    private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
 
     private final boolean isVerbose;
@@ -76,18 +66,8 @@ public class Match {
     private final BufferingOutputHandler outputHandler;
     private final Invoker invoker;
 
-    private Git gitOS;
-    private Git gitEE;
-
-    private RevWalk walkOS;
-    private RevWalk walkEE;
-
-    private RevCommit currentCommitOS;
-    private RevCommit currentCommitEE;
-    private RevCommit lastCommitOS;
-
     public Match(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
-        this.propertyReader = propertyReader;
+        super(propertyReader);
         this.commandLineOptions = commandLineOptions;
 
         this.isVerbose = commandLineOptions.isVerbose();
@@ -100,7 +80,8 @@ public class Match {
     }
 
     public void run() throws Exception {
-        initRepositories();
+        initRepositories(branchName);
+        failedCommitsEE.clear();
 
         try {
             int limit = commandLineOptions.getLimit();
@@ -125,34 +106,6 @@ public class Match {
             printAndStoreCompatibleCommits(compatibilityMap, compatibilityPath, false);
             printAndStoreCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
         }
-    }
-
-    private void initRepositories() throws IOException, GitAPIException {
-        gitOS = getGit(propertyReader, OS.getRepositoryName());
-        gitEE = getGit(propertyReader, EE.getRepositoryName());
-
-        Repository repoOS = gitOS.getRepository();
-        Repository repoEE = gitEE.getRepository();
-
-        walkOS = new RevWalk(repoOS);
-        walkEE = new RevWalk(repoEE);
-
-        Ref headOS = repoOS.exactRef(Constants.HEAD);
-        Ref headEE = repoEE.exactRef(Constants.HEAD);
-
-        currentCommitOS = walkOS.parseCommit(headOS.getObjectId());
-        currentCommitEE = walkEE.parseCommit(headEE.getObjectId());
-
-        lastCommitOS = currentCommitOS;
-        failedCommitsEE.clear();
-
-        cleanupBranch(null, gitOS);
-        cleanupBranch(null, gitEE);
-
-        createBranch(branchName, gitOS, currentCommitOS);
-        createBranch(branchName, gitEE, currentCommitEE);
-
-        resetCompileCounters();
     }
 
     private void forwardSearchOS(int limit) throws MavenInvocationException, GitAPIException {

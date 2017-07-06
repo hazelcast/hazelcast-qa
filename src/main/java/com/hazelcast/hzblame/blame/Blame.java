@@ -16,6 +16,7 @@
 
 package com.hazelcast.hzblame.blame;
 
+import com.hazelcast.common.AbstractGitClass;
 import com.hazelcast.hzblame.utils.CommandLineOptions;
 import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.utils.PropertyReader;
@@ -26,15 +27,8 @@ import org.apache.maven.shared.invoker.InvocationResult;
 import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevWalk;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -46,13 +40,8 @@ import java.util.UUID;
 import static com.hazelcast.utils.CsvUtils.readCSV;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
-import static com.hazelcast.utils.GitUtils.createBranch;
-import static com.hazelcast.utils.GitUtils.getGit;
-import static com.hazelcast.utils.GitUtils.resetCompileCounters;
-import static com.hazelcast.utils.Repository.EE;
-import static com.hazelcast.utils.Repository.OS;
 
-public class Blame {
+public class Blame extends AbstractGitClass {
 
     private final Path commitPath = Paths.get("ee-os.csv");
     private final Map<String, String> commits = new HashMap<>();
@@ -61,23 +50,13 @@ public class Blame {
     private final BufferingOutputHandler outputHandler;
     private final Invoker invoker;
 
-    private final PropertyReader propertyReader;
     private final CommandLineOptions commandLineOptions;
 
     private final boolean isVerbose;
     private final boolean isEE;
 
-    private Git gitOS;
-    private Git gitEE;
-
-    private RevWalk walkOS;
-    private RevWalk walkEE;
-
-    private RevCommit currentCommitOS;
-    private RevCommit currentCommitEE;
-
     public Blame(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
-        this.propertyReader = propertyReader;
+        super(propertyReader);
         this.commandLineOptions = commandLineOptions;
 
         this.isVerbose = commandLineOptions.isVerbose();
@@ -91,7 +70,8 @@ public class Blame {
     }
 
     public void run() throws Exception {
-        initRepositories();
+        initRepositories(branchName);
+
         File projectRoot = getProjectRoot();
         List<String> goals = getTestRunGoals();
         if (isVerbose) {
@@ -107,31 +87,6 @@ public class Blame {
 
         cleanupBranch(branchName, gitOS);
         cleanupBranch(branchName, gitEE);
-    }
-
-    private void initRepositories() throws IOException, GitAPIException {
-        gitOS = getGit(propertyReader, OS.getRepositoryName());
-        gitEE = getGit(propertyReader, EE.getRepositoryName());
-
-        Repository repoOS = gitOS.getRepository();
-        Repository repoEE = gitEE.getRepository();
-
-        walkOS = new RevWalk(repoOS);
-        walkEE = new RevWalk(repoEE);
-
-        Ref headOS = repoOS.exactRef(Constants.HEAD);
-        Ref headEE = repoEE.exactRef(Constants.HEAD);
-
-        currentCommitOS = walkOS.parseCommit(headOS.getObjectId());
-        currentCommitEE = walkEE.parseCommit(headEE.getObjectId());
-
-        cleanupBranch(null, gitOS);
-        cleanupBranch(null, gitEE);
-
-        createBranch(branchName, gitOS, currentCommitOS);
-        createBranch(branchName, gitEE, currentCommitEE);
-
-        resetCompileCounters();
     }
 
     private File getProjectRoot() {
