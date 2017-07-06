@@ -38,6 +38,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.hazelcast.utils.CsvUtils.readCSV;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.DebugUtils.isDebug;
+import static com.hazelcast.utils.DebugUtils.printGreen;
+import static com.hazelcast.utils.DebugUtils.printRed;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 
@@ -52,14 +56,12 @@ public class Blame extends AbstractGitClass {
 
     private final CommandLineOptions commandLineOptions;
 
-    private final boolean isVerbose;
     private final boolean isEE;
 
     public Blame(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         super(propertyReader);
         this.commandLineOptions = commandLineOptions;
 
-        this.isVerbose = commandLineOptions.isVerbose();
         this.isEE = commandLineOptions.isEE();
 
         this.branchName = "blame-" + UUID.randomUUID();
@@ -74,13 +76,11 @@ public class Blame extends AbstractGitClass {
 
         File projectRoot = getProjectRoot();
         List<String> goals = getTestRunGoals();
-        if (isVerbose) {
-            System.out.println("Goals: " + goals);
-        }
+        debug("Goals: %s", goals);
 
         if (isEE) {
             readCSV(commitPath, commits);
-            compile(isVerbose, invoker, outputHandler, gitOS, currentCommitOS, false);
+            compile(invoker, outputHandler, gitOS, currentCommitOS, false);
         }
 
         runTest(projectRoot, goals);
@@ -120,17 +120,21 @@ public class Blame extends AbstractGitClass {
                 .setGoals(goals);
         InvocationResult result = invoker.execute(request);
 
-        if (isVerbose) {
+        if (isDebug()) {
             outputHandler.printAll();
         }
         if (outputHandler.contains("No tests were executed!")) {
-            System.err.println("Test could not be found, please check if you have specified the correct module and profile!");
+            printRed("Test could not be found, please check if you have specified the correct module and profile!");
             return false;
         }
         outputHandler.clear();
 
         int exitCode = result.getExitCode();
-        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
+        if (exitCode == 0) {
+            printGreen("SUCCESS");
+        } else {
+            printRed("FAILURE");
+        }
         return exitCode == 0;
     }
 }

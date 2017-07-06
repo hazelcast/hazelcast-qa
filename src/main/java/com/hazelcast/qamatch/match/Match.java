@@ -38,6 +38,10 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import static com.hazelcast.utils.CsvUtils.NOT_AVAILABLE;
+import static com.hazelcast.utils.DebugUtils.debug;
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.printRed;
+import static com.hazelcast.utils.DebugUtils.printYellow;
 import static com.hazelcast.utils.GitUtils.asString;
 import static com.hazelcast.utils.GitUtils.checkout;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
@@ -60,8 +64,6 @@ public class Match extends AbstractGitClass {
 
     private final CommandLineOptions commandLineOptions;
 
-    private final boolean isVerbose;
-
     private final String branchName;
     private final BufferingOutputHandler outputHandler;
     private final Invoker invoker;
@@ -69,8 +71,6 @@ public class Match extends AbstractGitClass {
     public Match(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         super(propertyReader);
         this.commandLineOptions = commandLineOptions;
-
-        this.isVerbose = commandLineOptions.isVerbose();
 
         this.branchName = "matcher-" + UUID.randomUUID();
         this.outputHandler = new BufferingOutputHandler();
@@ -102,9 +102,7 @@ public class Match extends AbstractGitClass {
             closeQuietly(walkOS);
             closeQuietly(walkEE);
 
-            if (isVerbose) {
-                System.out.println("\n\n===== Results =====\n");
-            }
+            debug("\n\n===== Results =====\n");
             storeCompatibleCommits(compatibilityMap, compatibilityPath, false);
             storeCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
         }
@@ -112,8 +110,8 @@ public class Match extends AbstractGitClass {
 
     private void forwardSearchOS(int limit) throws MavenInvocationException, GitAPIException {
         while (reverseCompatibilityMap.size() < limit) {
-            if (compile(isVerbose, invoker, outputHandler, gitOS, currentCommitOS, false)) {
-                if (compile(isVerbose, invoker, outputHandler, gitEE, currentCommitEE, true)) {
+            if (compile(invoker, outputHandler, gitOS, currentCommitOS, false)) {
+                if (compile(invoker, outputHandler, gitEE, currentCommitEE, true)) {
                     storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
                 } else {
                     // jump to forward search EE
@@ -131,7 +129,7 @@ public class Match extends AbstractGitClass {
         while (reverseCompatibilityMap.size() < limit) {
             currentCommitEE = getFirstParent(currentCommitEE, walkEE);
             checkout(branchName, gitEE, currentCommitEE);
-            if (compile(isVerbose, invoker, outputHandler, gitEE, currentCommitEE, true)) {
+            if (compile(invoker, outputHandler, gitEE, currentCommitEE, true)) {
                 storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
                 // we found a passing EE commit, we can stop here
                 break;
@@ -142,7 +140,7 @@ public class Match extends AbstractGitClass {
                     compatibilityMap.put(currentCommitOS, null);
                     // we have to reset the currentCommitEE, since we skipped a lot of commits here
                     currentCommitEE = lastCommitEE;
-                    System.err.printf("Got %d failures, ignore OS %s%nContinue with EE %s%n%n",
+                    printRed("Got %d failures, ignoring OS %s%nContinue with EE %s%n",
                             failedCommitsEE.size(), asString(currentCommitOS), asString(currentCommitEE));
                     failedCommitsEE.clear();
                     break;
@@ -162,20 +160,20 @@ public class Match extends AbstractGitClass {
 
     private void backwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
         checkout(branchName, gitOS, lastCommitOS);
-        compile(isVerbose, invoker, outputHandler, gitOS, lastCommitOS, false);
+        compile(invoker, outputHandler, gitOS, lastCommitOS, false);
         Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
         while (failedCommitsIterator.hasNext()) {
             RevCommit failedCommit = failedCommitsIterator.next();
             checkout(branchName, gitEE, failedCommit);
-            if (compile(isVerbose, invoker, outputHandler, gitEE, failedCommit, true)) {
+            if (compile(invoker, outputHandler, gitEE, failedCommit, true)) {
                 storeCompatibleCommits(lastCommitOS, failedCommit, limit);
                 failedCommitsIterator.remove();
             } else {
-                System.out.println("Found no matching version for " + asString(failedCommit));
+                printYellow("Found no matching version for %s", asString(failedCommit));
                 reverseCompatibilityMap.put(failedCommit, null);
                 while (failedCommitsIterator.hasNext()) {
                     failedCommit = failedCommitsIterator.next();
-                    System.out.println("Found no matching version for " + asString(failedCommit));
+                    printYellow("Found no matching version for %s", asString(failedCommit));
                     reverseCompatibilityMap.put(failedCommit, null);
                 }
                 System.out.println();
@@ -192,14 +190,12 @@ public class Match extends AbstractGitClass {
     private void storeCompatibleCommits(RevCommit commitOS, RevCommit commitEE, int limit) {
         compatibilityMap.put(commitOS, commitEE);
         reverseCompatibilityMap.put(commitEE, commitOS);
-        System.out.printf("Found matching versions (%d/%d)%n%n", reverseCompatibilityMap.size(), limit);
+        print("Found matching versions (%d/%d)%n", reverseCompatibilityMap.size(), limit);
     }
 
     private void storeCompatibleCommits(Map<RevCommit, RevCommit> map, Path path, boolean isReverseMap) throws Exception {
-        if (isVerbose) {
-            System.out.println(isReverseMap ? "EE -> OS" : "OS -> EE");
-        }
-        String formatString = isReverseMap ? "EE: %s%nOS: %s%n%n" : "OS: %s%nEE: %s%n%n";
+        debug(isReverseMap ? "EE -> OS" : "OS -> EE");
+        String formatString = isReverseMap ? "EE: %s%nOS: %s%n" : "OS: %s%nEE: %s%n";
         try (BufferedWriter writer = newBufferedWriter(path)) {
             for (Map.Entry<RevCommit, RevCommit> entry : map.entrySet()) {
                 RevCommit firstCommit = entry.getKey();
@@ -208,9 +204,7 @@ public class Match extends AbstractGitClass {
                 writer.write(";");
                 writer.write(secondsCommit == null ? NOT_AVAILABLE : secondsCommit.getName());
                 writer.write("\n");
-                if (isVerbose) {
-                    System.out.printf(formatString, asString(firstCommit), asString(secondsCommit));
-                }
+                debug(formatString, asString(firstCommit), asString(secondsCommit));
             }
         }
     }

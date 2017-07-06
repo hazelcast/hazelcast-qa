@@ -36,6 +36,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.hazelcast.utils.DebugUtils.isDebug;
+import static com.hazelcast.utils.DebugUtils.printGreen;
+import static com.hazelcast.utils.DebugUtils.printRed;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
@@ -106,8 +109,8 @@ public final class GitUtils {
         return null;
     }
 
-    public static boolean compile(boolean isVerbose, Invoker invoker, BufferingOutputHandler outputHandler, Git git,
-                                  RevCommit commit, boolean isEE) throws MavenInvocationException {
+    public static boolean compile(Invoker invoker, BufferingOutputHandler outputHandler, Git git, RevCommit commit,
+                                  boolean isEE) throws MavenInvocationException {
         String label = isEE ? "EE" : "OS";
         int counter = isEE ? COMPILE_COUNTER_EE.incrementAndGet() : COMPILE_COUNTER_OS.incrementAndGet();
         System.out.printf("[%s] [%3d] Compiling %s... ", label, counter, asString(commit));
@@ -120,13 +123,17 @@ public final class GitUtils {
                 .setGoals(asList("clean", "install", "-DskipTests"));
         InvocationResult result = invoker.execute(request);
 
-        if (isVerbose) {
+        if (isDebug()) {
             outputHandler.printErrors();
         }
         outputHandler.clear();
 
         int exitCode = result.getExitCode();
-        System.out.println(exitCode == 0 ? "SUCCESS" : "FAILURE");
+        if (exitCode == 0) {
+            printGreen("SUCCESS");
+        } else {
+            printRed("FAILURE");
+        }
         return exitCode == 0;
     }
 
