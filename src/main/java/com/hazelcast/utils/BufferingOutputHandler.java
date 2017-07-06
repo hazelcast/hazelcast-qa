@@ -21,6 +21,9 @@ import org.apache.maven.shared.invoker.InvocationOutputHandler;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.printRed;
+
 @SuppressWarnings("WeakerAccess")
 public class BufferingOutputHandler implements InvocationOutputHandler {
 
@@ -43,14 +46,14 @@ public class BufferingOutputHandler implements InvocationOutputHandler {
     public void printErrors() {
         for (String line : lines) {
             if (line.contains("ERROR")) {
-                System.err.println(line);
+                printRed(line);
             }
         }
     }
 
     public void printAll() {
         for (String line : lines) {
-            System.out.println(line);
+            print(line);
         }
     }
 
