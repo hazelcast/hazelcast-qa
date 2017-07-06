@@ -43,6 +43,7 @@ import static com.hazelcast.utils.GitUtils.checkout;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.getFirstParent;
+import static com.hazelcast.utils.Utils.closeQuietly;
 import static java.nio.file.Files.newBufferedWriter;
 import static java.util.Collections.reverseOrder;
 
@@ -98,8 +99,8 @@ public class Match extends AbstractGitClass {
             cleanupBranch(branchName, gitOS);
             cleanupBranch(branchName, gitEE);
 
-            walkOS.close();
-            walkEE.close();
+            closeQuietly(walkOS);
+            closeQuietly(walkEE);
 
             if (isVerbose) {
                 System.out.println("\n\n===== Results =====\n");

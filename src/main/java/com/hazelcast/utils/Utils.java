@@ -254,21 +254,31 @@ public final class Utils {
         }
     }
 
-    static void sleepMillis(int millis) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(millis);
-        } catch (InterruptedException ignore) {
-            Thread.currentThread().interrupt();
-        }
-    }
-
-    private static void closeQuietly(Closeable closeable) {
+    public static void closeQuietly(Closeable closeable) {
         try {
             if (closeable != null) {
                 closeable.close();
             }
         } catch (IOException e) {
             debugRed("Could not close resource! " + e.getMessage());
+        }
+    }
+
+    public static void closeQuietly(AutoCloseable closeable) {
+        try {
+            if (closeable != null) {
+                closeable.close();
+            }
+        } catch (Exception e) {
+            debugRed("Could not close resource! " + e.getMessage());
+        }
+    }
+
+    static void sleepMillis(int millis) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(millis);
+        } catch (InterruptedException ignore) {
+            Thread.currentThread().interrupt();
         }
     }
 }
