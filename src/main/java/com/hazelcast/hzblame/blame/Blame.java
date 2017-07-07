@@ -46,6 +46,7 @@ import static com.hazelcast.utils.DebugUtils.printGreen;
 import static com.hazelcast.utils.DebugUtils.printRed;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
+import static java.lang.String.format;
 
 public class Blame extends AbstractGitClass {
 
@@ -128,13 +129,26 @@ public class Blame extends AbstractGitClass {
         InvocationResult result = invoker.execute(request);
         long elapsedSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - started);
 
-        int exitCode = result.getExitCode();
-        if (exitCode == 0) {
+        String errorMsg = null;
+        boolean success = result.getExitCode() == 0;
+
+        if (outputHandler.contains("COMPILATION ERROR")) {
+            errorMsg = "There were compilation errors!";
+            success = false;
+        } else if (outputHandler.contains("No tests were executed!")) {
+            errorMsg = "Test could not be found, please check if you have specified the correct module and profile!";
+            success = false;
+        } else if (outputHandler.contains("[ERROR] There are test failures.")) {
+            errorMsg = format("There were test failures!%n%s", outputHandler.getLine("»"));
+            success = false;
+        }
+
+        if (success) {
             printGreen("SUCCESS (%d seconds)", elapsedSeconds);
         } else {
             printRed("FAILURE (%d seconds)", elapsedSeconds);
+            printRed(errorMsg);
         }
-
         if (isDebug()) {
             print("\n================================================================================");
             print("================================= Maven output =================================");
@@ -142,16 +156,8 @@ public class Blame extends AbstractGitClass {
             outputHandler.printAll();
             print("================================================================================\n");
         }
-        if (outputHandler.contains("COMPILATION ERROR")) {
-            printRed("There were compilation errors!");
-            return false;
-        }
-        if (outputHandler.contains("No tests were executed!")) {
-            printRed("Test could not be found, please check if you have specified the correct module and profile!");
-            return false;
-        }
         outputHandler.clear();
 
-        return exitCode == 0;
+        return success;
     }
 }

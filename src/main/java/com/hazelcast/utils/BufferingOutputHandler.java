@@ -43,6 +43,15 @@ public class BufferingOutputHandler implements InvocationOutputHandler {
         return false;
     }
 
+    public String getLine(String pattern) {
+        for (String line : lines) {
+            if (line.contains(pattern)) {
+                return line;
+            }
+        }
+        return null;
+    }
+
     public void printErrors() {
         for (String line : lines) {
             if (line.contains("ERROR")) {
