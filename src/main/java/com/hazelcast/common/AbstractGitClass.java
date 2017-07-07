@@ -38,6 +38,9 @@ public abstract class AbstractGitClass {
     protected Git gitOS;
     protected Git gitEE;
 
+    protected Repository repoOS;
+    protected Repository repoEE;
+
     protected RevWalk walkOS;
     protected RevWalk walkEE;
 
@@ -56,8 +59,8 @@ public abstract class AbstractGitClass {
         cleanupBranch(null, gitOS);
         cleanupBranch(null, gitEE);
 
-        Repository repoOS = gitOS.getRepository();
-        Repository repoEE = gitEE.getRepository();
+        repoOS = gitOS.getRepository();
+        repoEE = gitEE.getRepository();
 
         walkOS = new RevWalk(repoOS);
         walkEE = new RevWalk(repoEE);

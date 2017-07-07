@@ -23,6 +23,7 @@ import org.apache.maven.shared.invoker.Invoker;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -97,6 +98,11 @@ public final class GitUtils {
     public static void checkout(String branchName, Git git, RevCommit commit) throws GitAPIException {
         cleanupBranch(branchName, git);
         createBranch(branchName, git, commit);
+    }
+
+    public static RevCommit getCommit(Repository repo, RevWalk revWalk, String name) throws IOException {
+        ObjectId objectId = repo.resolve(name);
+        return revWalk.parseCommit(objectId);
     }
 
     public static RevCommit getFirstParent(RevCommit commit, RevWalk walk) {

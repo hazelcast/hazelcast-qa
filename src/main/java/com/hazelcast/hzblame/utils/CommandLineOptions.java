@@ -57,6 +57,10 @@ public class CommandLineOptions {
             "Specifies the test method to execute.")
             .withRequiredArg().ofType(String.class);
 
+    private final OptionSpec<String> startCommitSpec = parser.accepts("startCommit",
+            "Specifies the commit to start the search with.")
+            .withRequiredArg().ofType(String.class);
+
     private final PropertyReader propertyReader;
     private final OptionSet options;
     private final CommandLineAction action;
@@ -110,6 +114,14 @@ public class CommandLineOptions {
 
     public String getTestMethod() {
         return options.valueOf(testMethodSpec);
+    }
+
+    public boolean hasStartCommit() {
+        return options.has(startCommitSpec);
+    }
+
+    public String getStartCommit() {
+        return options.valueOf(startCommitSpec);
     }
 
     private OptionSet initOptions(String[] args) {

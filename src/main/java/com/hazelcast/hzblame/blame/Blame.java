@@ -38,15 +38,19 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.hazelcast.utils.CsvUtils.NOT_AVAILABLE;
 import static com.hazelcast.utils.CsvUtils.readCSV;
 import static com.hazelcast.utils.DebugUtils.debug;
 import static com.hazelcast.utils.DebugUtils.isDebug;
 import static com.hazelcast.utils.DebugUtils.print;
 import static com.hazelcast.utils.DebugUtils.printGreen;
 import static com.hazelcast.utils.DebugUtils.printRed;
+import static com.hazelcast.utils.GitUtils.checkout;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
+import static com.hazelcast.utils.GitUtils.getCommit;
 import static java.lang.String.format;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class Blame extends AbstractGitClass {
 
@@ -83,12 +87,16 @@ public class Blame extends AbstractGitClass {
         if (isEE) {
             readCSV(commitPath, commits);
         }
+        String currentName = commandLineOptions.hasStartCommit() ? commandLineOptions.getStartCommit() : HEAD;
 
+        currentCommitOS = getCommit(repoOS, walkOS, isEE ? getNameFromEE(currentName) : currentName);
+        checkout(branchName, gitOS, currentCommitOS);
         compile(invoker, outputHandler, gitOS, currentCommitOS, false);
         if (isEE) {
+            currentCommitEE = getCommit(repoEE, walkEE, currentName);
+            checkout(branchName, gitEE, currentCommitEE);
             compile(invoker, outputHandler, gitEE, currentCommitEE, true);
         }
-
         executeTest(projectRoot, goals);
 
         cleanupBranch(branchName, gitOS);
@@ -115,6 +123,15 @@ public class Blame extends AbstractGitClass {
         goals.add("-pl " + testModule);
         goals.add("-Dtest=" + commandLineOptions.getTestClass() + testMethod);
         return goals;
+    }
+
+    private String getNameFromEE(String currentName) {
+        String name = HEAD.equals(currentName) ? HEAD : commits.get(currentName);
+        if (NOT_AVAILABLE.equals(name)) {
+            printRed("There is no OS commit for %s", currentName);
+            System.exit(1);
+        }
+        return name;
     }
 
     private boolean executeTest(File projectRoot, List<String> goals) throws MavenInvocationException {
