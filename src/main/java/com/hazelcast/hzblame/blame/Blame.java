@@ -113,32 +113,33 @@ public class Blame extends AbstractGitClass {
     }
 
     private boolean runTest(File projectRoot, List<String> goals) throws MavenInvocationException {
+        System.out.printf("[%s] Executing %s... ", isEE ? "EE" : "OS", commandLineOptions.getTestClass());
         InvocationRequest request = new DefaultInvocationRequest()
                 .setBatchMode(true)
                 .setBaseDirectory(projectRoot)
                 .setPomFile(new File(projectRoot, "pom.xml"))
                 .setGoals(goals);
         InvocationResult result = invoker.execute(request);
-
-        if (isDebug()) {
-            outputHandler.printAll();
-        }
-        if (outputHandler.contains("No tests were executed!")) {
-            printRed("%nTest could not be found, please check if you have specified the correct module and profile!");
-            return false;
-        }
-        if (outputHandler.contains("COMPILATION ERROR")) {
-            printRed("%nThere were compilation errors!");
-            return false;
-        }
-        outputHandler.clear();
-
         int exitCode = result.getExitCode();
         if (exitCode == 0) {
             printGreen("SUCCESS");
         } else {
             printRed("FAILURE");
         }
+
+        if (isDebug()) {
+            outputHandler.printAll();
+        }
+        if (outputHandler.contains("COMPILATION ERROR")) {
+            printRed("There were compilation errors!");
+            return false;
+        }
+        if (outputHandler.contains("No tests were executed!")) {
+            printRed("Test could not be found, please check if you have specified the correct module and profile!");
+            return false;
+        }
+        outputHandler.clear();
+
         return exitCode == 0;
     }
 }
