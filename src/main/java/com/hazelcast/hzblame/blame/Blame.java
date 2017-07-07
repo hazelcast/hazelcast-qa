@@ -124,7 +124,11 @@ public class Blame extends AbstractGitClass {
             outputHandler.printAll();
         }
         if (outputHandler.contains("No tests were executed!")) {
-            printRed("Test could not be found, please check if you have specified the correct module and profile!");
+            printRed("%nTest could not be found, please check if you have specified the correct module and profile!");
+            return false;
+        }
+        if (outputHandler.contains("COMPILATION ERROR")) {
+            printRed("%nThere were compilation errors!");
             return false;
         }
         outputHandler.clear();
