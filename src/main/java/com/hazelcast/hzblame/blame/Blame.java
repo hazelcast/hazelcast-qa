@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.utils.CsvUtils.readCSV;
 import static com.hazelcast.utils.DebugUtils.debug;
@@ -119,12 +120,16 @@ public class Blame extends AbstractGitClass {
                 .setBaseDirectory(projectRoot)
                 .setPomFile(new File(projectRoot, "pom.xml"))
                 .setGoals(goals);
+
+        long started = System.nanoTime();
         InvocationResult result = invoker.execute(request);
+        long elapsedSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - started);
+
         int exitCode = result.getExitCode();
         if (exitCode == 0) {
-            printGreen("SUCCESS");
+            printGreen("SUCCESS (%d seconds)", elapsedSeconds);
         } else {
-            printRed("FAILURE");
+            printRed("FAILURE (%d seconds)", elapsedSeconds);
         }
 
         if (isDebug()) {

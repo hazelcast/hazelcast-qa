@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.hazelcast.utils.DebugUtils.isDebug;
@@ -121,7 +122,10 @@ public final class GitUtils {
                 .setBaseDirectory(projectRoot)
                 .setPomFile(new File(projectRoot, "pom.xml"))
                 .setGoals(asList("clean", "install", "-DskipTests"));
+
+        long started = System.nanoTime();
         InvocationResult result = invoker.execute(request);
+        long elapsedSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - started);
 
         if (isDebug()) {
             outputHandler.printErrors();
@@ -130,9 +134,9 @@ public final class GitUtils {
 
         int exitCode = result.getExitCode();
         if (exitCode == 0) {
-            printGreen("SUCCESS");
+            printGreen("SUCCESS (%d seconds)", elapsedSeconds);
         } else {
-            printRed("FAILURE");
+            printRed("FAILURE (%d seconds)", elapsedSeconds);
         }
         return exitCode == 0;
     }
