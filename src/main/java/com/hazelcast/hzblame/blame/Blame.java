@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import static com.hazelcast.utils.CsvUtils.readCSV;
 import static com.hazelcast.utils.DebugUtils.debug;
 import static com.hazelcast.utils.DebugUtils.isDebug;
+import static com.hazelcast.utils.DebugUtils.print;
 import static com.hazelcast.utils.DebugUtils.printGreen;
 import static com.hazelcast.utils.DebugUtils.printRed;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
@@ -76,15 +77,18 @@ public class Blame extends AbstractGitClass {
         initRepositories(branchName);
 
         File projectRoot = getProjectRoot();
-        List<String> goals = getTestRunGoals();
-        debug("Goals: %s", goals);
-
+        List<String> goals = getMavenGoals();
+        debug("Maven goals: %s", goals);
         if (isEE) {
             readCSV(commitPath, commits);
-            compile(invoker, outputHandler, gitOS, currentCommitOS, false);
         }
 
-        runTest(projectRoot, goals);
+        compile(invoker, outputHandler, gitOS, currentCommitOS, false);
+        if (isEE) {
+            compile(invoker, outputHandler, gitEE, currentCommitEE, true);
+        }
+
+        executeTest(projectRoot, goals);
 
         cleanupBranch(branchName, gitOS);
         cleanupBranch(branchName, gitEE);
@@ -95,7 +99,7 @@ public class Blame extends AbstractGitClass {
         return git.getRepository().getDirectory().getParentFile();
     }
 
-    private List<String> getTestRunGoals() {
+    private List<String> getMavenGoals() {
         String testModule = isEE ? "hazelcast-enterprise" : "hazelcast";
         if (commandLineOptions.hasTestModule()) {
             testModule = commandLineOptions.getTestModule();
@@ -103,7 +107,6 @@ public class Blame extends AbstractGitClass {
         String testMethod = commandLineOptions.hasTestMethod() ? "#" + commandLineOptions.getTestMethod() : "";
 
         List<String> goals = new LinkedList<>();
-        goals.add("clean");
         goals.add("test");
         if (commandLineOptions.hasMavenProfile()) {
             goals.add("-P" + commandLineOptions.getMavenProfile());
@@ -113,7 +116,7 @@ public class Blame extends AbstractGitClass {
         return goals;
     }
 
-    private boolean runTest(File projectRoot, List<String> goals) throws MavenInvocationException {
+    private boolean executeTest(File projectRoot, List<String> goals) throws MavenInvocationException {
         System.out.printf("[%s] Executing %s... ", isEE ? "EE" : "OS", commandLineOptions.getTestClass());
         InvocationRequest request = new DefaultInvocationRequest()
                 .setBatchMode(true)
@@ -133,7 +136,11 @@ public class Blame extends AbstractGitClass {
         }
 
         if (isDebug()) {
+            print("\n================================================================================");
+            print("================================= Maven output =================================");
+            print("================================================================================");
             outputHandler.printAll();
+            print("================================================================================\n");
         }
         if (outputHandler.contains("COMPILATION ERROR")) {
             printRed("There were compilation errors!");
