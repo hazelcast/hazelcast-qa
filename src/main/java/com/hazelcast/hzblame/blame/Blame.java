@@ -48,6 +48,7 @@ import static com.hazelcast.utils.DebugUtils.print;
 import static com.hazelcast.utils.DebugUtils.printGreen;
 import static com.hazelcast.utils.DebugUtils.printRed;
 import static com.hazelcast.utils.DebugUtils.printYellow;
+import static com.hazelcast.utils.GitUtils.asString;
 import static com.hazelcast.utils.GitUtils.checkout;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
@@ -186,6 +187,9 @@ public class Blame extends AbstractGitClass {
                     return false;
                 }
                 if (setCurrentNameOSandEE(currentCommitEE.getName())) {
+                    if (tryCount > 0) {
+                        System.out.println();
+                    }
                     break;
                 }
             } while (++tryCount < MAX_EE_COMMIT_SKIPS);
@@ -200,12 +204,12 @@ public class Blame extends AbstractGitClass {
         return true;
     }
 
-    private boolean setCurrentNameOSandEE(String currentName) {
+    private boolean setCurrentNameOSandEE(String currentName) throws IOException {
         currentNameOS = currentName;
         if (isEE) {
             currentNameOS = HEAD.equals(currentName) ? HEAD : commits.get(currentName);
             if (NOT_AVAILABLE.equals(currentNameOS)) {
-                printYellow("There is no OS commit for %s", currentNameEE);
+                printYellow("There is no OS commit for EE %s", asString(getCommit(repoEE, walkEE, currentName)));
                 return false;
             }
             currentNameEE = currentName;
