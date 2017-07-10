@@ -72,6 +72,7 @@ public class Blame extends AbstractGitClass {
     private final boolean isDry;
     private final boolean isEE;
     private final int limit;
+    private final int retriesOnTestSuccess;
 
     private String currentNameOS;
     private String currentNameEE;
@@ -85,6 +86,7 @@ public class Blame extends AbstractGitClass {
         this.isDry = commandLineOptions.isDry();
         this.isEE = commandLineOptions.isEE();
         this.limit = commandLineOptions.getLimit();
+        this.retriesOnTestSuccess = commandLineOptions.getRetriesOnTestSuccess();
 
         this.branchName = "blame-" + UUID.randomUUID();
         this.outputHandler = new BufferingOutputHandler();
@@ -105,13 +107,22 @@ public class Blame extends AbstractGitClass {
 
         try {
             while (setNextCommit()) {
+                // compile version
                 checkout(branchName, gitOS, currentCommitOS);
                 compile(invoker, outputHandler, gitOS, currentCommitOS, isDry, false);
                 if (isEE) {
                     checkout(branchName, gitEE, currentCommitEE);
                     compile(invoker, outputHandler, gitEE, currentCommitEE, isDry, true);
                 }
-                if (executeTest(projectRoot, goals)) {
+                // execute test
+                int successCount = 0;
+                for (int retryCount = 1; retryCount <= retriesOnTestSuccess; retryCount++) {
+                    if (!executeTest(projectRoot, goals, retryCount)) {
+                        break;
+                    }
+                    successCount++;
+                }
+                if (successCount == retriesOnTestSuccess) {
                     printGreen("Test passed without errors!");
                     break;
                 }
@@ -221,8 +232,9 @@ public class Blame extends AbstractGitClass {
         return true;
     }
 
-    private boolean executeTest(File projectRoot, List<String> goals) throws MavenInvocationException {
-        System.out.printf("[%s] Executing %s... ", isEE ? "EE" : "OS", commandLineOptions.getTestClass());
+    private boolean executeTest(File projectRoot, List<String> goals, int retryCount) throws MavenInvocationException {
+        String message = retriesOnTestSuccess > 1 ? "[%s] Executing %s (%d/%d)... " : "[%s] Executing %s... ";
+        System.out.printf(message, isEE ? "EE" : "OS", commandLineOptions.getTestClass(), retryCount, retriesOnTestSuccess);
         if (isDry) {
             printRed("FAILURE (dry run)");
             return false;

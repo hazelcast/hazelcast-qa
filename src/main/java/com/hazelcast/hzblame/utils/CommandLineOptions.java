@@ -70,12 +70,16 @@ public class CommandLineOptions {
             .withRequiredArg().ofType(SearchMode.class).defaultsTo(SearchMode.LINEAR);
 
     private final OptionSpec<Integer> limitSpec = parser.accepts("limit",
-            "Specifies the number of commits to execute. A value < 1 will test all available commits."
-    ).withRequiredArg().ofType(Integer.class).defaultsTo(DEFAULT_LIMIT);
+            "Specifies the number of commits to execute. A value < 1 will test all available commits.")
+            .withRequiredArg().ofType(Integer.class).defaultsTo(DEFAULT_LIMIT);
 
     private final OptionSpec<String> startCommitSpec = parser.accepts("startCommit",
             "Specifies the commit to start the search with.")
             .withRequiredArg().ofType(String.class);
+
+    private final OptionSpec<Integer> retriesOnTestSuccessSpec = parser.accepts("retriesOnTestSuccess",
+            "Specifies how often a successful test execution will be retried, before stopping the search.")
+            .withRequiredArg().ofType(Integer.class).defaultsTo(1);
 
     private final PropertyReader propertyReader;
     private final OptionSet options;
@@ -146,6 +150,10 @@ public class CommandLineOptions {
 
     public String getStartCommit() {
         return options.has(startCommitSpec) ? options.valueOf(startCommitSpec) : HEAD;
+    }
+
+    public int getRetriesOnTestSuccess() {
+        return options.valueOf(retriesOnTestSuccessSpec);
     }
 
     private OptionSet initOptions(String[] args) {
