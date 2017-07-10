@@ -70,6 +70,7 @@ public class Blame extends AbstractGitClass {
     private final CommandLineOptions commandLineOptions;
 
     private final boolean isEE;
+    private final int limit;
 
     private String currentNameOS;
     private String currentNameEE;
@@ -81,6 +82,7 @@ public class Blame extends AbstractGitClass {
         this.commandLineOptions = commandLineOptions;
 
         this.isEE = commandLineOptions.isEE();
+        this.limit = commandLineOptions.getLimit();
 
         this.branchName = "blame-" + UUID.randomUUID();
         this.outputHandler = new BufferingOutputHandler();
@@ -142,7 +144,7 @@ public class Blame extends AbstractGitClass {
     }
 
     private boolean setNextCommit() throws IOException {
-        if (counter++ >= commandLineOptions.getLimit()) {
+        if (limit > 0 && counter++ >= limit) {
             printGreen("Done!");
             return false;
         }

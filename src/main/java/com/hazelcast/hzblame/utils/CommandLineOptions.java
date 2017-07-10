@@ -29,7 +29,7 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class CommandLineOptions {
 
-    private static final int DEFAULT_LIMIT = 10;
+    private static final int DEFAULT_LIMIT = 0;
 
     private static final int HELP_WIDTH = 160;
     private static final int HELP_INDENTATION = 2;
@@ -67,7 +67,7 @@ public class CommandLineOptions {
             .withRequiredArg().ofType(SearchMode.class).defaultsTo(SearchMode.LINEAR);
 
     private final OptionSpec<Integer> limitSpec = parser.accepts("limit",
-            "Specifies the number of commits to execute."
+            "Specifies the number of commits to execute. A value < 1 will test all available commits."
     ).withRequiredArg().ofType(Integer.class).defaultsTo(DEFAULT_LIMIT);
 
     private final OptionSpec<String> startCommitSpec = parser.accepts("startCommit",
