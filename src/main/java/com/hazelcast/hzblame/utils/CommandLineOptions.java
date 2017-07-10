@@ -23,8 +23,13 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import java.io.IOException;
+import java.util.Arrays;
+
+import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class CommandLineOptions {
+
+    private static final int DEFAULT_LIMIT = 10;
 
     private static final int HELP_WIDTH = 160;
     private static final int HELP_INDENTATION = 2;
@@ -56,6 +61,14 @@ public class CommandLineOptions {
     private final OptionSpec<String> testMethodSpec = parser.accepts("testMethod",
             "Specifies the test method to execute.")
             .withRequiredArg().ofType(String.class);
+
+    private final OptionSpec<SearchMode> searchModeSpec = parser.accepts("searchMode",
+            "Specifies the search mode. Default: " + SearchMode.LINEAR + " (" + Arrays.toString(SearchMode.values()) + ")")
+            .withRequiredArg().ofType(SearchMode.class).defaultsTo(SearchMode.LINEAR);
+
+    private final OptionSpec<Integer> limitSpec = parser.accepts("limit",
+            "Specifies the number of commits to execute."
+    ).withRequiredArg().ofType(Integer.class).defaultsTo(DEFAULT_LIMIT);
 
     private final OptionSpec<String> startCommitSpec = parser.accepts("startCommit",
             "Specifies the commit to start the search with.")
@@ -116,12 +129,16 @@ public class CommandLineOptions {
         return options.valueOf(testMethodSpec);
     }
 
-    public boolean hasStartCommit() {
-        return options.has(startCommitSpec);
+    public SearchMode getSearchMode() {
+        return options.valueOf(searchModeSpec);
+    }
+
+    public int getLimit() {
+        return options.valueOf(limitSpec);
     }
 
     public String getStartCommit() {
-        return options.valueOf(startCommitSpec);
+        return options.has(startCommitSpec) ? options.valueOf(startCommitSpec) : HEAD;
     }
 
     private OptionSet initOptions(String[] args) {

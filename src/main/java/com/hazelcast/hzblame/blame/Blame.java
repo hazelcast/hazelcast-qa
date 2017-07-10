@@ -29,6 +29,8 @@ import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -45,14 +47,18 @@ import static com.hazelcast.utils.DebugUtils.isDebug;
 import static com.hazelcast.utils.DebugUtils.print;
 import static com.hazelcast.utils.DebugUtils.printGreen;
 import static com.hazelcast.utils.DebugUtils.printRed;
+import static com.hazelcast.utils.DebugUtils.printYellow;
 import static com.hazelcast.utils.GitUtils.checkout;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.getCommit;
+import static com.hazelcast.utils.GitUtils.getFirstParent;
 import static java.lang.String.format;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class Blame extends AbstractGitClass {
+
+    private static final int MAX_EE_COMMIT_SKIPS = 10;
 
     private final Path commitPath = Paths.get("ee-os.csv");
     private final Map<String, String> commits = new HashMap<>();
@@ -64,6 +70,11 @@ public class Blame extends AbstractGitClass {
     private final CommandLineOptions commandLineOptions;
 
     private final boolean isEE;
+
+    private String currentNameOS;
+    private String currentNameEE;
+
+    private int counter;
 
     public Blame(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
         super(propertyReader);
@@ -87,17 +98,20 @@ public class Blame extends AbstractGitClass {
         if (isEE) {
             readCSV(commitPath, commits);
         }
-        String currentName = commandLineOptions.hasStartCommit() ? commandLineOptions.getStartCommit() : HEAD;
 
-        currentCommitOS = getCommit(repoOS, walkOS, isEE ? getNameFromEE(currentName) : currentName);
-        checkout(branchName, gitOS, currentCommitOS);
-        compile(invoker, outputHandler, gitOS, currentCommitOS, false);
-        if (isEE) {
-            currentCommitEE = getCommit(repoEE, walkEE, currentName);
-            checkout(branchName, gitEE, currentCommitEE);
-            compile(invoker, outputHandler, gitEE, currentCommitEE, true);
+        while (setNextCommit()) {
+            checkout(branchName, gitOS, currentCommitOS);
+            compile(invoker, outputHandler, gitOS, currentCommitOS, false);
+            if (isEE) {
+                checkout(branchName, gitEE, currentCommitEE);
+                compile(invoker, outputHandler, gitEE, currentCommitEE, true);
+            }
+            if (executeTest(projectRoot, goals)) {
+                printGreen("Test passed without errors!");
+                break;
+            }
+            System.out.println();
         }
-        executeTest(projectRoot, goals);
 
         cleanupBranch(branchName, gitOS);
         cleanupBranch(branchName, gitEE);
@@ -125,13 +139,73 @@ public class Blame extends AbstractGitClass {
         return goals;
     }
 
-    private String getNameFromEE(String currentName) {
-        String name = HEAD.equals(currentName) ? HEAD : commits.get(currentName);
-        if (NOT_AVAILABLE.equals(name)) {
-            printRed("There is no OS commit for %s", currentName);
-            System.exit(1);
+    private boolean setNextCommit() throws IOException {
+        if (counter++ >= commandLineOptions.getLimit()) {
+            printGreen("Done!");
+            return false;
         }
-        return name;
+        if (counter == 1) {
+            return setFirstCommit();
+        }
+        switch (commandLineOptions.getSearchMode()) {
+            case LINEAR:
+                return setNextCommitLinear();
+            case BINARY:
+                throw new UnsupportedOperationException("The BINARY search mode is not implemented yet!");
+            default:
+                throw new UnsupportedEncodingException("Unknown search mode: " + commandLineOptions.getSearchMode());
+        }
+    }
+
+    private boolean setFirstCommit() throws IOException {
+        String startCommit = commandLineOptions.getStartCommit();
+        if (!setCurrentNameOSandEE(startCommit)) {
+            printRed("Could not find OS commit for " + startCommit);
+            return false;
+        }
+        currentCommitOS = getCommit(repoOS, walkOS, currentNameOS);
+        if (isEE) {
+            currentCommitEE = getCommit(repoEE, walkEE, currentNameEE);
+        }
+        return true;
+    }
+
+    private boolean setNextCommitLinear() throws IOException {
+        if (isEE) {
+            int tryCount = 0;
+            do {
+                currentCommitEE = getFirstParent(currentCommitEE, walkEE);
+                if (currentCommitEE == null) {
+                    print("Reached the last EE commit!");
+                    return false;
+                }
+                if (setCurrentNameOSandEE(currentCommitEE.getName())) {
+                    break;
+                }
+            } while (++tryCount < MAX_EE_COMMIT_SKIPS);
+            currentCommitOS = getCommit(repoOS, walkOS, currentNameOS);
+        } else {
+            currentCommitOS = getFirstParent(currentCommitOS, walkOS);
+            if (currentCommitOS == null) {
+                print("Reached the last OS commit!");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean setCurrentNameOSandEE(String currentName) {
+        currentNameOS = currentName;
+        if (isEE) {
+            currentNameOS = HEAD.equals(currentName) ? HEAD : commits.get(currentName);
+            if (NOT_AVAILABLE.equals(currentNameOS)) {
+                printYellow("There is no OS commit for %s", currentNameEE);
+                return false;
+            }
+            currentNameEE = currentName;
+            return true;
+        }
+        return true;
     }
 
     private boolean executeTest(File projectRoot, List<String> goals) throws MavenInvocationException {
