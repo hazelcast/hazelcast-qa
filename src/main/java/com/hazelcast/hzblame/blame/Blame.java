@@ -146,7 +146,7 @@ public class Blame extends AbstractGitClass {
     }
 
     private boolean setNextCommit() throws IOException {
-        if (limit > 0 && counter++ >= limit) {
+        if (counter++ >= limit && limit > 0) {
             printGreen("Done!");
             return false;
         }
