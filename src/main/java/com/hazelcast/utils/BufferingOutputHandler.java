@@ -43,13 +43,20 @@ public class BufferingOutputHandler implements InvocationOutputHandler {
         return false;
     }
 
-    public String getLine(String pattern) {
+    public Object getTestFailures() {
+        StringBuilder sb = new StringBuilder();
+        boolean print = false;
         for (String line : lines) {
-            if (line.contains(pattern)) {
-                return line;
+            if (line.contains("Failed tests:")) {
+                print = true;
+            } else if (print) {
+                if (line.isEmpty()) {
+                    return sb.toString();
+                }
+                sb.append(line);
             }
         }
-        return null;
+        return "No error logs were found!";
     }
 
     public void printErrors() {

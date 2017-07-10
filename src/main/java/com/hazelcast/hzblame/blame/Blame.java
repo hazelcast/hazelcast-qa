@@ -249,7 +249,7 @@ public class Blame extends AbstractGitClass {
             errorMsg = "Test could not be found, please check if you have specified the correct module and profile!";
             success = false;
         } else if (outputHandler.contains("[ERROR] There are test failures.")) {
-            errorMsg = format("There were test failures!%n%s", outputHandler.getLine("»"));
+            errorMsg = format("There were test failures!%n%s", outputHandler.getTestFailures());
             success = false;
         }
 
