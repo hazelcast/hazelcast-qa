@@ -66,7 +66,7 @@ public class CommandLineOptions {
             .withRequiredArg().ofType(String.class);
 
     private final OptionSpec<SearchMode> searchModeSpec = parser.accepts("searchMode",
-            "Specifies the search mode. Default: " + SearchMode.LINEAR + " (" + Arrays.toString(SearchMode.values()) + ")")
+            "Specifies the search mode. Allowed values: " + Arrays.toString(SearchMode.values()))
             .withRequiredArg().ofType(SearchMode.class).defaultsTo(SearchMode.LINEAR);
 
     private final OptionSpec<Integer> limitSpec = parser.accepts("limit",
