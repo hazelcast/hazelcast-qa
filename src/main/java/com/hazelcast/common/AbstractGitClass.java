@@ -33,8 +33,6 @@ import static com.hazelcast.utils.Repository.OS;
 
 public abstract class AbstractGitClass {
 
-    private final PropertyReader propertyReader;
-
     protected Git gitOS;
     protected Git gitEE;
 
@@ -47,6 +45,8 @@ public abstract class AbstractGitClass {
     protected RevCommit currentCommitOS;
     protected RevCommit currentCommitEE;
     protected RevCommit lastCommitOS;
+
+    private final PropertyReader propertyReader;
 
     protected AbstractGitClass(PropertyReader propertyReader) {
         this.propertyReader = propertyReader;
