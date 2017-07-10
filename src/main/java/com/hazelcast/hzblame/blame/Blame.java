@@ -238,10 +238,10 @@ public class Blame extends AbstractGitClass {
         InvocationResult result = invoker.execute(request);
         long elapsedSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - started);
 
-        boolean success = result.getExitCode() == 0;
         String errorMsg = outputHandler.findErrors();
+        boolean success = errorMsg == null && result.getExitCode() == 0;
 
-        if (success && errorMsg == null) {
+        if (success) {
             printGreen("SUCCESS (%d seconds)", elapsedSeconds);
         } else {
             printRed("FAILURE (%d seconds)", elapsedSeconds);
