@@ -23,6 +23,7 @@ import java.util.List;
 
 import static com.hazelcast.utils.DebugUtils.print;
 import static com.hazelcast.utils.DebugUtils.printRed;
+import static java.lang.String.format;
 
 @SuppressWarnings("WeakerAccess")
 public class BufferingOutputHandler implements InvocationOutputHandler {
@@ -32,6 +33,17 @@ public class BufferingOutputHandler implements InvocationOutputHandler {
     @Override
     public void consumeLine(String line) {
         lines.add(line);
+    }
+
+    public String findErrors() {
+        if (contains("COMPILATION ERROR")) {
+            return "There were compilation errors!";
+        } else if (contains("No tests were executed!")) {
+            return "Test could not be found, please check if you have specified the correct module and profile!";
+        } else if (contains("[ERROR] There are test failures.")) {
+            return format("There were test failures!%n%s", getTestFailures());
+        }
+        return null;
     }
 
     public boolean contains(String pattern) {

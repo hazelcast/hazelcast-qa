@@ -54,7 +54,6 @@ import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.getCommit;
 import static com.hazelcast.utils.GitUtils.getFirstParent;
-import static java.lang.String.format;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class Blame extends AbstractGitClass {
@@ -239,21 +238,10 @@ public class Blame extends AbstractGitClass {
         InvocationResult result = invoker.execute(request);
         long elapsedSeconds = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - started);
 
-        String errorMsg = null;
         boolean success = result.getExitCode() == 0;
+        String errorMsg = outputHandler.findErrors();
 
-        if (outputHandler.contains("COMPILATION ERROR")) {
-            errorMsg = "There were compilation errors!";
-            success = false;
-        } else if (outputHandler.contains("No tests were executed!")) {
-            errorMsg = "Test could not be found, please check if you have specified the correct module and profile!";
-            success = false;
-        } else if (outputHandler.contains("[ERROR] There are test failures.")) {
-            errorMsg = format("There were test failures!%n%s", outputHandler.getTestFailures());
-            success = false;
-        }
-
-        if (success) {
+        if (success && errorMsg == null) {
             printGreen("SUCCESS (%d seconds)", elapsedSeconds);
         } else {
             printRed("FAILURE (%d seconds)", elapsedSeconds);
