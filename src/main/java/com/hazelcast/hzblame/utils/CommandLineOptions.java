@@ -39,6 +39,9 @@ public class CommandLineOptions {
     private final OptionSpec verboseSpec = parser.accepts("verbose",
             "Prints debug output.");
 
+    private final OptionSpec drySpec = parser.accepts("dry",
+            "Just prints the commit iterations, no compilation or test execution will be triggered.");
+
     private final OptionSpec eeSpec = parser.accepts("ee",
             "Specifies if OS or EE will be used.");
 
@@ -95,6 +98,10 @@ public class CommandLineOptions {
 
     public boolean isVerbose() {
         return options.has(verboseSpec);
+    }
+
+    public boolean isDry() {
+        return options.has(drySpec);
     }
 
     public boolean isEE() {

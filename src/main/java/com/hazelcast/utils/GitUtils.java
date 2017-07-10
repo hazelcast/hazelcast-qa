@@ -117,11 +117,16 @@ public final class GitUtils {
     }
 
     public static boolean compile(Invoker invoker, BufferingOutputHandler outputHandler, Git git, RevCommit commit,
-                                  boolean isEE) throws MavenInvocationException {
+                                  boolean isDry, boolean isEE) throws MavenInvocationException {
         String label = isEE ? "EE" : "OS";
         int counter = isEE ? COMPILE_COUNTER_EE.incrementAndGet() : COMPILE_COUNTER_OS.incrementAndGet();
         System.out.printf("[%s] [%3d] Compiling %s... ", label, counter, asString(commit));
         File projectRoot = git.getRepository().getDirectory().getParentFile();
+
+        if (isDry) {
+            printGreen("SUCCESS (dry run)");
+            return true;
+        }
 
         InvocationRequest request = new DefaultInvocationRequest()
                 .setBatchMode(true)

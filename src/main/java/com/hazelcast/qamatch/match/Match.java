@@ -110,8 +110,8 @@ public class Match extends AbstractGitClass {
 
     private void forwardSearchOS(int limit) throws MavenInvocationException, GitAPIException {
         while (reverseCompatibilityMap.size() < limit) {
-            if (compile(invoker, outputHandler, gitOS, currentCommitOS, false)) {
-                if (compile(invoker, outputHandler, gitEE, currentCommitEE, true)) {
+            if (compile(invoker, outputHandler, gitOS, currentCommitOS, false, false)) {
+                if (compile(invoker, outputHandler, gitEE, currentCommitEE, false, true)) {
                     storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
                 } else {
                     // jump to forward search EE
@@ -129,7 +129,7 @@ public class Match extends AbstractGitClass {
         while (reverseCompatibilityMap.size() < limit) {
             currentCommitEE = getFirstParent(currentCommitEE, walkEE);
             checkout(branchName, gitEE, currentCommitEE);
-            if (compile(invoker, outputHandler, gitEE, currentCommitEE, true)) {
+            if (compile(invoker, outputHandler, gitEE, currentCommitEE, false, true)) {
                 storeCompatibleCommits(currentCommitOS, currentCommitEE, limit);
                 // we found a passing EE commit, we can stop here
                 break;
@@ -160,12 +160,12 @@ public class Match extends AbstractGitClass {
 
     private void backwardSearchEE(int limit) throws GitAPIException, MavenInvocationException {
         checkout(branchName, gitOS, lastCommitOS);
-        compile(invoker, outputHandler, gitOS, lastCommitOS, false);
+        compile(invoker, outputHandler, gitOS, lastCommitOS, false, false);
         Iterator<RevCommit> failedCommitsIterator = failedCommitsEE.iterator();
         while (failedCommitsIterator.hasNext()) {
             RevCommit failedCommit = failedCommitsIterator.next();
             checkout(branchName, gitEE, failedCommit);
-            if (compile(invoker, outputHandler, gitEE, failedCommit, true)) {
+            if (compile(invoker, outputHandler, gitEE, failedCommit, false, true)) {
                 storeCompatibleCommits(lastCommitOS, failedCommit, limit);
                 failedCommitsIterator.remove();
             } else {

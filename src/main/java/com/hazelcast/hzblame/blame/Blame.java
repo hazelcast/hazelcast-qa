@@ -69,6 +69,7 @@ public class Blame extends AbstractGitClass {
 
     private final CommandLineOptions commandLineOptions;
 
+    private final boolean isDry;
     private final boolean isEE;
     private final int limit;
 
@@ -81,6 +82,7 @@ public class Blame extends AbstractGitClass {
         super(propertyReader);
         this.commandLineOptions = commandLineOptions;
 
+        this.isDry = commandLineOptions.isDry();
         this.isEE = commandLineOptions.isEE();
         this.limit = commandLineOptions.getLimit();
 
@@ -104,10 +106,10 @@ public class Blame extends AbstractGitClass {
         try {
             while (setNextCommit()) {
                 checkout(branchName, gitOS, currentCommitOS);
-                compile(invoker, outputHandler, gitOS, currentCommitOS, false);
+                compile(invoker, outputHandler, gitOS, currentCommitOS, isDry, false);
                 if (isEE) {
                     checkout(branchName, gitEE, currentCommitEE);
-                    compile(invoker, outputHandler, gitEE, currentCommitEE, true);
+                    compile(invoker, outputHandler, gitEE, currentCommitEE, isDry, true);
                 }
                 if (executeTest(projectRoot, goals)) {
                     printGreen("Test passed without errors!");
@@ -214,6 +216,11 @@ public class Blame extends AbstractGitClass {
 
     private boolean executeTest(File projectRoot, List<String> goals) throws MavenInvocationException {
         System.out.printf("[%s] Executing %s... ", isEE ? "EE" : "OS", commandLineOptions.getTestClass());
+        if (isDry) {
+            printRed("FAILURE (dry run)");
+            return false;
+        }
+
         InvocationRequest request = new DefaultInvocationRequest()
                 .setBatchMode(true)
                 .setBaseDirectory(projectRoot)
