@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.hazelcast.utils.DebugUtils.print;
+import static com.hazelcast.utils.DebugUtils.debug;
 import static com.hazelcast.utils.DebugUtils.printRed;
 import static java.nio.file.Files.lines;
 
@@ -41,6 +41,6 @@ public final class CsvUtils {
         } catch (IOException e) {
             printRed("Could not read commits [%s] %s", e.getClass().getSimpleName(), e.getMessage());
         }
-        print("Found %d commits in %s", commits.size(), commitPath.getFileName());
+        debug("Found %d commits in %s", commits.size(), commitPath.getFileName());
     }
 }
