@@ -193,6 +193,10 @@ public class Blame extends AbstractGitClass {
                     break;
                 }
             } while (++tryCount < MAX_EE_COMMIT_SKIPS);
+            if (currentNameOS == null) {
+                printRed("Didn't find any more OS commits, giving up...");
+                return false;
+            }
             currentCommitOS = getCommit(repoOS, walkOS, currentNameOS);
         } else {
             currentCommitOS = getFirstParent(currentCommitOS, walkOS);
@@ -208,7 +212,7 @@ public class Blame extends AbstractGitClass {
         currentNameOS = currentName;
         if (isEE) {
             currentNameOS = HEAD.equals(currentName) ? HEAD : commits.get(currentName);
-            if (NOT_AVAILABLE.equals(currentNameOS)) {
+            if (NOT_AVAILABLE.equals(currentNameOS) || currentNameOS == null) {
                 printYellow("There is no OS commit for EE %s", asString(getCommit(repoEE, walkEE, currentName)));
                 return false;
             }
