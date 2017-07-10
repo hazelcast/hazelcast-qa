@@ -99,22 +99,24 @@ public class Blame extends AbstractGitClass {
             readCSV(commitPath, commits);
         }
 
-        while (setNextCommit()) {
-            checkout(branchName, gitOS, currentCommitOS);
-            compile(invoker, outputHandler, gitOS, currentCommitOS, false);
-            if (isEE) {
-                checkout(branchName, gitEE, currentCommitEE);
-                compile(invoker, outputHandler, gitEE, currentCommitEE, true);
+        try {
+            while (setNextCommit()) {
+                checkout(branchName, gitOS, currentCommitOS);
+                compile(invoker, outputHandler, gitOS, currentCommitOS, false);
+                if (isEE) {
+                    checkout(branchName, gitEE, currentCommitEE);
+                    compile(invoker, outputHandler, gitEE, currentCommitEE, true);
+                }
+                if (executeTest(projectRoot, goals)) {
+                    printGreen("Test passed without errors!");
+                    break;
+                }
+                System.out.println();
             }
-            if (executeTest(projectRoot, goals)) {
-                printGreen("Test passed without errors!");
-                break;
-            }
-            System.out.println();
+        } finally {
+            cleanupBranch(branchName, gitOS);
+            cleanupBranch(branchName, gitEE);
         }
-
-        cleanupBranch(branchName, gitOS);
-        cleanupBranch(branchName, gitEE);
     }
 
     private File getProjectRoot() {
