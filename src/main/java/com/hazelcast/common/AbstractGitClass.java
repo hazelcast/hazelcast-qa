@@ -24,12 +24,18 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.hazelcast.utils.DebugUtils.print;
 import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.createBranch;
 import static com.hazelcast.utils.GitUtils.getGit;
 import static com.hazelcast.utils.GitUtils.resetCompileCounters;
 import static com.hazelcast.utils.Repository.EE;
 import static com.hazelcast.utils.Repository.OS;
+import static com.hazelcast.utils.Utils.closeQuietly;
+import static java.lang.Runtime.getRuntime;
 
 public abstract class AbstractGitClass {
 
@@ -46,13 +52,41 @@ public abstract class AbstractGitClass {
     protected RevCommit currentCommitEE;
     protected RevCommit lastCommitOS;
 
+    protected final String branchName;
+
+    private final AtomicBoolean cleanupExecuted = new AtomicBoolean();
     private final PropertyReader propertyReader;
 
-    protected AbstractGitClass(PropertyReader propertyReader) {
+    protected AbstractGitClass(String branchName, PropertyReader propertyReader) {
+        this.branchName = branchName + "-" + UUID.randomUUID();
         this.propertyReader = propertyReader;
+
+        getRuntime().addShutdownHook(new Thread(() -> {
+            print("\nAborting...");
+            try {
+                cleanup();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }));
     }
 
-    protected void initRepositories(String branchName) throws Exception {
+    public final void run() throws Exception {
+        try {
+            initRepositories(branchName);
+
+            doRun();
+        } finally {
+            cleanup();
+        }
+    }
+
+    protected abstract void doRun() throws Exception;
+
+    protected void doCleanup() throws Exception {
+    }
+
+    private void initRepositories(String branchName) throws Exception {
         gitOS = getGit(propertyReader, OS.getRepositoryName());
         gitEE = getGit(propertyReader, EE.getRepositoryName());
 
@@ -77,5 +111,17 @@ public abstract class AbstractGitClass {
         createBranch(branchName, gitEE, currentCommitEE);
 
         resetCompileCounters();
+    }
+
+    private void cleanup() throws Exception {
+        if (cleanupExecuted.compareAndSet(false, true)) {
+            cleanupBranch(branchName, gitOS);
+            cleanupBranch(branchName, gitEE);
+
+            closeQuietly(walkOS);
+            closeQuietly(walkEE);
+
+            doCleanup();
+        }
     }
 }

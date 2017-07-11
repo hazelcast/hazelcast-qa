@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.hazelcast.utils.CsvUtils.NOT_AVAILABLE;
@@ -50,7 +49,6 @@ import static com.hazelcast.utils.DebugUtils.printRed;
 import static com.hazelcast.utils.DebugUtils.printYellow;
 import static com.hazelcast.utils.GitUtils.asString;
 import static com.hazelcast.utils.GitUtils.checkout;
-import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.getCommit;
 import static com.hazelcast.utils.GitUtils.getFirstParent;
@@ -63,7 +61,6 @@ public class Blame extends AbstractGitClass {
     private final Path commitPath = Paths.get("ee-os.csv");
     private final Map<String, String> commits = new HashMap<>();
 
-    private final String branchName;
     private final BufferingOutputHandler outputHandler;
     private final Invoker invoker;
 
@@ -80,7 +77,7 @@ public class Blame extends AbstractGitClass {
     private int counter;
 
     public Blame(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
-        super(propertyReader);
+        super("blame", propertyReader);
         this.commandLineOptions = commandLineOptions;
 
         this.isDry = commandLineOptions.isDry();
@@ -88,16 +85,14 @@ public class Blame extends AbstractGitClass {
         this.limit = commandLineOptions.getLimit();
         this.retriesOnTestSuccess = commandLineOptions.getRetriesOnTestSuccess();
 
-        this.branchName = "blame-" + UUID.randomUUID();
         this.outputHandler = new BufferingOutputHandler();
         this.invoker = new DefaultInvoker()
                 .setOutputHandler(outputHandler)
                 .setMavenHome(new File("/usr/share/maven"));
     }
 
-    public void run() throws Exception {
-        initRepositories(branchName);
-
+    @Override
+    public void doRun() throws Exception {
         File projectRoot = getProjectRoot();
         List<String> goals = getMavenGoals();
         debug("Maven goals: %s", goals);
@@ -105,32 +100,27 @@ public class Blame extends AbstractGitClass {
             readCSV(commitPath, commits);
         }
 
-        try {
-            while (setNextCommit()) {
-                // compile version
-                checkout(branchName, gitOS, currentCommitOS);
-                compile(invoker, outputHandler, gitOS, currentCommitOS, isDry, false);
-                if (isEE) {
-                    checkout(branchName, gitEE, currentCommitEE);
-                    compile(invoker, outputHandler, gitEE, currentCommitEE, isDry, true);
-                }
-                // execute test
-                int successCount = 0;
-                for (int retryCount = 1; retryCount <= retriesOnTestSuccess; retryCount++) {
-                    if (!executeTest(projectRoot, goals, retryCount)) {
-                        break;
-                    }
-                    successCount++;
-                }
-                if (successCount == retriesOnTestSuccess) {
-                    printGreen("Test passed without errors!");
+        while (setNextCommit()) {
+            // compile version
+            checkout(branchName, gitOS, currentCommitOS);
+            compile(invoker, outputHandler, gitOS, currentCommitOS, isDry, false);
+            if (isEE) {
+                checkout(branchName, gitEE, currentCommitEE);
+                compile(invoker, outputHandler, gitEE, currentCommitEE, isDry, true);
+            }
+            // execute test
+            int successCount = 0;
+            for (int retryCount = 1; retryCount <= retriesOnTestSuccess; retryCount++) {
+                if (!executeTest(projectRoot, goals, retryCount)) {
                     break;
                 }
-                System.out.println();
+                successCount++;
             }
-        } finally {
-            cleanupBranch(branchName, gitOS);
-            cleanupBranch(branchName, gitEE);
+            if (successCount == retriesOnTestSuccess) {
+                printGreen("Test passed without errors!");
+                break;
+            }
+            System.out.println();
         }
     }
 

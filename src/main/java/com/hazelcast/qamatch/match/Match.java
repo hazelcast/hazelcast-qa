@@ -35,7 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
 import static com.hazelcast.utils.CsvUtils.NOT_AVAILABLE;
 import static com.hazelcast.utils.DebugUtils.debug;
@@ -44,10 +43,8 @@ import static com.hazelcast.utils.DebugUtils.printRed;
 import static com.hazelcast.utils.DebugUtils.printYellow;
 import static com.hazelcast.utils.GitUtils.asString;
 import static com.hazelcast.utils.GitUtils.checkout;
-import static com.hazelcast.utils.GitUtils.cleanupBranch;
 import static com.hazelcast.utils.GitUtils.compile;
 import static com.hazelcast.utils.GitUtils.getFirstParent;
-import static com.hazelcast.utils.Utils.closeQuietly;
 import static java.nio.file.Files.newBufferedWriter;
 import static java.util.Collections.reverseOrder;
 
@@ -64,48 +61,39 @@ public class Match extends AbstractGitClass {
 
     private final CommandLineOptions commandLineOptions;
 
-    private final String branchName;
     private final BufferingOutputHandler outputHandler;
     private final Invoker invoker;
 
     public Match(PropertyReader propertyReader, CommandLineOptions commandLineOptions) {
-        super(propertyReader);
+        super("matcher", propertyReader);
         this.commandLineOptions = commandLineOptions;
 
-        this.branchName = "matcher-" + UUID.randomUUID();
         this.outputHandler = new BufferingOutputHandler();
         this.invoker = new DefaultInvoker()
                 .setOutputHandler(outputHandler)
                 .setMavenHome(new File("/usr/share/maven"));
     }
 
-    public void run() throws Exception {
-        initRepositories(branchName);
-        failedCommitsEE.clear();
-
-        try {
-            int limit = commandLineOptions.getLimit();
-            while (reverseCompatibilityMap.size() < limit) {
-                // forward search OS
-                forwardSearchOS(limit);
-                if (reverseCompatibilityMap.size() >= limit) {
-                    break;
-                }
-
-                // forward search EE
-                forwardSearchEE(limit);
+    @Override
+    public void doRun() throws Exception {
+        int limit = commandLineOptions.getLimit();
+        while (reverseCompatibilityMap.size() < limit) {
+            // forward search OS
+            forwardSearchOS(limit);
+            if (reverseCompatibilityMap.size() >= limit) {
+                break;
             }
-        } finally {
-            cleanupBranch(branchName, gitOS);
-            cleanupBranch(branchName, gitEE);
 
-            closeQuietly(walkOS);
-            closeQuietly(walkEE);
-
-            debug("\n\n===== Results =====\n");
-            storeCompatibleCommits(compatibilityMap, compatibilityPath, false);
-            storeCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
+            // forward search EE
+            forwardSearchEE(limit);
         }
+    }
+
+    @Override
+    protected void doCleanup() throws Exception {
+        debug("\n\n===== Results =====\n");
+        storeCompatibleCommits(compatibilityMap, compatibilityPath, false);
+        storeCompatibleCommits(reverseCompatibilityMap, reverseCompatibilityPath, true);
     }
 
     private void forwardSearchOS(int limit) throws MavenInvocationException, GitAPIException {
