@@ -160,7 +160,7 @@ public final class GitUtils {
         String time = DATE_FORMATTER.format(Instant.ofEpochSecond(commit.getCommitTime()));
         String shortMessage = commit.getShortMessage();
         if (shortMessage.length() > SHORT_MESSAGE_LENGTH) {
-            shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "...";
+            shortMessage = shortMessage.substring(0, SHORT_MESSAGE_LENGTH) + "…";
         }
         String author = commit.getAuthorIdent().getName();
         return format("%s (%s): %s [%s]", sha, time, shortMessage, author);
