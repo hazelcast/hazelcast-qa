@@ -3,4 +3,4 @@
 PROJECT_HOME=~/IdeaProjects/hazelcast-qa
 JAVA_OPTS="-server -Xms64m -Xmx1g ${JAVA_EXTRA_OPTS}"
 
-java ${JAVA_OPTS} -cp ${PROJECT_HOME}/target/hazelcast-qa.jar com.hazelcast.qamatch.QaMatch "$@"
+java ${JAVA_OPTS} -cp ${PROJECT_HOME}/target/hazelcast-qa.jar com.hazelcast.hzmatch.HazelcastMatch "$@"

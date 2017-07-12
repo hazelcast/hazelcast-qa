@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qamatch.utils;
+package com.hazelcast.hzmatch.utils;
 
 public enum CommandLineAction {
 

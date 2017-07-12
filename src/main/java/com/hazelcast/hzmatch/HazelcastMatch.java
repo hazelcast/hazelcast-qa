@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qamatch;
+package com.hazelcast.hzmatch;
 
-import com.hazelcast.qamatch.match.Match;
-import com.hazelcast.qamatch.utils.CommandLineOptions;
+import com.hazelcast.hzmatch.match.Match;
+import com.hazelcast.hzmatch.utils.CommandLineOptions;
 import com.hazelcast.utils.PropertyReader;
 import com.hazelcast.utils.PropertyReaderBuilder;
 
 import static com.hazelcast.utils.DebugUtils.setDebug;
 
-public final class QaMatch {
+public final class HazelcastMatch {
 
-    private QaMatch() {
+    private HazelcastMatch() {
     }
 
     public static void main(String[] args) throws Exception {

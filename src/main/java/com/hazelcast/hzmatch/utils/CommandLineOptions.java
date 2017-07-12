@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qamatch.utils;
+package com.hazelcast.hzmatch.utils;
 
 import com.hazelcast.utils.PropertyReader;
 import joptsimple.BuiltinHelpFormatter;

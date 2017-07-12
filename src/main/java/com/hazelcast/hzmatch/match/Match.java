@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.hazelcast.qamatch.match;
+package com.hazelcast.hzmatch.match;
 
 import com.hazelcast.common.AbstractGitClass;
-import com.hazelcast.qamatch.utils.CommandLineOptions;
+import com.hazelcast.hzmatch.utils.CommandLineOptions;
 import com.hazelcast.utils.BufferingOutputHandler;
 import com.hazelcast.utils.PropertyReader;
 import org.apache.maven.shared.invoker.DefaultInvoker;
