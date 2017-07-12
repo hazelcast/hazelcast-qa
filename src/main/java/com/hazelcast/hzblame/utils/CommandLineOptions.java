@@ -75,7 +75,7 @@ public class CommandLineOptions {
 
     private final OptionSpec<String> startCommitSpec = parser.accepts("startCommit",
             "Specifies the commit to start the search with.")
-            .withRequiredArg().ofType(String.class);
+            .withRequiredArg().ofType(String.class).defaultsTo(HEAD);
 
     private final OptionSpec<Integer> retriesOnTestSuccessSpec = parser.accepts("retriesOnTestSuccess",
             "Specifies how often a successful test execution will be retried, before stopping the search.")
@@ -149,7 +149,7 @@ public class CommandLineOptions {
     }
 
     public String getStartCommit() {
-        return options.has(startCommitSpec) ? options.valueOf(startCommitSpec) : HEAD;
+        return options.valueOf(startCommitSpec);
     }
 
     public int getRetriesOnTestSuccess() {
