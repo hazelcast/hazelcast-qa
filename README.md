@@ -117,3 +117,24 @@ hz-match --limit 5
 # HZ Blame
 
 A tool to find a guilty commit via a failing reproducer.
+
+You have to give the tool the same parameters as a manual Maven execution for a single test needs. It also support Hazelcast Enterprise tests.
+
+Usage:
+```bash
+# with Maven
+mvn test -Ptest-coverage-nightly -pl hazelcast-client -Dtest=com.hazelcast.client.map.impl.nearcache.ClientMapNearCachePreloaderTest
+mvn test -Pnightly-build -pl hazelcast-enterprise -Dtest=com.hazelcast.map.HDMapMemoryLeakStressTest
+
+# with HZ Blame
+hz-blame --mavenProfile test-coverage-nightly --testModule hazelcast-client --testClass com.hazelcast.client.map.impl.nearcache.ClientMapNearCachePreloaderTest
+hz-blame --ee --mavenProfile nightly-build --testModule hazelcast-enterprise --testClass com.hazelcast.map.HDMapMemoryLeakStressTest
+```
+
+HZ Blame will execute the tests by iterating through the Hazelcast versions, until it finds a commit which passes without errors.
+
+You can limit the number of iterated commits via `--limit`.
+
+You can define a start commit via `--startCommit` to start with a previous version instead of `HEAD`.
+
+You can execute a dry run via `--dry` to check the commit traversal, but without compilation and test execution.
