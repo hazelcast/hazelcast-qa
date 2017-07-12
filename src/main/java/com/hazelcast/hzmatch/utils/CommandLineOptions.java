@@ -42,7 +42,7 @@ public class CommandLineOptions {
 
     private final OptionSpec<Integer> limitSpec = parser.accepts("limit",
             "Specifies how many EE commits should be iterated.")
-            .withOptionalArg().ofType(Integer.class);
+            .withOptionalArg().ofType(Integer.class).defaultsTo(DEFAULT_LIMIT);
 
     private final PropertyReader propertyReader;
     private final OptionSet options;
@@ -68,10 +68,7 @@ public class CommandLineOptions {
     }
 
     public int getLimit() {
-        if (options.has(limitSpec)) {
-            return options.valueOf(limitSpec);
-        }
-        return DEFAULT_LIMIT;
+        return options.valueOf(limitSpec);
     }
 
     private OptionSet initOptions(String[] args) {
