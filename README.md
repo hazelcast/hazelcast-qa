@@ -3,23 +3,29 @@ Hazelcast QA Tools
 
 A collection of tools for the QA process.
 
+# Installation
+
+Clone the repository and compile the project via Maven.
+
+```bash
+mvn clean install
+```
+
+Use the created `hazelcast-qa.jar` file to start the tools.
+There are example bash scripts in the root directory of the project.
+You might have to adjust the `PROJECT_HOME` in those script files to your project directory.
+
 # Configuration
 
-To get this tools working you have to create a single config file:
+To get the tools working you have to create a single config file.
 
 ## ~/.hazelcast-qa
 
-In this configuration file you have to put in your SonarQube and GitHub credentials as well as additional configuration parameters.
+In this configuration file you have to specify your SonarQube and GitHub credentials as well as additional configuration parameters.
+
+<b>Note:</b> For HZ Match and HZ Blame the `localGitRoot` setting is sufficient. All other settings are just needed for the QA Sonar tool.
 
 ```bash
-# SonarQube domain and credentials
-host = http://www.hostname.example
-username = username
-password = password
-
-# SonarQube Resource Id of the project
-projectResourceIds = 12345
-
 # Git configuration
 localGitRoot = /home/username/IdeaProjects/
 
@@ -28,21 +34,20 @@ gitHubLogin = username
 gitHubToken = token
 gitHubRepository = organization/repository
 
+# SonarQube domain and credentials
+host = http://www.hostname.example
+username = username
+password = password
+
+# SonarQube Resource Id of the project
+projectResourceIds = 12345
+
 # Default value for minimum code coverage
 minCodeCoverage = 85.0
 
 # Default value for minimum code coverage for modified files
 minCodeCoverageModified = 60.0
 ```
-
-# Installation
-
-```bash
-mvn clean install
-```
-
-Use the created JAR file to execute the tools.
-There are example bash scripts in the root directory of the project.
 
 # QA Sonar
 
