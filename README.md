@@ -104,6 +104,16 @@ printf "qa-sonar --outputMerge --outputFile ${MILESTONE}-failures\n" >> failures
 
 A tool to create a map of matching Hazelcast OS and EE commits, to build older versions of Hazelcast Enterprise.
 
+Usage:
+```bash
+hz-match
+```
+
+You can override the number of iterated EE commits by defining a custom limit:
+```bash
+hz-match --limit 5
+```
+
 # HZ Blame
 
 A tool to find a guilty commit via a failing reproducer.
