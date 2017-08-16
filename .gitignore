@@ -4,3 +4,6 @@
 
 ### Maven template
 target/
+
+### CSV files
+*.csv
